@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { Mascot } from "../../components/Mascot";
 import { CalendarOff, ChevronLeft, Coffee, MoreHorizontal, Store } from "lucide-react";
@@ -10,6 +10,7 @@ import { getBookingDateKey, isArtistBookingOnExactDate } from "../artist";
 import { BookingHistoryCalendarSheet } from "../profile/BookingHistoryCalendarSheet";
 import { DayNav, useDaySwipe } from "../profile/DayNav";
 import { ScheduleRow } from "../profile/ScheduleRow";
+import { buildSharedPhoneLookup } from "../salons/customers";
 import { PendingOtherDays } from "./PendingOtherDays";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { LeaveLines, LeaveSheet, useArtistLeaves } from "../team/LeaveSheet";
@@ -44,6 +45,8 @@ export function ArtistScheduleBoard({
   // On a team, or still holding a leave from one (left the salon since): a leave that blocks bookings stays removable.
   const showLeave = onTeam || leave.leaves.length > 0;
   const daySwipe = useDaySwipe(weekTabs, selectedDay, onSelectDay);
+  // «هم‌شماره با …»: the same number booked under another name (owner's decision 2026-10-31).
+  const sharedOf = useMemo(() => buildSharedPhoneLookup(bookings), [bookings]);
   const requestsById = new Map(requests.map((request) => [String(request.id), request]));
   const reviewFor = (booking) => {
     const request = booking.id != null ? requestsById.get(String(booking.id)) : null;
@@ -76,6 +79,7 @@ export function ArtistScheduleBoard({
             <ScheduleRow
               key={booking.id != null ? String(booking.id) : `artist-row-${booking.time}-${booking.client}-${index}`}
               booking={booking}
+              sharedWith={sharedOf(booking)}
               onOpenClient={onOpenClient}
               onAction={onOpenBookingMenu}
               review={reviewFor(booking)}

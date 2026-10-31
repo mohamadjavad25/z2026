@@ -8,7 +8,7 @@ import { ProfileSheet } from "../profile/ProfileSheet";
 import { bookingStatusLabel, bookingStatusTone } from "../client/bookingStatus";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
-import { buildBookingCustomers, describeFollowTime, pickFreshFollowers, phoneKey } from "./customers";
+import { buildBookingCustomers, customerMatchesQuery, describeFollowTime, pickFreshFollowers, phoneKey } from "./customers";
 import { contactPickerNeedsAppUpdate, contactPickerSupported, localPhoneOf, pickContact } from "../../shared/lib/contactPicker";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { buildClientInviteText, buildInviteSmsHref } from "../../shared/lib/inviteSms";
@@ -47,6 +47,18 @@ function Avatar({ customer, size = "" }) {
   return (
     <span className={`cuAvatar ${size} ${customer.avatar ? "hasImage" : ""}`} aria-hidden="true">
       {customer.avatar ? <img src={customer.avatar} alt="" /> : String(customer.name || "م").trim().slice(0, 1)}
+    </span>
+  );
+}
+
+/** The other names a number is known by (owner's decision 2026-10-31): two chips at most, then «+۳». */
+function OtherNames({ customer }) {
+  const others = customer.otherNames || [];
+  if (!others.length) return null;
+  return (
+    <span className="cuNames" aria-label={`اسم‌های دیگه: ${others.join("، ")}`}>
+      {others.slice(0, 2).map((name) => <i className="cuNameChip" key={name}>{name}</i>)}
+      {others.length > 2 ? <i className="cuNameChip is-more">+{toPersianDigits(others.length - 2)}</i> : null}
     </span>
   );
 }
@@ -127,6 +139,22 @@ function CustomerSheet({ customer, invite, onBook, onRemove, onClose }) {
           <span><b>{toPersianDigits(customer.upcoming)}</b>پیش‌رو</span>
           <span><b>{toPersianDigits(customer.cancelled)}</b>لغو</span>
         </div>
+        {customer.names?.length > 1 ? (
+          <>
+            <h4 className="cuHistoryTitle">اسم‌هایی که با این شماره ثبت شده</h4>
+            <ul className="cuNameRows">
+              {customer.names.map((entry) => (
+                <li key={entry.key}>
+                  <b>{entry.name}{entry.isMain ? " (اسم اصلی)" : ""}</b>
+                  <small>
+                    {entry.visitCount ? `${toPersianDigits(entry.visitCount)} بار نوبت` : "هنوز نوبتی نداره"}
+                    {entry.upcoming > 0 ? `، ${toPersianDigits(entry.upcoming)} نوبت پیش‌رو` : ""}
+                  </small>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
         {customer.bookings.length ? <h4 className="cuHistoryTitle">نوبت‌هاش</h4> : null}
         <ul className="cuHistory">
           {customer.bookings.map((booking, index) => {
@@ -138,7 +166,10 @@ function CustomerSheet({ customer, invite, onBook, onRemove, onClose }) {
                 <ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />
                 <div>
                   <b>{shortServiceLabel(booking.service) || "خدمت"}</b>
-                  <small>{date ? formatRelativeBookingDayLabel(date) : "—"}{booking.time ? `، ${toPersianDigits(booking.time)}` : ""}</small>
+                  <small>
+                    {customer.names?.length > 1 && booking.client ? `${booking.client}، ` : ""}
+                    {date ? formatRelativeBookingDayLabel(date) : "—"}{booking.time ? `، ${toPersianDigits(booking.time)}` : ""}
+                  </small>
                 </div>
                 <em className={`is-${tone}`}>{noShow ? NO_SHOW_LABEL : bookingStatusLabel(booking.status)}</em>
               </li>
@@ -237,14 +268,13 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
   const lapsedCount = useMemo(() => customers.filter((item) => isLapsed(item, todayTime)).length, [customers, todayTime]);
 
   const visibleCustomers = useMemo(() => {
-    const q = toLatinDigits(query.trim());
     let list = customers.filter((item) => {
       if (filter === "upcoming" && item.upcoming === 0) return false;
       if (filter === "repeat" && item.visitCount < 2) return false;
       if (filter === "lapsed" && !isLapsed(item, todayTime)) return false;
       if (filter === "nobooking" && !item.noBookingYet) return false;
-      if (!q) return true;
-      return item.name.includes(query.trim()) || toLatinDigits(item.phone).includes(q);
+      // Any of the names a number is known by finds the card (owner's decision 2026-10-31).
+      return customerMatchesQuery(item, query);
     });
     if (sort === "visits") list = [...list].sort((a, b) => b.visitCount - a.visitCount);
     else if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name, "fa"));
@@ -424,6 +454,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
               <span className="salonCustomerInfo">
                 <b>{customer.name}</b>
                 <PhoneLine customer={customer} />
+                <OtherNames customer={customer} />
                 {customer.lastService ? (
                   <em className="salonCustomerService"><ServiceIcon name={customer.lastService} size="xs" />{customer.lastService}</em>
                 ) : null}

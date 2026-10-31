@@ -473,6 +473,115 @@ describe("VisitBooker opened from the customers page (browser)", () => {
   });
 });
 
+// Owner's decision 2026-10-31 (one phone, several names): saving a booking under a new name for a number the salon already
+// has under another name asks first; the customers page keeps one card with both names, found by either.
+describe("one phone with two names (browser)", () => {
+  const PHONE = "09125556677";
+
+  async function seedSara() {
+    const team = await seedTeam();
+    expect((await team.salonClient.post("/api/salon-bookings", { service: H, staff: team.hair.staff.name, bookingDate: dayKeyAhead(DAY3), time: "12:00", client: "سارا", phone: PHONE })).ok).toBe(true);
+    return team;
+  }
+  /** Fills the form for `name` and `phone` and stops on the last step, ready to press «ثبت کن». */
+  async function readyToSave(page, name, phone, time = "10:00") {
+    await openBookingSheet(page);
+    await page.locator("#vb-name").fill(name);
+    await page.locator("#vb-phone").fill(phone);
+    await page.locator(".vbSubmit").click();
+    await page.locator(".vbService").first().waitFor();
+    await pickService(page, H);
+    await goOn(page);
+    await pickDay(page, DAY2);
+    await pickTime(page, time);
+    await page.locator(".vbPlanRow").first().waitFor();
+  }
+  const namesOf = async (team) => (await bookingsOf(team)).map((b) => b.client).sort();
+
+  it("asks before saving; «هر دو باشن» saves the new name and keeps the old one", async () => {
+    const team = await seedSara();
+    const { page, context, problems } = await openSalon(team);
+    await readyToSave(page, "مریم", PHONE);
+    await page.locator(".vbSubmit").click();
+    await page.locator(".nameAsk").waitFor();
+    expect(await page.locator(".nameAsk").innerText()).toContain("سارا");
+    expect(await page.locator(".nameAsk").innerText()).toContain("مریم");
+    expect(await namesOf(team)).toEqual(["سارا"]); // nothing is saved until it is answered
+    await page.locator(".nameAsk button", { hasText: "هر دو باشن" }).click();
+    await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
+    expect(await namesOf(team)).toEqual(["سارا", "مریم"]); // sorted
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+
+  it("«همون سارا بمونه» saves the new booking under the old name", async () => {
+    const team = await seedSara();
+    const { page, context } = await openSalon(team);
+    await readyToSave(page, "مریم", PHONE);
+    await page.locator(".vbSubmit").click();
+    await page.locator(".nameAsk button", { hasText: "همون «سارا» بمونه" }).click();
+    await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
+    expect(await namesOf(team)).toEqual(["سارا", "سارا"]);
+    await context.close();
+  });
+
+  it("«اسم رو عوض کن» asks once more, then puts the new name on the old booking too", async () => {
+    const team = await seedSara();
+    const { page, context } = await openSalon(team);
+    await readyToSave(page, "مریم", PHONE);
+    await page.locator(".vbSubmit").click();
+    await page.locator(".nameAsk button", { hasText: "اسم رو عوض کن" }).click();
+    await page.getByText("نوبت‌های قبلی این شماره هم با اسم «مریم» دیده می‌شن").waitFor();
+    // «نه، برگرد» goes back to the three answers and changes nothing
+    await page.locator(".nameAsk button", { hasText: "نه، برگرد" }).click();
+    await page.locator(".nameAsk button", { hasText: "هر دو باشن" }).waitFor();
+    expect(await namesOf(team)).toEqual(["سارا"]);
+    await page.locator(".nameAsk button", { hasText: "اسم رو عوض کن" }).click();
+    await page.locator(".nameAsk button", { hasText: "آره، عوض کن" }).click();
+    await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
+    expect(await namesOf(team)).toEqual(["مریم", "مریم"]);
+    await context.close();
+  });
+
+  it("does not ask for the same name, a different number, or the other name once it is saved", async () => {
+    const team = await seedSara();
+    const { page, context } = await openSalon(team);
+    await readyToSave(page, "سارا", PHONE, "10:00");
+    await page.locator(".vbSubmit").click();
+    await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
+    expect(await page.locator(".nameAsk").count()).toBe(0);
+    expect(await namesOf(team)).toEqual(["سارا", "سارا"]);
+    await context.close();
+
+    const other = await openSalon(team);
+    await readyToSave(other.page, "مریم", "09127778899", "11:00");
+    await other.page.locator(".vbSubmit").click();
+    await other.page.locator(".visitBookerSheet").waitFor({ state: "detached" });
+    expect(await other.page.locator(".nameAsk").count()).toBe(0);
+    await other.context.close();
+  }, 90_000);
+
+  it("the customers page keeps one card for the number with both names, and either name finds it", async () => {
+    const team = await seedSara();
+    expect((await team.salonClient.post("/api/salon-bookings", { service: H, staff: team.hair.staff.name, bookingDate: dayKeyAhead(DAY3), time: "14:00", client: "مریم", phone: PHONE })).ok).toBe(true);
+    const { page, context } = await openSalon(team);
+    await page.getByRole("button", { name: /مشتریان/ }).click();
+    await page.locator(".salonCustomerRow").first().waitFor();
+    // (the client who follows the salon is a card too; the two names share one card)
+    const both = page.locator(".salonCustomerRow", { hasText: "سارا" });
+    expect(await both.count()).toBe(1);
+    expect(await both.first().innerText()).toContain("مریم");
+    expect(await page.locator(".salonCustomerRow", { hasText: "مریم" }).count()).toBe(1);
+    for (const name of ["سارا", "مریم"]) {
+      await page.locator(".salonCustomersSearch input").fill(name);
+      expect(await page.locator(".salonCustomerRow").count()).toBe(1);
+    }
+    await page.locator(".salonCustomersSearch input").fill("نگار");
+    expect(await page.locator(".salonCustomerRow").count()).toBe(0);
+    await context.close();
+  });
+});
+
 describe("VisitBooker for an independent artist (browser)", () => {
   it("books two services as one entry as long as both, in their own calendar", async () => {
     const artistApi = createClient();

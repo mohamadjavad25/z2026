@@ -124,11 +124,11 @@ async function findBookingClient(row, runner) {
     // check is correct here and, unlike a REPLACE()-wrapped comparison,
     // can use the column's own UNIQUE index.
     const byNormalized = await get(runner, `
-      SELECT id, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, avatar_position FROM users WHERE phone = $1 LIMIT 1
+      SELECT id, name, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, avatar_position FROM users WHERE phone = $1 LIMIT 1
     `, [phone]);
     if (byNormalized) return byNormalized;
     const byRaw = await get(runner, `
-      SELECT id, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, avatar_position FROM users WHERE phone = $1 LIMIT 1
+      SELECT id, name, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, avatar_position FROM users WHERE phone = $1 LIMIT 1
     `, [rawPhone]);
     if (byRaw) return byRaw;
   }
@@ -738,6 +738,9 @@ export async function listSalonBookings(salonUserId) {
       ...own,
       proposal: proposalView(row),
       client_user_id: row.client_user_id || client?.id || null,
+      // The account's own name (the booking's `client` is what the salon typed): the customers list uses it as the main
+      // name of a number that has a frfro account (owner's decision 2026-10-31).
+      client_account_name: client?.name || "",
       client_avatar: avatar,
       clientAvatar: avatar,
       client_avatar_position: avatarPosition,

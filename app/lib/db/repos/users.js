@@ -1,6 +1,7 @@
 import { withTransaction, getDb, all, get, run } from "../connection.js";
 import { uploadImageDataUrl, deleteStoredImage } from "../../storage.js";
 import { nameKey } from "../../businessName.js";
+import { phoneLast10 } from "../../../shared/lib/phone.js";
 
 /**
  * Every column except the picture bytes. avatar/poster come back as a '1' / '' flag (a picture
@@ -308,6 +309,37 @@ export async function lockOldNumberBookings(userId) {
   for (const table of ["salon_bookings", "artist_bookings"]) {
     await run(db, `UPDATE ${table} SET client_user_id = $1 WHERE client_user_id IS NULL AND phone_normalized = frfro_phone_key($2)`, [Number(userId), key]);
   }
+}
+
+/**
+ * «اسم رو عوض کن» (owner's decision 2026-10-31): every booking of this owner for one phone gets one name -- the older
+ * ones too -- so a name typed wrong once is put right everywhere. Bookings tied to a frfro account are left alone (an
+ * account's name is its own), and a salon's rename follows into the bookings it handed to its artists. Returns how
+ * many bookings changed. The phone is compared by its last ten digits, the way the customers list groups numbers.
+ */
+export async function renameCustomerBookings(owner, phone, name) {
+  const key = phoneLast10(phone);
+  const clean = String(name || "").trim().slice(0, 80);
+  if (key.length < 10 || !clean) return 0;
+  return withTransaction(null, async (client) => {
+    if (owner.type === "salon") {
+      const own = await run(client, `
+        UPDATE salon_bookings SET client = $1
+        WHERE salon_user_id = $2 AND client_user_id IS NULL AND right(phone_normalized, 10) = $3 AND client <> $1
+      `, [clean, Number(owner.id), key]);
+      // The copies an artist of the team sees of this salon's bookings.
+      const mirrored = await run(client, `
+        UPDATE artist_bookings SET client_name = $1
+        WHERE source_salon_user_id = $2 AND client_user_id IS NULL AND right(phone_normalized, 10) = $3 AND client_name <> $1
+      `, [clean, Number(owner.id), key]);
+      return (own?.rowCount || 0) + (mirrored?.rowCount || 0);
+    }
+    const info = await run(client, `
+      UPDATE artist_bookings SET client_name = $1
+      WHERE artist_user_id = $2 AND client_user_id IS NULL AND right(phone_normalized, 10) = $3 AND client_name <> $1
+    `, [clean, Number(owner.id), key]);
+    return info?.rowCount || 0;
+  });
 }
 
 /**

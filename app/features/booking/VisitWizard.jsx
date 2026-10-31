@@ -75,8 +75,10 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
   const question = noTimes ? "ساعت خالی نداره" : COPY[current].title;
 
   const typed = state.name.trim();
+  // One chip per name a customer is known by (a number can carry several), so typing either finds the person.
   const suggestions = (Array.isArray(customers) ? customers : [])
-    .filter((item) => item?.name && (!typed || (item.name.includes(typed) && item.name !== typed)))
+    .flatMap((item) => (item?.names?.length ? item.names.map((entry) => ({ key: `${item.key}|${entry.key}`, name: entry.name, phone: item.phone })) : item?.name ? [{ key: item.key, name: item.name, phone: item.phone }] : []))
+    .filter((item) => !typed || (item.name.includes(typed) && item.name !== typed))
     .slice(0, 4);
 
   function go(next) {

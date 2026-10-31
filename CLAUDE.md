@@ -9,10 +9,6 @@ The owner builds frfro alone with Claude and never touches code: they report wha
 - Keep it current, in the same change: when an area's behaviour changes, update its section in `docs/PROJECT_NOTES.md` (and `DECISIONS.md` for an owner's answer, `HEALTH.md` after meaningful work). Status, open items and what is live go in the private status file (loaded via `CLAUDE.local.md`), kept short: finished history moves to its archive. Never let this file grow back; add detail to the docs, not here.
 - Get better every day: every bug found in real use gets a test that would have caught it, and one dated line in `docs/HEALTH.md` («درس‌ها») saying what went wrong and the rule that prevents it, so the same mistake never ships twice. Read those lessons before touching the same area.
 
-## Pinned priority (owner, 2026-10-30)
-
-At the start of every session, before any other work, tell the owner (plain Persian, one or two sentences) that the open item 0 in `docs/HEALTH.md` is waiting: one phone with two names shows as one client in the customers list. Ask if they want to deal with it now. When it is fixed, in the same change: delete this section, delete item 0 from `docs/HEALTH.md`, add a dated lesson to «درس‌ها» in `docs/HEALTH.md` (what went wrong, why, the rule that prevents it), add the decision to `docs/DECISIONS.md`, update the customers section in `docs/PROJECT_NOTES.md`, and keep the test. No leftover reminder anywhere.
-
 ## Which server (owner's rule, 2026-10-20)
 
 Two servers: the main server (Iranian, frfro.ir, real data, gets code only from `main`) and Vercel (project `z2026`, a test copy; every pushed branch gets a preview). Before any important or complex change (migrations, payments, login/SMS, bookings, deploy or server config) ask «اول روی ورسل تست کنیم یا مستقیم روی سرور اصلی؟». "Vercel first": push a branch, give the preview link, merge into `main` and deploy only after the owner says it works. Small safe changes (text, style, docs) need no question, but say where they go. Finished work is merged into `main` (2026-10-21) so the next main-server deploy carries it.

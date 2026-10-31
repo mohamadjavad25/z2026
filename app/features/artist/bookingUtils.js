@@ -311,6 +311,8 @@ export function mapArtistBooking(row) {
     dateKey: resolveRollingPersianDateKey(date),
     client: profile?.name || row.client_name || row.client || "",
     clientUserId: profile?.id || row.client_user_id || null,
+    // The account's own name, when the number belongs to a frfro account (the customers list's main name).
+    client_account_name: profile?.id ? String(profile.name || "") : "",
     clientAvatar: profile?.avatar || "",
     clientArea: profile?.area || "",
     clientType: profile?.type || "client",
