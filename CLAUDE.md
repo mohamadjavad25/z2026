@@ -13,6 +13,10 @@ The owner builds frfro alone with Claude and never touches code: they report wha
 
 Two servers: the main server (Iranian, frfro.ir, real data, gets code only from `main`) and Vercel (project `z2026`, a test copy; every pushed branch gets a preview). Before any important or complex change (migrations, payments, login/SMS, bookings, deploy or server config) ask «اول روی ورسل تست کنیم یا مستقیم روی سرور اصلی؟». "Vercel first": push a branch, give the preview link, merge into `main` and deploy only after the owner says it works. Small safe changes (text, style, docs) need no question, but say where they go. Finished work is merged into `main` (2026-10-21) so the next main-server deploy carries it.
 
+## HOLD: story and home cards (owner, 2026-10-31)
+
+The story maker, the home cards slider and the story card live only on branch `claude/text-display-design-issues-oyorus`. Never merge it into `main` or send it to the main server until the owner says so in plain words. Vercel preview only. Read `docs/STORY_WORK.md` whenever stories, home cards or the gentle start for old salons come up.
+
 ## How to answer the owner (2026-10-22)
 
 The owner often talks by voice and listens with the phone's read-aloud, is not technical, and knows the product well from the user's side. In chat:
