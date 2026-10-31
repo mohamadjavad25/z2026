@@ -2,7 +2,8 @@ import { useState } from "react";
 import { AuthGateForms } from "../../auth";
 import { ProfileHero } from "../../profile/ProfileHero";
 import { openLocationSettings } from "../../profile/locationEvents";
-import { ProfileCompleteness, ProfileReadyCelebration } from "../../profile/ProfileCompleteness";
+import { ProfileCompleteness, ProfileReadyCelebration, getProfileSteps } from "../../profile/ProfileCompleteness";
+import { StoryNudgeCard } from "../../profile/StoryNudgeCard";
 import { DueRemindersSection } from "../../dueReminders/DueReminders";
 import { BillingBanner } from "../../billing";
 import { SalonStaffWorkspace, SalonServicesWorkspace } from "../../salons";
@@ -34,6 +35,7 @@ export function ProfilePanelBody() {
     visibleArtistPortfolio,
     artistBookingList,
     salonHeroSheet,
+    salonAppointmentList,
     profileView,
     salonUnreadNoticeCount,
     recentlyExpiredSalonBookings,
@@ -281,6 +283,13 @@ export function ProfilePanelBody() {
                   }
                 }}
               />
+            ) : null}
+
+            {/* One calm story suggestion, only once the profile is complete (the completeness card has the slot until then) and never on top of it. */}
+            {(createdProfile?.type === "salon" || createdProfile?.type === "artist") && createdProfile.type === profileType && profileView === "overview" && !salonWorkspace
+              && !(createdProfile.type === "salon" ? salonWorkspaceLoading : artistWorkspaceLoading)
+              && getProfileSteps(createdProfile, createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length).every((step) => step.done) ? (
+              <StoryNudgeCard profile={createdProfile} cancelled={createdProfile.type === "salon" ? salonAppointmentList : []} onNotify={setAppToast} />
             ) : null}
 
           {createdProfile.type === profileType ? (

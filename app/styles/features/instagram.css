@@ -83,6 +83,33 @@ body:has(.igStudio) .bottomNav, body:has(.igStudio) .floatingMobileCta { opacity
 .igStudioBar { display: flex; gap: 10px; padding-inline: 14px; }
 .igStudioMain { display: inline-flex; flex: 1; align-items: center; justify-content: center; gap: 8px; min-height: 54px; border: 0; border-radius: 18px; background: var(--live-fill); color: var(--on-live-fill); font: inherit; font-size: 0.98rem; font-weight: 950; cursor: pointer; }
 .igStudioSave { display: grid; place-items: center; width: 56px; min-height: 54px; padding: 0; border: 0; border-radius: 18px; background: rgb(var(--n-0-rgb) / 0.14); color: var(--n-0); cursor: pointer; }
+/* «شخصی‌سازی»: one panel above the buttons with three short blocks (times, words, ground); everything has a ready choice. */
+.igStudioEditBtn { display: grid; place-items: center; width: 56px; min-height: 54px; padding: 0; border: 0; border-radius: 18px; background: rgb(var(--n-0-rgb) / 0.14); color: var(--n-0); cursor: pointer; }
+.igStudioEditBtn.is-on { background: var(--n-0); color: var(--n-950); }
+.igEditTabs { display: flex; gap: 2px; padding: 3px; border-radius: 99px; background: rgb(var(--n-0-rgb) / 0.12); }
+.igEditTabs button { flex: 1; min-height: 34px; padding: 0 8px; border: 0; border-radius: 99px; background: transparent; color: rgb(var(--n-0-rgb) / 0.78); font: inherit; font-size: 0.8rem; font-weight: 850; cursor: pointer; }
+.igEditTabs button.is-on { background: var(--n-0); color: var(--n-950); }
+.igEditHint { color: rgb(var(--n-0-rgb) / 0.62); font-size: 0.72rem; font-weight: 800; }
+.igStudioEdit { display: grid; gap: 12px; max-height: 36vh; overflow-y: auto; margin-inline: 14px; padding: 14px; border-radius: 22px; background: rgb(var(--n-0-rgb) / 0.1); }
+.igEditBlock { display: grid; gap: 8px; }
+.igEditBlock > b { font-size: 0.84rem; font-weight: 950; }
+.igEditBlock > b small { color: rgb(var(--n-0-rgb) / 0.62); font-size: 0.7rem; font-weight: 800; }
+.igEditDay { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: start; gap: 8px; }
+.igEditDay > span { padding-top: 8px; color: rgb(var(--n-0-rgb) / 0.7); font-size: 0.76rem; font-weight: 850; }
+.igEditChips, .igEditList { display: flex; flex-wrap: wrap; gap: 6px; }
+.igEditChips button, .igEditList button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 99px; background: transparent; color: rgb(var(--n-0-rgb) / 0.8); box-shadow: inset 0 0 0 1px rgb(var(--n-0-rgb) / 0.28); font: inherit; font-size: 0.8rem; font-weight: 850; cursor: pointer; }
+.igEditChips button.is-on, .igEditList button.is-on { background: var(--brand-pink); color: var(--brand-ink); box-shadow: none; }
+.igEditInput { min-height: 42px; padding: 0 14px; border: 0; border-radius: 14px; background: rgb(var(--n-0-rgb) / 0.12); color: var(--n-0); font: inherit; font-size: 0.86rem; font-weight: 800; }
+.igEditInput::placeholder { color: rgb(var(--n-0-rgb) / 0.5); }
+.igEditGrounds { display: flex; gap: 10px; }
+.igEditGrounds button { display: grid; justify-items: center; gap: 4px; padding: 0; border: 0; background: transparent; color: rgb(var(--n-0-rgb) / 0.72); font: inherit; font-size: 0.72rem; font-weight: 850; cursor: pointer; }
+.igEditGrounds i { width: 44px; height: 44px; border-radius: 14px; box-shadow: inset 0 0 0 1px rgb(var(--n-0-rgb) / 0.25); background: var(--brand-ink); }
+.igEditGrounds .is-rose i { background: radial-gradient(circle at 80% 15%, rgb(var(--brand-pink-rgb) / 0.85), var(--brand-ink) 75%); }
+.igEditGrounds .is-violet i { background: radial-gradient(circle at 80% 15%, rgb(139 108 255 / 0.9), var(--brand-ink) 75%); }
+.igEditGrounds .is-photo i { background: var(--brand-blend); }
+.igEditGrounds button.is-on { color: var(--n-0); }
+.igEditGrounds button.is-on i { box-shadow: 0 0 0 2px var(--brand-pink); }
+.igStudio .igEditInput:focus-visible, .igStudio button:focus-visible { outline: 3px solid var(--brand-pink); outline-offset: 2px; }
 .igStudio button:disabled { opacity: 0.55; cursor: default; }
 @media (prefers-reduced-motion: reduce) { .igSheet { animation: none; } }
 
@@ -136,3 +163,13 @@ a:hover > .igFolder .igFolderPost.is-3, a:active > .igFolder .igFolderPost.is-3,
 .igRowGo { margin-inline-start: auto; color: var(--accent); font-size: 0.8rem; font-weight: 900; }
 .igRowGo::after { content: " ‹"; }
 .igRow:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; border-radius: 10px; }
+
+/* The calm story suggestion on an owner's home: one slim row, ink with a pink edge when a cancelled time is free again. */
+.storyNudge { display: flex; align-items: center; gap: 10px; margin: 8px 16px; padding: 10px 10px 10px 12px; border-radius: 20px; background: var(--brand-ink); color: var(--n-0); box-shadow: 0 8px 22px rgb(var(--shadow-rgb) / 0.18); }
+.storyNudge.is-freed { box-shadow: inset 0 0 0 2px var(--brand-pink), 0 8px 22px rgb(var(--shadow-rgb) / 0.18); }
+.storyNudgeIcon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 14px; background: rgb(var(--n-0-rgb) / 0.12); }
+.storyNudgeMain { display: grid; flex: 1; min-width: 0; gap: 2px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: right; cursor: pointer; }
+.storyNudgeMain strong { font-size: 0.9rem; font-weight: 950; line-height: 1.6; }
+.storyNudgeMain small { color: rgb(var(--n-0-rgb) / 0.72); font-size: 0.74rem; font-weight: 800; line-height: 1.7; }
+.storyNudgeNo { display: grid; place-items: center; flex: none; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: rgb(var(--n-0-rgb) / 0.7); cursor: pointer; }
+.storyNudge button:focus-visible { outline: 3px solid var(--brand-pink); outline-offset: 2px; }

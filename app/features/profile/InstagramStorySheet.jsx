@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, Download, X } from "lucide-react";
+import { Check, Download, SlidersHorizontal, X } from "lucide-react";
 import { InstagramGlyph } from "../../components/InstagramFolder";
 import { Spinner } from "../../components/Spinner";
 import { SheetBackHandler } from "../../components/SheetClose";
@@ -46,6 +46,37 @@ const WHO_KEY = "frfro-story-who";
 
 // Free slots first (what fills the chair), then the works. No QR and no portrait (owner's decision 2026-10-29):
 // the link goes on the story as Instagram's own link sticker, so the picture stays clean.
+// What a person can change (owner's request 2026-10-31): the headline, which times show, and the ground. Ready-made
+// choices first, so nobody has to design anything; the headline can also be typed.
+const OPTS_KEY = "frfro-story-opts";
+const MAX_TYPED = 28;
+const TEXTS = [
+  ["رزرو کن", "تا پر نشده"],
+  ["امشب هنوز", "جا دارم"],
+  ["یه وقت خالی", "برای تو"],
+  ["نوبتت رو", "همین الان بگیر"]
+];
+const GROUNDS = [
+  { id: "night", label: "شب" },
+  { id: "rose", label: "صورتی" },
+  { id: "violet", label: "بنفش" },
+  { id: "photo", label: "نمونه‌کار" }
+];
+const MAX_TIMES_PER_DAY = SLOTS_PER_DAY;
+
+/** A typed headline as one or two balanced lines. */
+function headlineLines(typed) {
+  const words = String(typed || "").trim().split(/\s+/).filter(Boolean);
+  if (words.length < 2) return [words[0] || ""];
+  let best = 1;
+  let gap = Infinity;
+  for (let i = 1; i < words.length; i += 1) {
+    const diff = Math.abs(words.slice(0, i).join(" ").length - words.slice(i).join(" ").length);
+    if (diff < gap) { gap = diff; best = i; }
+  }
+  return [words.slice(0, best).join(" "), words.slice(best).join(" ")];
+}
+
 const DESIGNS = [
   { id: "free", label: "نوبت خالی" },
   { id: "works", label: "نمونه‌کار" }
@@ -107,8 +138,8 @@ function blendFill(ctx, right, width) {
   return g;
 }
 
-/** Ink ground; a work photo across the top fading into the ink when there is one, otherwise two soft glows. */
-function drawGround(ctx, photo, photoHeight) {
+/** Ink ground; a work photo across the top fading into the ink when asked for, otherwise soft glows in the chosen tint. */
+function drawGround(ctx, photo, photoHeight, ground = "night") {
   ctx.fillStyle = INK;
   ctx.fillRect(0, 0, W, H);
   if (photo) {
@@ -124,6 +155,12 @@ function drawGround(ctx, photo, photoHeight) {
     top.addColorStop(1, "rgba(12,13,18,0)");
     ctx.fillStyle = top;
     ctx.fillRect(0, 0, W, 420);
+  } else if (ground === "rose") {
+    glow(ctx, 900, 280, 980, "rgba(255,134,184,0.5)");
+    glow(ctx, 140, 1560, 820, "rgba(255,134,184,0.26)");
+  } else if (ground === "violet") {
+    glow(ctx, 900, 280, 980, "rgba(139,108,255,0.55)");
+    glow(ctx, 140, 1560, 820, "rgba(139,108,255,0.32)");
   } else {
     glow(ctx, 160, 300, 820, "rgba(255,134,184,0.34)");
     glow(ctx, 960, 1500, 860, "rgba(139,108,255,0.38)");
@@ -267,9 +304,9 @@ function dayLine(day) {
  * Several free times (owner's sketch 2026-10-30): the times in one column on the right, three a day stacked (today's
  * white, tomorrow's outlined), and the words beside them; the link box underneath.
  */
-async function drawFree(ctx, { name, avatar, works, days, showWho }) {
-  const [photo, avatarImg] = await Promise.all([loadImage(works[0]?.src), showWho ? loadImage(avatar) : null]);
-  drawGround(ctx, photo, 620);
+async function drawFree(ctx, { name, avatar, works, days, showWho, ground = "night", headline = TEXTS[0] }) {
+  const [photo, avatarImg] = await Promise.all([ground === "photo" ? loadImage(works[0]?.src) : null, showWho ? loadImage(avatar) : null]);
+  drawGround(ctx, photo, 620, ground);
   if (showWho) drawWho(ctx, name, avatarImg);
   const open = days.filter((day) => day.times.length);
   const colW = 400;
@@ -322,7 +359,7 @@ async function drawFree(ctx, { name, avatar, works, days, showWho }) {
   // One block, three steps: a small pink label, a two-line headline of one size, a quiet two-line note. Spacing is
   // even (about 70 px between steps) so nothing floats apart (owner's typography fix 2026-10-31).
   drawKick(ctx, "وقت‌های خالی", textTop + 44, textRight);
-  const last = drawHeadline(ctx, ["رزرو کن", "تا پر نشده"], textTop + 190, 112, textRight, textWidth, 1.2);
+  const last = drawHeadline(ctx, headline, textTop + 190, 112, textRight, textWidth, 1.2);
   ctx.textAlign = "right";
   ctx.direction = "rtl";
   ctx.fillStyle = "rgba(255,255,255,0.72)";
@@ -333,9 +370,9 @@ async function drawFree(ctx, { name, avatar, works, days, showWho }) {
 }
 
 /** Exactly one free time (a cancellation, say): the time itself, huge, with the service under it. */
-async function drawOneFree(ctx, { name, avatar, works, day, showWho }) {
-  const [photo, avatarImg] = await Promise.all([loadImage(works[0]?.src), showWho ? loadImage(avatar) : null]);
-  drawGround(ctx, photo, 1000);
+async function drawOneFree(ctx, { name, avatar, works, day, showWho, ground = "night" }) {
+  const [photo, avatarImg] = await Promise.all([ground === "photo" ? loadImage(works[0]?.src) : null, showWho ? loadImage(avatar) : null]);
+  drawGround(ctx, photo, 1000, ground);
   if (!photo) glow(ctx, 1000, 1700, 700, "rgba(139,108,255,0.4)");
   if (showWho) drawWho(ctx, name, avatarImg);
   const y = photo ? 820 : 720;
@@ -362,9 +399,9 @@ async function drawOneFree(ctx, { name, avatar, works, day, showWho }) {
 }
 
 /** Three of the newest works in a collage: one tall tile and two stacked beside it. */
-async function drawWorks(ctx, { name, avatar, works, profileType, showWho }) {
+async function drawWorks(ctx, { name, avatar, works, profileType, showWho, ground = "night" }) {
   const [avatarImg, ...pictures] = await Promise.all([showWho ? loadImage(avatar) : null, ...works.slice(0, WORKS_NEEDED).map((work) => loadImage(work.src))]);
-  drawGround(ctx, null, 0);
+  drawGround(ctx, null, 0, ground === "photo" ? "night" : ground);
   if (showWho) drawWho(ctx, name, avatarImg);
   const top = showWho ? SAFE_TOP + 190 : SAFE_TOP + 40;
   const tall = showWho ? 660 : 780;
@@ -503,6 +540,14 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
   const [made, setMade] = useState({});
   // Off unless the person turned it on before (owner's decision 2026-10-30).
   const [showWho, setShowWho] = useState(false);
+  // The person's own choices; ready-made ones until they touch anything.
+  const [editing, setEditing] = useState(false);
+  const [editTab, setEditTab] = useState("times");
+  const [textIdx, setTextIdx] = useState(0);
+  const [typed, setTyped] = useState("");
+  const [ground, setGround] = useState("night");
+  // Times that are on, by day key.
+  const [on, setOn] = useState({});
   const railRef = useRef(null);
   const closeRef = useRef(null);
   // The parent passes a new onClose on every render; read through a ref so the app's regular refresh (every few
@@ -524,12 +569,28 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     } catch {
       setShowWho(false);
     }
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(OPTS_KEY) || "{}");
+      setTextIdx(Number.isInteger(saved.textIdx) && saved.textIdx >= 0 && saved.textIdx < TEXTS.length ? saved.textIdx : 0);
+      setTyped(typeof saved.typed === "string" ? saved.typed.slice(0, MAX_TYPED) : "");
+      setGround(GROUNDS.some((g) => g.id === saved.ground) ? saved.ground : "night");
+    } catch {
+      // Nothing remembered: the ready-made choices.
+    }
+    setEditing(false);
+    setEditTab("times");
+    setOn({});
     loadWorks()
       .then((list) => { if (!cancelled) setWorks(list); })
       .catch(() => { if (!cancelled) setWorks([]); });
     if (profileId && (profileType === "salon" || profileType === "artist")) {
       loadFreeSlots(profileType, profileId)
-        .then((days) => { if (!cancelled) setSlots(days); })
+        .then((days) => {
+          if (cancelled) return;
+          setSlots(days);
+          // The first few times of each day are on to begin with.
+          setOn(Object.fromEntries(days.map((day) => [day.key, day.times.slice(0, MAX_TIMES_PER_DAY)])));
+        })
         .catch(() => { if (!cancelled) { setSlotsFailed(true); setSlots([]); } });
     } else {
       setSlots([]);
@@ -540,22 +601,27 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     return () => { cancelled = true; cancelAnimationFrame(raf); document.removeEventListener("keydown", onKey); };
   }, [open, profileType, profileId]);
 
+  const shownDays = (slots || []).map((day) => ({ ...day, times: day.times.filter((time) => (on[day.key] || []).includes(time)) }));
+  const hasFree = (slots || []).some((day) => day.times.length);
+  const typedLines = typed.trim() ? headlineLines(typed) : null;
+  const headline = typedLines || TEXTS[textIdx];
   const worksReady = works !== null && works.length >= WORKS_NEEDED;
   const dataReady = works !== null && slots !== null;
   const problems = {
-    free: dataReady ? freeProblem(slots, slotsFailed) : "",
+    free: dataReady ? (freeProblem(slots, slotsFailed) || (hasFree && !shownDays.some((day) => day.times.length) ? "یه ساعت رو روشن کن." : "")) : "",
     works: works !== null && !worksReady ? `برای این استوری دست‌کم ${toPersianDigits(WORKS_NEEDED)} تا نمونه‌کار بذار.` : ""
   };
 
   useEffect(() => {
     if (!open || !dataReady || problems[design] || made[design]) return undefined;
     let cancelled = false;
-    drawStory(design, { name: name || "فرفرو", avatar, works: works || [], days: slots || [], profileType, showWho })
+    drawStory(design, { name: name || "فرفرو", avatar, works: works || [], days: shownDays, profileType, showWho, ground, headline })
       .then((picture) => { if (!cancelled) setMade((all) => ({ ...all, [design]: picture.blob ? picture : { failed: true } })); })
       .catch(() => { if (!cancelled) setMade((all) => ({ ...all, [design]: { failed: true } })); });
     return () => { cancelled = true; };
     // problems[design] is derived from works/slots, which are listed.
-  }, [open, design, dataReady, made, name, avatar, works, slots, slotsFailed, profileType, showWho]);
+    // shownDays, headline: derived from on, typed and textIdx.
+  }, [open, design, dataReady, made, name, avatar, works, slots, slotsFailed, profileType, showWho, ground, on, typed, textIdx]);
 
   function toggleWho() {
     const next = !showWho;
@@ -566,6 +632,29 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     } catch {
       // Private mode: the choice just lasts while the sheet is open.
     }
+  }
+
+  function remember(next) {
+    try {
+      window.localStorage.setItem(OPTS_KEY, JSON.stringify({ textIdx, typed, ground, ...next }));
+    } catch {
+      // Private mode: the choice just lasts while the sheet is open.
+    }
+  }
+
+  function changed(apply, next) {
+    apply();
+    setMade({});
+    remember(next);
+  }
+
+  function toggleTime(dayKey, time) {
+    setOn((all) => {
+      const now = all[dayKey] || [];
+      const list = now.includes(time) ? now.filter((t) => t !== time) : now.length < MAX_TIMES_PER_DAY ? [...now, time] : now;
+      return { ...all, [dayKey]: list };
+    });
+    setMade({});
   }
 
   if (!open || typeof document === "undefined") return null;
@@ -688,7 +777,71 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
           </div>
         ))}
       </div>
+      {editing ? (
+        <div className="igStudioEdit" role="group" aria-label="شخصی‌سازی استوری">
+          <div className="igEditTabs" role="tablist" aria-label="چی رو عوض کنم؟">
+            {(design === "free" ? [["times", "ساعت‌ها"], ["text", "متن"], ["ground", "پس‌زمینه"]] : [["ground", "پس‌زمینه"]]).map(([id, label]) => (
+              <button key={id} type="button" role="tab" aria-selected={(design === "free" ? editTab : "ground") === id} className={(design === "free" ? editTab : "ground") === id ? "is-on" : ""} onClick={() => setEditTab(id)}>{label}</button>
+            ))}
+          </div>
+          {design === "free" && editTab === "times" && hasFree ? (
+            <div className="igEditBlock">
+              <small className="igEditHint">تا {toPersianDigits(MAX_TIMES_PER_DAY)} ساعت برای هر روز</small>
+              {(slots || []).filter((day) => day.times.length).map((day) => (
+                <div className="igEditDay" key={day.key}>
+                  <span>{day.label}</span>
+                  <div className="igEditChips">
+                    {day.times.slice(0, 9).map((time) => {
+                      const isOn = (on[day.key] || []).includes(time);
+                      return (
+                        <button key={time} type="button" className={isOn ? "is-on" : ""} aria-pressed={isOn} onClick={() => toggleTime(day.key, time)}>
+                          {toPersianDigits(time)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          {design === "free" && editTab === "text" ? (
+            <div className="igEditBlock">
+              <div className="igEditList">
+                {TEXTS.map((lines, i) => (
+                  <button key={lines.join(" ")} type="button" className={!typed.trim() && i === textIdx ? "is-on" : ""} onClick={() => changed(() => { setTextIdx(i); setTyped(""); }, { textIdx: i, typed: "" })}>
+                    {lines.join(" ")}
+                  </button>
+                ))}
+              </div>
+              <input
+                type="text"
+                className="igEditInput"
+                value={typed}
+                maxLength={MAX_TYPED}
+                placeholder="یا خودت بنویس…"
+                aria-label="متن دلخواه"
+                onChange={(event) => changed(() => setTyped(event.target.value.slice(0, MAX_TYPED)), { typed: event.target.value.slice(0, MAX_TYPED) })}
+              />
+            </div>
+          ) : null}
+          {design !== "free" || editTab === "ground" ? (
+          <div className="igEditBlock">
+            <div className="igEditGrounds">
+              {GROUNDS.filter((g) => g.id !== "photo" || worksReady || (works || []).length > 0).map((g) => (
+                <button key={g.id} type="button" className={`is-${g.id}${ground === g.id ? " is-on" : ""}`} aria-pressed={ground === g.id} onClick={() => changed(() => setGround(g.id), { ground: g.id })}>
+                  <i aria-hidden="true" />
+                  {g.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          ) : null}
+        </div>
+      ) : null}
       <div className="igStudioBar">
+        <button type="button" className={`igStudioEditBtn${editing ? " is-on" : ""}`} aria-pressed={editing} onClick={() => setEditing((v) => !v)} aria-label="شخصی‌سازی">
+          <SlidersHorizontal size={20} aria-hidden="true" />
+        </button>
         <button type="button" className="igStudioMain" disabled={!preview} onClick={canShareFile ? share : save}>
           {canShareFile ? <InstagramGlyph size={19} /> : <Download size={19} aria-hidden="true" />}
           {canShareFile ? "بفرست به اینستاگرام" : "ذخیره عکس"}

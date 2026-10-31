@@ -300,6 +300,20 @@ async function makeDirectBooking({ sessions, ids }) {
 /** The «کجا» card in the booking details opens the map sheet; the tiles get a moment to load. */
 const openMap = async (p) => { await p.locator(".locCard.is-pinned").first().click({ timeout: 6000 }); await p.waitForTimeout(2500); };
 
+/* ---------- the story suggestion: a complete profile (so the suggestion has the slot), and a freed time ---------- */
+const STORY_READY = async (ctx) => {
+  await instagram("salon.roz", "negar.kashi")(ctx);
+  const image = await sample("work-3.jpg");
+  await ctx.sessions.salon.post("/api/profile", { data: { avatar: image, service: "مو و ناخن" } });
+  await ctx.sessions.artist.post("/api/profile", { data: { avatar: image, service: "ناخن" } });
+};
+/** A booking for tomorrow that was cancelled: its time is free again. */
+const FREED_TOMORROW = async ({ sessions, ids }) => {
+  const tomorrow = formatPersianDateKey(new Date(Date.now() + 24 * 60 * 60 * 1000));
+  const made = await sessions.client.post("/api/salon-bookings", { salonUserId: ids.salon, service: "براشینگ", bookingDate: tomorrow, time: "۱۱:۰۰", client: PEOPLE.client.name, phone: PEOPLE.client.phone });
+  if (made.ok) await sessions.salon.patch("/api/salon-bookings", { id: made.payload.data.booking.id, status: "لغو" });
+};
+
 const SCREENS = [
   // guest
   { id: "guest-welcome", role: "guest", title: "صفحهٔ اول، انتخاب نقش" },
@@ -400,6 +414,13 @@ const SCREENS = [
   { id: "salon-instagram-story", role: "salon", title: "استوری آماده", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, css(".igSettingsStory"), async (p) => { await p.waitForTimeout(1500); }] },
   { id: "salon-instagram-open-dark", role: "salon", title: "تنظیمات، اینستاگرام باز، شب", setup: IG_SET, dark: true, steps: [tab(0), toInstagram, IG_OPEN, toBio] },
   { id: "artist-instagram-open-set", role: "artist", title: "تنظیمات آرتیست، اینستاگرام باز", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio] },
+  // The calm story suggestion on an owner's home and the story maker's «شخصی‌سازی» (owner's request 2026-10-31).
+  { id: "salon-home-story-nudge", role: "salon", title: "خانهٔ سالن، پیشنهاد استوری", setup: STORY_READY, steps: [async (p) => { await p.waitForTimeout(2500); }] },
+  { id: "salon-home-story-nudge-freed", role: "salon", title: "خانهٔ سالن، پیشنهاد استوری بعد از لغو", setup: async (ctx) => { await STORY_READY(ctx); await FREED_TOMORROW(ctx); }, steps: [async (p) => { await p.waitForTimeout(2500); }] },
+  { id: "salon-story-edit", role: "salon", title: "استوری آماده، شخصی‌سازی", setup: STORY_READY, steps: [css(".storyNudgeMain"), async (p) => { await p.waitForTimeout(3500); }, css(".igStudioEditBtn"), async (p) => { await p.waitForTimeout(1500); }] },
+  { id: "salon-story-edit-text", role: "salon", title: "استوری آماده، متن دلخواه", setup: STORY_READY, steps: [css(".storyNudgeMain"), async (p) => { await p.waitForTimeout(3500); }, css(".igStudioEditBtn"), css(".igEditTabs button", "متن"), fill(".igEditInput", "امشب دو تا وقت دارم"), async (p) => { await p.waitForTimeout(2500); }] },
+  { id: "salon-story-edit-ground", role: "salon", title: "استوری آماده، پس‌زمینه", setup: STORY_READY, steps: [css(".storyNudgeMain"), async (p) => { await p.waitForTimeout(3500); }, css(".igStudioEditBtn"), css(".igEditTabs button", "پس‌زمینه"), css(".igEditGrounds button.is-rose"), async (p) => { await p.waitForTimeout(2500); }] },
+  { id: "artist-home-story-nudge", role: "artist", title: "خانهٔ آرتیست، پیشنهاد استوری", setup: STORY_READY, steps: [async (p) => { await p.waitForTimeout(2500); }] },
   // where an artist on a salon team receives the clients who book them directly (owner's idea of 2026-10-24).
   // Each screen sets the state it shows first (the choice, the salon's switch, an address), so the order does not matter.
   ...placeScreens(),
@@ -437,6 +458,8 @@ async function main() {
       await context.addCookies([{ name, value: rest.join("="), url: BASE }]);
     }
     if (screen.clipboard) await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: BASE });
+    // Nothing outside the app (fonts, maps) may hold the page back where the network is closed.
+    await context.route((url) => !url.href.startsWith(BASE) && !url.href.startsWith("data:"), (route) => route.abort());
     const page = await context.newPage();
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
