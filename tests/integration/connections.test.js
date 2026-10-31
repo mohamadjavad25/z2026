@@ -43,6 +43,22 @@ describe("salon <-> artist connection", () => {
     expect(again.ok).toBe(false);
   });
 
+  it("invite with terms for one artist: bad terms are refused; accepted terms become the team's agreed terms", async () => {
+    const { salonClient, salon, artistClient, artist } = await setup();
+    const bad = await salonClient.post("/api/salon-invites", { artistUserId: artist.user.id, days: TERMS.days, from: TERMS.from, to: TERMS.to, share: "150" });
+    expect(bad.status).toBe(400);
+    expect(bad.payload.code).toBe("INVALID_TERMS");
+    expect((await salonClient.get("/api/salon-invites")).payload.data.invites).toHaveLength(0);
+
+    const sent = await salonClient.post("/api/salon-invites", { artistUserId: artist.user.id, days: TERMS.days, from: TERMS.from, to: TERMS.to, share: "70" });
+    expect(sent.status).toBe(201);
+    expect(sent.payload.data.invite.share).toBe("70");
+    expect((await artistClient.patch("/api/artist/invites", { id: sent.payload.data.invite.id, status: "تایید شد" })).ok).toBe(true);
+
+    const current = (await artistClient.get(`/api/team-terms?salonUserId=${salon.user.id}`)).payload.data.current;
+    expect(current.share).toBe(70);
+  });
+
   it("proposal path: artist proposes, salon accepts, artist becomes staff; the status cannot be forged", async () => {
     const { salonClient, salon, artistClient, artist } = await setup();
     const sent = await artistClient.post("/api/artist/me", { kind: "collab", salonId: salon.user.id, ...TERMS, status: "تایید شد" });

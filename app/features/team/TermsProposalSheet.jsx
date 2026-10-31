@@ -19,6 +19,8 @@ export function TermsProposalSheet({ open, otherName, initial, busy, error, onSe
   // "counter": the salon's answer to that offer (same form).
   // "salon": the salon writing its own join terms (no note, no start day; adds «آرتیست می‌تونه پیشنهاد خودش رو بده»).
   const isSalon = mode === "salon";
+  // "invite": a salon inviting one artist (after scanning their code); starts from the salon's standing terms, changed for this person only.
+  const isInvite = mode === "invite";
   const withLead = mode === "change";
   const [allow, setAllow] = useState(true);
   const [days, setDays] = useState([]);
@@ -52,15 +54,17 @@ export function TermsProposalSheet({ open, otherName, initial, busy, error, onSe
     from: clockLabel(from),
     to: clockLabel(to),
     share,
-    ownShare: separate ? own : null,
-    ...(isSalon ? { allowProposals: allow } : { note: note.trim() }),
+    ownShare: separate && !isInvite ? own : null,
+    ...(isSalon ? { allowProposals: allow } : isInvite ? {} : { note: note.trim() }),
     ...(withLead ? { effectiveFrom: dateKeyAfter(lead) } : {})
   });
 
   return (
-    <ProfileSheet open={open} kicker={isSalon ? "سالن" : "شرایط کار"} title={isSalon ? "شرایط همکاری" : `پیشنهاد تو به ${otherName}`} panelClassName="tsSheet" onClose={onClose} hideClose>
+    <ProfileSheet open={open} kicker={isSalon ? "سالن" : isInvite ? "دعوت به تیم" : "شرایط کار"} title={isSalon ? "شرایط همکاری" : isInvite ? `دعوت ${otherName}` : `پیشنهاد تو به ${otherName}`} panelClassName={`tsSheet${isInvite ? " tsInviteSheet" : ""}`} onClose={onClose} hideClose>
       {isSalon ? (
         <p className="tsLead">برای آرتیست‌های تازه‌ست؛ کسایی که الان تو تیمن دست نمی‌خورن.</p>
+      ) : isInvite ? (
+        <p className="tsLead">این شرایط عمومی سالنته. اگه برای {otherName} چیزی فرق داره، همین‌جا عوضش کن. تا قبول نکنه، توی تیمت نیست.</p>
       ) : (
         <p className="tsLead">فقط چیزی رو عوض کن که می‌خوای عوض شه. {mode === "join" ? `تا ${otherName} جواب نده، هنوز تو تیم نیستی.` : mode === "counter" ? `تا ${otherName} جواب نده، هنوز تو تیمت نیست.` : `تا ${otherName} جواب نده، شرایط قبلی می‌مونه.`}</p>
       )}
@@ -85,11 +89,13 @@ export function TermsProposalSheet({ open, otherName, initial, busy, error, onSe
       <section className="tsBox" aria-label="سهم آرتیست">
         <h4>سهم آرتیست</h4>
         <Stepper label="سهم آرتیست" value={share} onChange={setShare} min={0} max={100} step={5} format={(value) => `${toPersianDigits(value)} درصد`} />
-        <button type="button" className={`tsOption${separate ? " is-on" : ""}`} aria-pressed={separate} onClick={() => setSeparate((value) => !value)}>
-          <span><b>درصد جدا برای مشتری‌های خودِ آرتیست</b><small>مشتری‌هایی که خودش میاره. اگه جدا نذاری، یه درصد برای همه‌ست.</small></span>
-          <i aria-hidden="true">{separate ? "روشن" : "خاموش"}</i>
-        </button>
-        {separate ? <Stepper label="سهم آرتیست از مشتری‌های خودش" value={own} onChange={setOwn} min={0} max={100} step={5} format={(value) => `${toPersianDigits(value)} درصد`} /> : null}
+        {isInvite ? null : (
+          <button type="button" className={`tsOption${separate ? " is-on" : ""}`} aria-pressed={separate} onClick={() => setSeparate((value) => !value)}>
+            <span><b>درصد جدا برای مشتری‌های خودِ آرتیست</b><small>مشتری‌هایی که خودش میاره. اگه جدا نذاری، یه درصد برای همه‌ست.</small></span>
+            <i aria-hidden="true">{separate ? "روشن" : "خاموش"}</i>
+          </button>
+        )}
+        {separate && !isInvite ? <Stepper label="سهم آرتیست از مشتری‌های خودش" value={own} onChange={setOwn} min={0} max={100} step={5} format={(value) => `${toPersianDigits(value)} درصد`} /> : null}
       </section>
 
       {withLead ? (
@@ -109,7 +115,7 @@ export function TermsProposalSheet({ open, otherName, initial, busy, error, onSe
           <span><b>آرتیست می‌تونه پیشنهاد خودش رو بده</b><small>اگه خاموشش کنی، آرتیست فقط می‌تونه قبول کنه یا نیاد.</small></span>
           <i aria-hidden="true">{allow ? "روشن" : "خاموش"}</i>
         </button>
-      ) : (
+      ) : isInvite ? null : (
         <label className="tsBox tsNote">
           <h4>یه خط برای {otherName} (اگه خواستی)</h4>
           <input type="text" value={note} maxLength={120} placeholder="مثلاً: صبح‌ها برام سخته" onChange={(event) => setNote(event.target.value)} />
@@ -117,7 +123,7 @@ export function TermsProposalSheet({ open, otherName, initial, busy, error, onSe
       )}
 
       {error || problem ? <p className="tsError" role="alert">{error || problem}</p> : null}
-      <button type="button" className="tsSend" disabled={busy || Boolean(problem)} onClick={send}>{busy ? "یه لحظه…" : isSalon ? "ذخیره" : `بفرست برای ${otherName}`}</button>
+      <button type="button" className="tsSend" disabled={busy || Boolean(problem)} onClick={send}>{busy ? "یه لحظه…" : isSalon ? "ذخیره" : isInvite ? "بفرست دعوت" : `بفرست برای ${otherName}`}</button>
     </ProfileSheet>
   );
 }
