@@ -3,6 +3,8 @@ import { getDb, all, get, run, withTransaction } from "../../connection.js";
 import { addSalonStaff } from "./staff.js";
 import { defaultArtistHours } from "../artists/hours.js";
 import { getJoinTerms, joinTermsReady, getSalonRulesText } from "./joinTerms.js";
+import { checkTerms } from "../teamAgreements.js";
+import { toLatinDigits } from "../../../../shared/lib/digits.js";
 import { dateKeyAfter } from "../../../../shared/lib/artistPlace.js";
 
 const PENDING = "در انتظار تایید";
@@ -212,6 +214,12 @@ export async function createSalonArtistInvite(salonUserId, data, runner = null) 
   const toTime = data.to || data.toTime || data.to_time || "";
   const sharePercent = data.share || data.sharePercent || data.share_percent || "";
   const capacity = data.capacity || "";
+  // An invite that carries terms (the salon changed them for this artist) is judged like every terms change:
+  // real days, hours inside the salon's open hours, a percent between 0 and 100.
+  if (days || fromTime || toTime || sharePercent !== "") {
+    const checked = await checkTerms(salonUserId, { days, from: fromTime, to: toTime, share: sharePercent }, db);
+    if (!checked.ok) return { ok: false, error: checked.error, code: "INVALID_TERMS" };
+  }
 
   // Atomic insert-or-detect-conflict, same fix as toggleFollow/toggleSave
   // (app/lib/db/repos/social.js): the old code did SELECT existing, branch,
@@ -551,6 +559,16 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
         access_level: current.access_level || "همکار"
       });
       staffCreated = true;
+    }
+    // The terms the salon put on this invite are what the artist agreed to: they are the team's first «agreed» row,
+    // so a later change is proposed against them (same as joining by the salon's link). Older invites carry no terms.
+    if (current.days && current.from_time && current.to_time && current.share_percent !== null && current.share_percent !== "") {
+      await writeAgreedTerms(db, {
+        salonUserId: current.salon_user_id,
+        artistUserId: current.artist_user_id,
+        terms: { days: current.days, from: toLatinDigits(current.from_time), to: toLatinDigits(current.to_time), share: Number(toLatinDigits(String(current.share_percent))), ownShare: null },
+        source: "invite"
+      });
     }
   }
 

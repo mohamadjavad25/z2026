@@ -144,6 +144,8 @@
 .tsStepper button { width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgb(var(--accent-rgb) / 0.14); color: var(--accent); cursor: pointer; }
 .tsStepper button:disabled { opacity: 0.35; cursor: default; }
 .tsStepper output { min-width: 84px; text-align: center; color: var(--n-900); font-size: 1.15rem; font-weight: 950; }
+/* The invite sheet opens over the QR scanner, which sits on the top layer. */
+.salonHeroSheetBackdrop:has(.tsInviteSheet) { z-index: calc(var(--z-top-sheet) + 1); }
 .tsSheet, .tlSheet { display: grid; gap: 12px; padding-bottom: 88px; }
 .tsLead, .tsHint, .tlMuted { margin: 0; color: var(--n-600); font-size: 0.76rem; font-weight: 700; line-height: 1.8; }
 .tsBox { display: grid; gap: 9px; padding: 12px 14px; border: 1px solid var(--n-150); border-radius: 18px; background: var(--n-0); }
