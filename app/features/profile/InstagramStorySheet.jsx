@@ -693,8 +693,9 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     }
   }
 
-  // The times on a free-times story are now «on today's story»; the home card will not offer them again.
-  const postedNow = () => { if (design === "free") markPosted(shownDays); };
+  // After a free-times story, every time that is free right now counts as told (also the ones left off it on purpose):
+  // only a time that becomes free LATER is news for the home card.
+  const postedNow = () => { if (design === "free") markPosted(slots || []); };
   const sharedNote = (copied) => (copied ? SHARED_COPIED : SHARED_NOT_COPIED);
   const savedNote = (copied) => (copied ? SAVED_COPIED : SAVED_NOT_COPIED);
 

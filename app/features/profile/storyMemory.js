@@ -30,10 +30,14 @@ function write(key, value) {
 export function readPosted() {
   const today = formatPersianDateKey(new Date());
   const list = read(POSTED_KEY);
-  return Array.isArray(list) ? list.filter((entry) => typeof entry === "string" && entry.split("|")[0] >= today) : [];
+  if (!Array.isArray(list)) return [];
+  // Normalised, so "۱۱:۰۰", "11:00" and "11:0" are one time.
+  return list
+    .filter((entry) => typeof entry === "string" && entry.includes("|") && entry.split("|")[0] >= today)
+    .map((entry) => { const [key, time] = entry.split("|"); return slotKey(key, time); });
 }
 
-/** Called when a free-times story is shared or saved: its times are now «on the story». */
+/** Called when a free-times story is shared or saved, with every free time of that moment (see the sheet). */
 export function markPosted(days) {
   const next = new Set(readPosted());
   for (const day of days || []) for (const time of day.times || []) next.add(slotKey(day.key, time));

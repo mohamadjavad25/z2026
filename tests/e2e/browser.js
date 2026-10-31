@@ -6,7 +6,8 @@ import { TEST_BASE_URL } from "../globalSetup.js";
 let browser;
 export async function getBrowser() {
   if (!browser) {
-    browser = await chromium.launch();
+    // PW_CHROMIUM: a Chromium binary when Playwright's own is not the installed one (the cloud container).
+    browser = await chromium.launch(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {});
   }
   return browser;
 }
