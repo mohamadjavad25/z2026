@@ -12,3 +12,13 @@ export const PHONE_SEPARATORS = /[\s\-(). ‌‍‎‏]/g;
 export function normalizePhone(value) {
   return toAsciiDigits(value).replace(PHONE_SEPARATORS, "");
 }
+
+/**
+ * The last ten digits of a number, so 0912…, +98912… and a Persian-digit entry are the same person. How a salon or
+ * artist's customers list tells whether two bookings share a phone (app/features/salons/customers.js); the
+ * rename of a customer's name on the server uses the same rule.
+ */
+export function phoneLast10(value) {
+  const digits = toAsciiDigits(value).replace(/\D/g, "");
+  return digits.length >= 10 ? digits.slice(-10) : digits;
+}

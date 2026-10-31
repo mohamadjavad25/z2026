@@ -9,19 +9,23 @@ import * as users from "./db/repos/users.js";
  * push-instead-of-SMS rule). Fire-and-forget: nothing here may fail the removal itself.
  *
  * kind "removed": `toUserId` is the artist, `from` the salon. kind "left": `toUserId` is the salon, `from` the artist.
+ * kind "gone": a salon deleted its account (owner's decision 2026-10-30); every team artist gets the same three messages.
+ * The account is about to disappear, so the card keeps no link to it.
  */
 export function notifyTeamEnd({ kind, toUserId, from, reason = "" }) {
   const id = Number(toUserId || 0);
   if (!id) return;
-  const name = String(from?.name || "").trim() || (kind === "removed" ? "سالن" : "یه آرتیست");
+  const name = String(from?.name || "").trim() || (kind === "left" ? "یه آرتیست" : "سالن");
   const line = cleanReason(reason);
   void (async () => {
-    await addTeamNotice(id, { kind, fromUserId: from?.id, fromName: name, reason: kind === "removed" ? line : "" });
-    const push = sendPushToUser(id, kind === "removed"
+    await addTeamNotice(id, { kind, fromUserId: kind === "gone" ? null : from?.id, fromName: name, reason: kind === "removed" ? line : "" });
+    const push = sendPushToUser(id, kind === "gone"
+      ? { title: `همکاری با ${name} تموم شد`, body: `${name} حسابش رو پاک کرد. نوبت‌های خودت سر جاشه.`, url: "/" }
+      : kind === "removed"
       ? { title: `همکاری با ${name} تموم شد`, body: line ? `${name} تو رو از تیمش برداشت: «${line}»` : `${name} تو رو از تیمش برداشت. نوبت‌های خودت سر جاشه.`, url: "/" }
       : { title: "یه آرتیست از تیم رفت", body: `${name} دیگه با سالنت کار نمی‌کنه.`, url: "/" });
     if (await pushReachedApp(push)) return;
     const user = await users.getUserById(id);
-    await sendTemplateSms(user?.phone || "", kind === "removed" ? "team_removed" : "team_left", { who: name });
+    await sendTemplateSms(user?.phone || "", kind === "gone" ? "team_salon_gone" : kind === "removed" ? "team_removed" : "team_left", { who: name });
   })().catch(() => {});
 }

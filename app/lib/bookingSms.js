@@ -7,6 +7,9 @@ import { pushReachedApp, reachableByAppPush } from "./push.js";
 import { formatRelativeBookingDayLabel } from "../shared/lib/persianCalendar.js";
 import { normalizeBookingTimeLabel } from "../shared/lib/time.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
+import { isSlotInPast } from "../shared/lib/slots.js";
+import { normalizePhone } from "../shared/lib/phone.js";
+import { sendPushToUser } from "./push.js";
 
 /**
  * The two booking messages that must reach people even when push does not (inside the Android app, or where
@@ -184,6 +187,36 @@ export function smsBookingProposal(clientUserId, { template, providerName, booki
     }
     const phone = await phoneOf(clientUserId);
     await sendClientSms(await bookingPayerId(booking), phone, template, { who: String(providerName || "").trim() || "سالن", ...values });
+  })().catch(() => {});
+}
+
+/**
+ * A salon or artist entered a booking for a client by hand (owner's decision 2026-10-30): the client hears about it, so
+ * nobody turns up unaware. A client with an account gets a push, and the SMS too unless their Android app took the push;
+ * a number with no account gets the SMS. The SMS is paid by the provider (their SMS wallet), texted once per booking, and
+ * one provider can send only a limited number an hour. Fire-and-forget: never throws, never delays the response.
+ * `provider`: { id, type, name }; `booking`: { kind: "salon" | "artist", id, bookingDate, time, service, phone }.
+ */
+export function noticeClientBookedByProvider(provider, booking) {
+  void (async () => {
+    const phone = normalizePhone(booking?.phone);
+    if (!/^09\d{9}$/.test(phone)) return;
+    // A visit already over (a salon logging yesterday's work, an artist's earlier slot today) is history, not news.
+    if (isSlotInPast(booking.bookingDate, booking.time)) return;
+    const providerUser = await users.getUserById(Number(provider.id));
+    if (!providerUser || normalizePhone(providerUser.phone) === phone) return;
+    if (!(await claimBookingAnswerSms(booking.kind, booking.id, "made"))) return;
+    const limited = await checkRateLimit(`sms-booking-made:${Number(provider.id)}`, 40, 60 * 60 * 1000);
+    if (!limited.ok) return;
+    const name = String(provider.name || providerUser.name || "").trim() || (provider.type === "artist" ? "آرتیستت" : "سالن");
+    const when = bookingWhen(booking.bookingDate, booking.time);
+    const account = await users.getUserByPhone(phone);
+    const clientId = account?.type === "client" ? Number(account.id) : 0;
+    const push = clientId
+      ? sendPushToUser(clientId, { title: "یه نوبت برات ثبت شد", body: `${name} برات نوبت ثبت کرد، ${when}. توی فرفرو ببینش.`, url: "/" }).catch(() => null)
+      : null;
+    if (clientId && await pushReachedApp(push)) return;
+    await sendClientSms(Number(provider.id), phone, "booking_made_for_you", { who: name, day: dayLabel(booking.bookingDate), time: timeLabel(booking.time) });
   })().catch(() => {});
 }
 

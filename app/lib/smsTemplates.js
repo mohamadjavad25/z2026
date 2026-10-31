@@ -16,14 +16,14 @@ export const SMS_TEMPLATES = {
     env: "BOOKING_REQUEST",
     kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
-    preview: (v) => `فرفرو: درخواست تازه از ${v.who}، ${v.day} ساعت ${v.time}. توی اپ جواب بده.`
+    preview: (v) => `فرفرو: درخواست نوبت. مشتری: ${v.who}، روز: ${v.day}، ساعت: ${v.time}. در فرفرو جواب بده.`
   },
   booking_answer: {
     label: "جواب درخواست نوبت (به مشتری)",
     env: "BOOKING_ANSWER",
     kavenegar: (v) => ({ token: v.time, token10: v.day, token20: `${v.who} ${v.result}` }),
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time, result: v.result }),
-    preview: (v) => `فرفرو: نوبتت ${v.day} ساعت ${v.time} توی ${v.who} ${v.result}.`
+    preview: (v) => `فرفرو: وضعیت نوبت شما. محل: ${v.who}، روز: ${v.day}، ساعت: ${v.time}، نتیجه: ${v.result}.`
   },
   booking_reminder: {
     label: "یادآوری نوبت، دو ساعت قبل (به مشتری بدون اعلان)",
@@ -67,6 +67,13 @@ export const SMS_TEMPLATES = {
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time, artist: v.artist }),
     preview: (v) => `فرفرو: ${v.who} می‌خواد نوبتت (${v.day} ساعت ${v.time}) رو بده به ${v.artist}. قبول می‌کنی؟ توی فرفرو جواب بده؛ تا جواب ندی، همه‌چی سر جاشه.`
   },
+  booking_made_for_you: {
+    label: "سالن یا آرتیست خودش برای مشتری نوبت ثبت کرد (به مشتری)",
+    env: "BOOKING_MADE",
+    kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
+    faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
+    preview: (v) => `فرفرو: ${v.who} برایت نوبت ${v.day} ساعت ${v.time} ثبت کرد. در فرفرو ببین.`
+  },
   billing_receipt: {
     label: "رسید پرداخت اشتراک",
     env: "BILLING_RECEIPT",
@@ -107,14 +114,21 @@ export const SMS_TEMPLATES = {
     env: "TEAM_REMOVED",
     kavenegar: (v) => ({ token10: v.who }),
     faraz: (v) => ({ who: v.who }),
-    preview: (v) => `فرفرو: ${v.who} تو رو از تیمش برداشت. نوبت‌های خودت سر جاشه.`
+    preview: (v) => `فرفرو: ${v.who} شما را از تیمش برداشت و همکاری‌تان تمام شد. نوبت‌های خودت سر جایش است.`
   },
   team_left: {
     label: "رفتن آرتیست از تیم (به سالن)",
     env: "TEAM_LEFT",
     kavenegar: (v) => ({ token10: v.who }),
     faraz: (v) => ({ who: v.who }),
-    preview: (v) => `فرفرو: ${v.who} از تیمت رفت. توی اپ ببین.`
+    preview: (v) => `فرفرو: ${v.who} از تیم شما رفت و دیگر نوبت تازه‌ای به نامش ثبت نمی‌شود.`
+  },
+  team_salon_gone: {
+    label: "حذف حساب سالن (به آرتیست‌های تیمش)",
+    env: "TEAM_SALON_GONE",
+    kavenegar: (v) => ({ token10: v.who }),
+    faraz: (v) => ({ who: v.who }),
+    preview: (v) => `فرفرو: ${v.who} حسابش را حذف کرد و همکاری‌تان تمام شد. نوبت‌های خودت سر جایش است.`
   },
   phone_changed: {
     label: "شمارهٔ حساب عوض شد (به شمارهٔ قبلی)",

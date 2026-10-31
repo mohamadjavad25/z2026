@@ -1,3 +1,4 @@
+import { noticeClientBookedByProvider } from "../../../lib/bookingSms.js";
 import { error, json, notFound, requireUserRole, withErrorHandling, readObjectBody } from "../../../lib/http.js";
 import { sweepExpiredBookingRequestsIfDue } from "../../../lib/bookingExpirySweep.js";
 import * as artists from "../../../lib/db/repos/artists.js";
@@ -63,6 +64,10 @@ async function _POST(request) {
     if (!result.ok) {
       return json({ error: result.error, code: result.code }, { status: result.code === "SLOT_TAKEN" ? 409 : 400 });
     }
+    // The artist entered it for a client by hand: the client is told (push for an account, SMS for the number).
+    noticeClientBookedByProvider({ id: auth.user.id, type: "artist", name: auth.user.name }, {
+      kind: "artist", id: result.booking.id, phone: result.booking.client_phone, bookingDate: result.booking.booking_date, time: result.booking.time
+    });
     return json({
       data: {
         booking: result.booking,

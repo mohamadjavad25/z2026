@@ -7,6 +7,9 @@ import { ServiceIcon } from "../../components/ServiceIcon";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { createVisitBookerController } from "./visitBookerController";
 import { VisitWizard } from "./VisitWizard";
+import { NameConflictSheet } from "./NameConflictSheet";
+import { findNameConflict } from "../salons/customers";
+import { renameCustomer } from "../../shared/api/customers";
 import { WaitChoice } from "./WaitChoice";
 import { PlanList, TimesList } from "./visitBookerParts";
 import { notify } from "../../shared/notice/noticeStore";
@@ -128,14 +131,57 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
   else if (readiness.reason === "problem" && !(state.plan.partIndex >= 0)) hint = readiness.message || "این ساعت برای این نوبت جا نداره؛ یه ساعت دیگه انتخاب کن.";
   else if (state.tried && readiness.reason === "missing") hint = missingText(readiness.missing);
 
-  function handleSubmit(event) {
-    event.preventDefault();
+  // A salon or artist typing a new name for a number they already have under another one is asked what to do first
+  // (owner's decision 2026-10-31); `nameAsk` holds the question until it is answered.
+  const [nameAsk, setNameAsk] = useState(null);
+  const [renaming, setRenaming] = useState(false);
+  const [renameError, setRenameError] = useState("");
+
+  function send() {
     void controller.submit().then((result) => {
       if (result?.ok || result?.reason !== "missing") return;
       // Take the person to the first thing that is missing.
       const target = result.missing?.[0] === "نام مشتری" ? "#vb-name" : result.missing?.[0] === "شماره تماس" ? "#vb-phone" : result.missing?.[0] === "خدمت" ? ".vbService" : ".vbTime";
       document.querySelector(`.visitBookerSheet ${target}`)?.focus?.();
     });
+  }
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    // Only once everything else is filled in, so the «what is missing» hint keeps coming first.
+    const conflict = role !== "client" && !state.submitting && !state.done && readiness.ok ? findNameConflict(customers, state.phone, state.name) : null;
+    if (conflict) {
+      setRenameError("");
+      setNameAsk(conflict);
+      return;
+    }
+    send();
+  }
+
+  function answerName(choice) {
+    const ask = nameAsk;
+    setNameAsk(null);
+    if (choice === "keep") controller.setName(ask.mainName);
+    else if (choice === "account") controller.setName(ask.accountName);
+    send();
+  }
+
+  async function renameThenSend() {
+    setRenaming(true);
+    setRenameError("");
+    let result;
+    try {
+      result = await renameCustomer(state.phone, state.name);
+    } catch {
+      result = { ok: false };
+    }
+    setRenaming(false);
+    if (!result?.ok) {
+      setRenameError("اسم عوض نشد؛ اینترنتت رو چک کن و دوباره بزن.");
+      return;
+    }
+    setNameAsk(null);
+    send();
   }
 
   let label = copy.submit;
@@ -162,20 +208,32 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
   // Salon and artist: one question at a time. The client keeps the single page below.
   if (role !== "client") {
     return (
-      <VisitWizard
-        role={role}
-        title={title}
-        state={state}
-        controller={controller}
-        services={frozenServices}
-        days={frozenDays}
-        customers={customers}
-        copy={copy}
-        hint={hint}
-        label={label}
-        onClose={onClose}
-        onSave={handleSubmit}
-      />
+      <>
+        <VisitWizard
+          role={role}
+          title={title}
+          state={state}
+          controller={controller}
+          services={frozenServices}
+          days={frozenDays}
+          customers={customers}
+          copy={copy}
+          hint={hint}
+          label={label}
+          onClose={onClose}
+          onSave={handleSubmit}
+        />
+        <NameConflictSheet
+          ask={nameAsk}
+          busy={renaming}
+          error={renameError}
+          onBoth={() => answerName("both")}
+          onKeepOld={() => answerName("keep")}
+          onRename={renameThenSend}
+          onUseAccount={() => answerName("account")}
+          onClose={() => { if (!renaming) setNameAsk(null); }}
+        />
+      </>
     );
   }
 

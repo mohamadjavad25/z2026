@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { ChevronLeft, MoreHorizontal } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { Mascot } from "../../components/Mascot";
@@ -12,6 +13,7 @@ import { BookingWeekRail } from "../profile/BookingWeekRail";
 import { ScheduleRow } from "../profile/ScheduleRow";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { TeamBusyRow, TeamVisitRow, useTeamClientTimes } from "../salons/SalonDirectVisits";
+import { buildSharedPhoneLookup } from "../salons/customers";
 import { timeLabelToMinutes } from "../../shared/lib/time";
 
 /**
@@ -41,6 +43,8 @@ export function SalonScheduleDashboard({
   // The team's own clients that day (owner's decision of 2026-10-25): received here (violet) or elsewhere (striped),
   // placed among the salon's own bookings by time.
   const teamTimes = useTeamClientTimes();
+  // «هم‌شماره با …»: the same number booked under another name (owner's decision 2026-10-31).
+  const sharedOf = useMemo(() => buildSharedPhoneLookup(historyBookings), [historyBookings]);
   const dayKey = getBookingDateKey(selectedDay);
   const dayRows = [
     ...dayAppointments.map((item, index) => ({ kind: "own", item, index, at: timeLabelToMinutes(item.time) })),
@@ -159,6 +163,7 @@ export function SalonScheduleDashboard({
                   <ScheduleRow
                     key={row.item.id != null ? String(row.item.id) : `salon-row-${row.item.time}-${row.item.client}-${row.index}`}
                     booking={row.item}
+                    sharedWith={sharedOf(row.item)}
                     onOpenClient={onOpenClient}
                     onAction={onOpenBookingMenu}
                     review={reviewFor(row.item)}

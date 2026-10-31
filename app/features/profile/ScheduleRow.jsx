@@ -15,6 +15,7 @@ import {
   resolveBookingDurationMinutes
 } from "../artist/bookingUtils";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
+import { sharedPhoneLabel } from "../salons/customers";
 
 // Status-tone mapping, ownerType-aware — NOT a plain copy of
 // ClientBookingSettingsModal.jsx's getBookingStatusTone, because "تازه"
@@ -176,6 +177,7 @@ function scheduleRowPropsAreEqual(prev, next) {
     && prev.booking?.source?.status === next.booking?.source?.status
     && prev.variant === next.variant
     && prev.review === next.review
+    && String(prev.sharedWith || "") === String(next.sharedWith || "")
     && prev.booking?.displayTitle === next.booking?.displayTitle
     && prev.booking?.displayMeta === next.booking?.displayMeta
     && prev.booking?.source?.parts === next.booking?.source?.parts
@@ -188,7 +190,9 @@ export const ScheduleRow = memo(function ScheduleRow({
   onOpenClient,
   onAction,
   variant = "default",
-  review = null
+  review = null,
+  /** The other names booked with this booking's number (buildSharedPhoneLookup): «هم‌شماره با …». */
+  sharedWith = []
 }) {
   const {
     phase,
@@ -300,6 +304,7 @@ export const ScheduleRow = memo(function ScheduleRow({
               <span>{date}</span>
             </>
           ) : null}
+          {!isClientBooking && sharedWith.length ? <span className="bkSame">{sharedPhoneLabel(sharedWith)}</span> : null}
         </div>
         {!isClientBooking ? (
           <div className="bkFoot">

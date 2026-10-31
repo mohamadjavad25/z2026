@@ -9,7 +9,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Raise versionCode for every store upload (it must always go up); versionName stays 1.0.0 (owner's rule).
         // The site reads versionCode to ask older apps to update (app/shared/lib/appUpdate.js).
-        versionCode 4
+        versionCode 5
         versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {

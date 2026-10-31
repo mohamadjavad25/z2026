@@ -22,6 +22,17 @@ describe("pattern SMS for subscriptions", () => {
     }
   });
 
+  it("the 2026-10-30 texts: a hand-entered booking and a deleted salon (Kavenegar tokens match docs/OPERATIONS.md)", () => {
+    const made = SMS_TEMPLATES.booking_made_for_you;
+    expect(made.env).toBe("BOOKING_MADE");
+    expect(made.kavenegar({ who: "سالن رز", day: "فردا", time: "۱۴:۳۰" })).toEqual({ token: "۱۴:۳۰", token10: "فردا", token20: "سالن رز" });
+    expect(made.preview({ who: "سالن رز", day: "فردا", time: "۱۴:۳۰" })).toBe("فرفرو: سالن رز برایت نوبت فردا ساعت ۱۴:۳۰ ثبت کرد. در فرفرو ببین.");
+    const gone = SMS_TEMPLATES.team_salon_gone;
+    expect(gone.env).toBe("TEAM_SALON_GONE");
+    expect(gone.kavenegar({ who: "سالن رز" })).toEqual({ token10: "سالن رز" });
+    expect(gone.preview({ who: "سالن رز" })).toContain("حسابش را حذف کرد");
+  });
+
   it("is off until a provider and the template's own pattern are set", async () => {
     expect(templateConfigured("billing_receipt")).toBe(false);
     process.env.FRFRO_SMS_PROVIDER = "kavenegar";

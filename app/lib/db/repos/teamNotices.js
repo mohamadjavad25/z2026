@@ -3,7 +3,7 @@ import { getDb, all, run } from "../connection.js";
 /**
  * «همکاری تموم شد» cards (migrations/050_team_notices.sql): one row per removal from, or departure from, a salon team,
  * for the person on the other side. Shown inside the app until they tap «باشه».
- * kind: "removed" (a salon took this artist off its team) | "left" (an artist left this salon's team).
+ * kind: "removed" (a salon took this artist off its team) | "left" (an artist left this salon's team) | "gone" (the salon deleted its account).
  */
 export const REASON_MAX = 120;
 
@@ -12,7 +12,7 @@ export function cleanReason(value) {
 }
 
 export async function addTeamNotice(userId, { kind, fromUserId = null, fromName = "", reason = "" }) {
-  if (!userId || (kind !== "removed" && kind !== "left")) return;
+  if (!userId || (kind !== "removed" && kind !== "left" && kind !== "gone")) return;
   const db = await getDb();
   await run(db, `
     INSERT INTO team_notices (user_id, kind, from_user_id, from_name, reason)
