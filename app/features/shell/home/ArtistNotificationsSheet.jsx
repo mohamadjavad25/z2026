@@ -34,14 +34,24 @@ export function ArtistNotificationsSheet() {
             onClose={() => setProfileView("overview")}
           >
             <div className="salonNotificationsPanel">
-              <article className={pendingArtistBookingRequests.length ? "is-live" : undefined}>
+              {/* Every row is a button (2026-10-31; only «دعوت همکاری» used to react). New bookings: down to the answers, or back to the schedule when empty. */}
+              <button
+                type="button"
+                className={`salonNoticeRow${pendingArtistBookingRequests.length ? " is-live" : ""}`}
+                onClick={() => {
+                  const board = typeof document !== "undefined" ? document.getElementById("artistRequestsBoard") : null;
+                  if (board && pendingArtistBookingRequests.length) board.scrollIntoView({ behavior: "smooth", block: "start" });
+                  else setProfileView("overview");
+                }}
+              >
                 <span><BellRing size={18} /></span>
                 <div>
                   <b>نوبت‌های تازه</b>
-                  <small>{pendingArtistBookingRequests.length ? `${toPersianDigits(pendingArtistBookingRequests.length)} نوبت تازه منتظر جوابته.` : "فعلاً نوبت تازه‌ای نیست."}</small>
+                  <small>{pendingArtistBookingRequests.length ? `${toPersianDigits(pendingArtistBookingRequests.length)} نوبت تازه منتظر جوابته. بزن تا ببینی.` : "فعلاً نوبت تازه‌ای نیست."}</small>
                 </div>
                 <em>{toPersianDigits(pendingArtistBookingRequests.length)}</em>
-              </article>
+                <ChevronLeft size={16} className="salonNoticeGo" aria-hidden="true" />
+              </button>
               {/* Opens «همکاری», where invites are answered (2026-10-30; it used to be a note that did nothing). */}
               <button type="button" className={`salonNoticeRow${pendingArtistSalonInvites.length ? " is-live" : ""}`} onClick={() => setProfileView("collabs")}>
                 <span><PageIcon name="collab" size={22} /></span>
@@ -52,22 +62,25 @@ export function ArtistNotificationsSheet() {
                 <em>{toPersianDigits(pendingArtistSalonInvites.length)}</em>
                 <ChevronLeft size={16} className="salonNoticeGo" aria-hidden="true" />
               </button>
-              <article>
+              <button type="button" className="salonNoticeRow" onClick={() => setProfileView("overview")}>
                 <span><CalendarClock size={18} /></span>
                 <div>
                   <b>نوبت‌های پیش‌رو</b>
                   <small>{artistBookingList.length ? `${toPersianDigits(artistBookingList.length)} نوبت توی برنامه‌ته.` : "برنامه‌ت خالیه."}</small>
                 </div>
                 <em>{toPersianDigits(artistBookingList.length)}</em>
-              </article>
+                <ChevronLeft size={16} className="salonNoticeGo" aria-hidden="true" />
+              </button>
             </div>
 
-            <ArtistRequestsBoard
-              requests={pendingArtistBookingRequests}
-              busyId={artistRequestBusyId}
-              onApprove={confirmArtistBookingRequest}
-              onDecline={declineArtistBookingRequest}
-            />
+            <div id="artistRequestsBoard">
+              <ArtistRequestsBoard
+                requests={pendingArtistBookingRequests}
+                busyId={artistRequestBusyId}
+                onApprove={confirmArtistBookingRequest}
+                onDecline={declineArtistBookingRequest}
+              />
+            </div>
 
             {recentlyExpiredArtistBookings.length > 0 && (
               <section className="salonRequestsBoard salonExpiredNoticeBoard" aria-label="نوبت‌های منقضی‌شده اخیر">

@@ -35,7 +35,7 @@ export function NameConflictSheet({ ask, busy = false, error = "", onBoth, onKee
     );
   }
 
-  const known = ask.names.length > 1 ? `با اسم‌های ${joinNames(ask.names)}` : `با اسم ${joinNames(ask.names)}`;
+  const known = joinNames(ask.names);
   if (confirming) {
     return (
       <ProfileSheet open kicker="اسم مشتری" title="اسم عوض بشه؟" panelClassName="cuSheet" onClose={busy ? undefined : () => setConfirming(false)}>
@@ -51,21 +51,21 @@ export function NameConflictSheet({ ask, busy = false, error = "", onBoth, onKee
     );
   }
   return (
-    <ProfileSheet open kicker="اسم مشتری" title={`این شماره ${known} ثبت شده`} panelClassName="cuSheet" onClose={onClose}>
+    <ProfileSheet open kicker="اسم مشتری" title="این شماره از قبل اسم داره" panelClassName="cuSheet" onClose={onClose}>
       <div className="cuSheetBody nameAsk">
-        <p>الان اسم «{ask.typed}» رو نوشتی. چی کار کنیم؟</p>
+        <p>قبلاً با {known} ثبت شده. تو «{ask.typed}» نوشتی.</p>
         <div className="nameAskChoices">
           <button type="button" className="vbSubmit" onClick={onBoth}>
             هر دو باشن
-            <small>نوبت با اسم «{ask.typed}» ثبت می‌شه و نوبت‌های قبلی با اسم خودشون می‌مونن.</small>
+            <small>این نوبت «{ask.typed}»، قبلی‌ها مثل قبل.</small>
           </button>
           <button type="button" className="nameAskChoice" onClick={onKeepOld}>
             همون «{ask.mainName}» بمونه
-            <small>نوبت با اسم «{ask.mainName}» ثبت می‌شه.</small>
+            <small>این نوبت هم «{ask.mainName}».</small>
           </button>
           <button type="button" className="nameAskChoice" onClick={() => setConfirming(true)}>
             اسم رو عوض کن به «{ask.typed}»
-            <small>همه‌ی نوبت‌های این شماره، قبلی‌ها هم، با اسم «{ask.typed}» دیده می‌شن.</small>
+            <small>قبلی‌ها هم «{ask.typed}» می‌شن.</small>
           </button>
           <button type="button" className="vbLink" onClick={onClose}>برگرد</button>
         </div>
