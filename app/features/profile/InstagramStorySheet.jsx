@@ -179,16 +179,29 @@ function drawKick(ctx, text, y, right = W - 80) {
   ctx.fillText(text, right, y);
 }
 
-/** Big lines ending at `right`: the first white, the rest in the blend. Returns the y under the last line. */
-function drawHeadline(ctx, lines, y, size, right = W - 80, maxWidth = W - 160) {
+/**
+ * Big lines ending at `right`: the first white, the rest in the blend. All lines share one size (the biggest that lets
+ * the longest fit), so the headline reads as one block. Returns the y of the last line.
+ */
+function drawHeadline(ctx, lines, y, size, right = W - 80, maxWidth = W - 160, lineHeight = 1.1) {
   ctx.textAlign = "right";
   ctx.direction = "rtl";
-  lines.forEach((line, index) => {
-    fitFont(ctx, line, 900, size, maxWidth);
-    ctx.fillStyle = index === 0 ? "#ffffff" : blendFill(ctx, right, ctx.measureText(line).width);
-    ctx.fillText(line, right, y + index * size * 1.1);
+  let px = size;
+  lines.forEach((line) => {
+    let fit = size;
+    ctx.font = `900 ${fit}px ${FONT}`;
+    while (fit > 40 && ctx.measureText(line).width > maxWidth) {
+      fit -= 4;
+      ctx.font = `900 ${fit}px ${FONT}`;
+    }
+    px = Math.min(px, fit);
   });
-  return y + (lines.length - 1) * size * 1.1;
+  ctx.font = `900 ${px}px ${FONT}`;
+  lines.forEach((line, index) => {
+    ctx.fillStyle = index === 0 ? "#ffffff" : blendFill(ctx, right, ctx.measureText(line).width);
+    ctx.fillText(line, right, y + index * px * lineHeight);
+  });
+  return y + (lines.length - 1) * px * lineHeight;
 }
 
 /**
@@ -266,7 +279,7 @@ async function drawFree(ctx, { name, avatar, works, days, showWho }) {
   const dayGap = 40;
   const dayH = (day) => labelH + Math.min(day.times.length, SLOTS_PER_DAY) * (chipH + chipGap) - chipGap;
   const timesH = open.reduce((sum, day) => sum + dayH(day), 0) + dayGap * Math.max(0, open.length - 1);
-  const textH = 600;
+  const textH = 470;
   const areaTop = showWho ? SAFE_TOP + 218 : SAFE_TOP + 20;
   const areaBottom = LINK_BOX_Y - 70;
   const blockH = Math.max(timesH, textH);
@@ -306,14 +319,16 @@ async function drawFree(ctx, { name, avatar, works, days, showWho }) {
   const textRight = chipX - 44;
   const textWidth = textRight - 80;
   const textTop = top + (blockH - textH) / 2;
-  drawKick(ctx, "وقت‌های خالی", textTop + 46, textRight);
-  const last = drawHeadline(ctx, ["رزرو کن", "تا پر", "نشده"], textTop + 204, 118, textRight, textWidth);
+  // One block, three steps: a small pink label, a two-line headline of one size, a quiet two-line note. Spacing is
+  // even (about 70 px between steps) so nothing floats apart (owner's typography fix 2026-10-31).
+  drawKick(ctx, "وقت‌های خالی", textTop + 44, textRight);
+  const last = drawHeadline(ctx, ["رزرو کن", "تا پر نشده"], textTop + 190, 112, textRight, textWidth, 1.2);
   ctx.textAlign = "right";
   ctx.direction = "rtl";
-  ctx.fillStyle = "rgba(255,255,255,0.78)";
-  ctx.font = `700 38px ${FONT}`;
-  ctx.fillText("با همین لینک،", textRight, last + 80);
-  ctx.fillText("بی‌تماس و بی‌پیام", textRight, last + 140);
+  ctx.fillStyle = "rgba(255,255,255,0.72)";
+  ctx.font = `700 36px ${FONT}`;
+  ctx.fillText("با همین لینک،", textRight, last + 84);
+  ctx.fillText("بی‌تماس و بی‌پیام.", textRight, last + 138);
   drawLinkBox(ctx);
 }
 
