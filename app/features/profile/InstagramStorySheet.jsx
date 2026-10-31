@@ -16,6 +16,7 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { parseServiceDurationMinutes } from "../../shared/lib/time";
 import { hasNativeStoryShare, saveStoryNative, shareStoryNative } from "../../shared/lib/storyShare";
 import { appTooOldFor, askForAppUpdate } from "../../shared/lib/appUpdate";
+import { markPosted } from "./storyMemory";
 
 // What the person hears after each button (one line each).
 const SHARED_COPIED = "لینک صفحه‌ت کپی شد؛ توی استوری برچسب لینک رو بزن و بچسبون.";
@@ -692,6 +693,8 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     }
   }
 
+  // The times on a free-times story are now «on today's story»; the home card will not offer them again.
+  const postedNow = () => { if (design === "free") markPosted(shownDays); };
   const sharedNote = (copied) => (copied ? SHARED_COPIED : SHARED_NOT_COPIED);
   const savedNote = (copied) => (copied ? SAVED_COPIED : SAVED_NOT_COPIED);
 
@@ -704,6 +707,7 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     if (native) {
       try {
         const { copied } = await shareStoryNative(preview, url);
+        postedNow();
         onNotify?.(sharedNote(copied));
       } catch {
         save();
@@ -713,6 +717,7 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     const copied = await copyLink();
     try {
       await navigator.share({ files: [file] });
+      postedNow();
       onNotify?.(sharedNote(copied));
     } catch (error) {
       if (error?.name !== "AbortError") save();
@@ -729,6 +734,7 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     if (native) {
       try {
         const { copied } = await saveStoryNative(preview, url);
+        postedNow();
         onNotify?.(savedNote(copied));
       } catch (error) {
         onNotify?.(error?.code === "DENIED" ? SAVE_DENIED : SAVE_FAILED);
@@ -741,6 +747,7 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     document.body.appendChild(a);
     a.click();
     a.remove();
+    postedNow();
     onNotify?.(savedNote(await copyLink()));
   }
 

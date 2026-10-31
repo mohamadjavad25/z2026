@@ -2,7 +2,8 @@ import { useState } from "react";
 import { AuthGateForms } from "../../auth";
 import { ProfileHero } from "../../profile/ProfileHero";
 import { openLocationSettings } from "../../profile/locationEvents";
-import { ProfileCompleteness, ProfileReadyCelebration, getProfileSteps } from "../../profile/ProfileCompleteness";
+import { ProfileCompleteness, ProfileReadyCelebration } from "../../profile/ProfileCompleteness";
+import { HomeCards } from "./HomeCards";
 import { StoryNudgeCard } from "../../profile/StoryNudgeCard";
 import { DueRemindersSection } from "../../dueReminders/DueReminders";
 import { BillingBanner } from "../../billing";
@@ -263,33 +264,30 @@ export function ProfilePanelBody() {
               />
             ) : null}
 
-            {/* Wait for the workspace to load: until then the service count reads 0 and a complete profile would flash the card. */}
+            {/* The owner's small cards in one slider of one size (owner's idea 2026-10-31): «تکمیل پروفایل» and the story suggestion today, others later.
+                Wait for the workspace to load: until then the service count reads 0 and a complete profile would flash the card. */}
             {(createdProfile?.type === "salon" || createdProfile?.type === "artist") && createdProfile.type === profileType && profileView === "overview" && !salonWorkspace
               && !(createdProfile.type === "salon" ? salonWorkspaceLoading : artistWorkspaceLoading) ? (
-              <ProfileCompleteness
-                profile={createdProfile}
-                serviceCount={createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length}
-                onPickLogo={saveProfileLogo}
-                logoEditing={Boolean(pendingAvatarUpload)}
-                onQuickSave={quickSaveProfile}
-                onOpenServices={() => {
-                  // Land on the services page and open the add-service sheet right away.
-                  if (createdProfile.type === "salon") {
-                    openSalonWorkspace("hours");
-                    openSalonServiceCreate();
-                  } else {
-                    setProfileView("services");
-                    openArtistServiceCreate();
-                  }
-                }}
-              />
-            ) : null}
-
-            {/* One calm story suggestion, only once the profile is complete (the completeness card has the slot until then) and never on top of it. */}
-            {(createdProfile?.type === "salon" || createdProfile?.type === "artist") && createdProfile.type === profileType && profileView === "overview" && !salonWorkspace
-              && !(createdProfile.type === "salon" ? salonWorkspaceLoading : artistWorkspaceLoading)
-              && getProfileSteps(createdProfile, createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length).every((step) => step.done) ? (
-              <StoryNudgeCard profile={createdProfile} cancelled={createdProfile.type === "salon" ? salonAppointmentList : []} onNotify={setAppToast} />
+              <HomeCards>
+                <ProfileCompleteness
+                  profile={createdProfile}
+                  serviceCount={createdProfile.type === "salon" ? salonServiceList.length : artistServiceList.length}
+                  onPickLogo={saveProfileLogo}
+                  logoEditing={Boolean(pendingAvatarUpload)}
+                  onQuickSave={quickSaveProfile}
+                  onOpenServices={() => {
+                    // Land on the services page and open the add-service sheet right away.
+                    if (createdProfile.type === "salon") {
+                      openSalonWorkspace("hours");
+                      openSalonServiceCreate();
+                    } else {
+                      setProfileView("services");
+                      openArtistServiceCreate();
+                    }
+                  }}
+                />
+                <StoryNudgeCard profile={createdProfile} bookings={createdProfile.type === "salon" ? salonAppointmentList : artistBookingList} onNotify={setAppToast} />
+              </HomeCards>
             ) : null}
 
           {createdProfile.type === profileType ? (

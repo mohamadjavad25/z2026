@@ -164,12 +164,31 @@ a:hover > .igFolder .igFolderPost.is-3, a:active > .igFolder .igFolderPost.is-3,
 .igRowGo::after { content: " ‹"; }
 .igRow:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; border-radius: 10px; }
 
-/* The calm story suggestion on an owner's home: one slim row, ink with a pink edge when a cancelled time is free again. */
-.storyNudge { display: flex; align-items: center; gap: 10px; margin: 8px 16px; padding: 10px 10px 10px 12px; border-radius: 20px; background: var(--brand-ink); color: var(--n-0); box-shadow: 0 8px 22px rgb(var(--shadow-rgb) / 0.18); }
-.storyNudge.is-freed { box-shadow: inset 0 0 0 2px var(--brand-pink), 0 8px 22px rgb(var(--shadow-rgb) / 0.18); }
+/* The owner's small cards in one slider, every slide the same size (owner's idea 2026-10-31). The slides keep their own colours:
+   violet is the owner's own page (completeness), ink with a pink edge is anything with clients and bookings (story). */
+.homeCards { display: grid; gap: 6px; margin: 12px 14px 0; }
+.homeCardsTrack { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; border-radius: 22px; }
+.homeCardsTrack::-webkit-scrollbar { display: none; }
+.homeCardsTrack > section { flex: 0 0 100%; box-sizing: border-box; height: 92px; margin: 0; scroll-snap-align: center; }
+.homeCardsDots { display: flex; justify-content: center; gap: 6px; }
+.homeCardsDots button { position: relative; width: 7px; height: 7px; padding: 0; border: 0; border-radius: 99px; background: var(--n-200); cursor: pointer; transition: width 0.25s ease, background 0.25s ease; }
+.homeCardsDots button::after { content: ""; position: absolute; inset: -8px -4px; }
+.homeCardsDots button.is-on { width: 20px; background: var(--brand-pink); }
+@media (prefers-reduced-motion: reduce) { .homeCardsDots button { transition: none; } }
+.homeCardsTrack > .profileCompleteness { background: linear-gradient(135deg, rgb(var(--brand-violet-rgb, 139 108 255) / 0.16), var(--n-0)); box-shadow: inset 0 0 0 1.5px rgb(var(--brand-violet-rgb, 139 108 255) / 0.45); }
+
+/* The calm story suggestion: ink; a pink edge when a time was freed. */
+.storyNudge { display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 12px; border-radius: 22px; background: var(--brand-ink); color: var(--n-0); }
+.storyNudge.is-freed { box-shadow: inset 0 0 0 2px var(--brand-pink); }
 .storyNudgeIcon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 14px; background: rgb(var(--n-0-rgb) / 0.12); }
-.storyNudgeMain { display: grid; flex: 1; min-width: 0; gap: 2px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: right; cursor: pointer; }
-.storyNudgeMain strong { font-size: 0.9rem; font-weight: 950; line-height: 1.6; }
-.storyNudgeMain small { color: rgb(var(--n-0-rgb) / 0.72); font-size: 0.74rem; font-weight: 800; line-height: 1.7; }
+.storyNudgeMain { display: grid; flex: 1; min-width: 0; gap: 1px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: right; cursor: pointer; }
+.storyNudgeMain strong { font-size: 0.88rem; font-weight: 950; line-height: 1.55; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.storyNudgeMain small { color: rgb(var(--n-0-rgb) / 0.72); font-size: 0.72rem; font-weight: 800; line-height: 1.6; }
+/* How much time is left, readable at a glance: pink when there is plenty, amber when short, red when nearly too late. */
+.storyNudgeRow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 3px; }
+.storyNudgeLeft { flex: none; padding: 1px 9px; border-radius: 99px; background: rgb(var(--n-0-rgb) / 0.12); font-size: 0.7rem; font-style: normal; font-weight: 900; }
+.storyNudgeLeft.is-ok { color: var(--brand-pink); }
+.storyNudgeLeft.is-soon { color: #ffc861; }
+.storyNudgeLeft.is-late { color: #ff8d8d; }
 .storyNudgeNo { display: grid; place-items: center; flex: none; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: rgb(var(--n-0-rgb) / 0.7); cursor: pointer; }
 .storyNudge button:focus-visible { outline: 3px solid var(--brand-pink); outline-offset: 2px; }

@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
-import { toAsciiDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatPersianDateKey } from "../../shared/lib/persianCalendar";
 import { InstagramGlyph } from "../../components/InstagramFolder";
 import { InstagramStorySheet, loadFreeSlots } from "./InstagramStorySheet";
+import { POSTED_EVENT, readPosted, readSeen, writeSeen } from "./storyMemory";
+import { buildSuggestion, clock, formatLeft } from "./storySuggestion";
 
 const DISMISS_KEY = "frfro-story-nudge-day";
 const CACHE_MS = 5 * 60 * 1000;
 // One read per page per few minutes, however often the home screen redraws.
 const cache = new Map();
+const NOT_ACTIVE = ["لغو", "منقضی شده", "رد شد", "رد"];
 
 function readDismissedDay() {
   try {
@@ -20,37 +22,50 @@ function readDismissedDay() {
   }
 }
 
-/** "8:5" and "08:05" both become "08:05", the way free times are written. */
-function clock(value) {
-  const match = toAsciiDigits(String(value || "")).match(/(\d{1,2}):(\d{2})/);
-  return match ? `${match[1].padStart(2, "0")}:${match[2]}` : "";
+/** The owner's upcoming bookings in one shape, whichever kind of owner they are. */
+function activeBookings(type, bookings, today) {
+  return (bookings || [])
+    .filter((booking) => booking && booking.id != null && !NOT_ACTIVE.includes(booking.status))
+    .map((booking) => ({
+      id: String(booking.id),
+      key: type === "salon" ? booking.booking_date : booking.dateKey,
+      time: clock(booking.time),
+      staff: type === "salon" ? String(booking.staff || "").trim() : ""
+    }))
+    .filter((booking) => booking.key && booking.time && booking.key >= today);
 }
 
 /**
- * The one quiet story suggestion on an owner's home (owner's request 2026-10-31: no extra notifications, everything
- * smart and automatic but calm). It shows only while today or tomorrow has free times a client could still request,
- * says it in one line, and opens the story maker with a single tap. When a booking was just cancelled and its time is
- * free again, the line names that time instead. «امروز نه» hides it until tomorrow. It never sends a push and never
- * posts anything by itself.
+ * The calm story suggestion on an owner's home (owner's request 2026-10-31: smart, automatic, no extra notifications).
+ * What it says comes from buildSuggestion (storySuggestion.js): free times, a freed time with the hours left to it
+ * and how much a story is still worth, or news since the story already made today. It never sends a push and never
+ * posts by itself. «×» hides it until tomorrow. It is one slide of the home's cards (HomeCards).
  *
- * `cancelled`: bookings with status «لغو» ({ booking_date, time }); only used to name a freed time.
+ * `bookings`: the owner's upcoming bookings (a salon's list also carries cancelled ones, marked «لغو»).
  */
-export function StoryNudgeCard({ profile, cancelled = [], onNotify }) {
+export function StoryNudgeCard({ profile, bookings = [], onNotify }) {
   const [slots, setSlots] = useState(null);
   const [hiddenDay, setHiddenDay] = useState("");
   const [open, setOpen] = useState(false);
+  const [posted, setPosted] = useState([]);
+  // Read once, before anything is written back, so what vanished since the last look is still known.
+  const [previous] = useState(() => (typeof window === "undefined" ? null : readSeen(`${profile?.type}:${profile?.id}`)));
   const type = profile?.type;
   const profileId = profile?.id;
+  const ownerKey = `${type}:${profileId}`;
   const today = formatPersianDateKey(new Date());
 
   useEffect(() => {
     setHiddenDay(readDismissedDay());
-  }, []);
+    setPosted(readPosted());
+    const onPosted = () => setPosted(readPosted());
+    window.addEventListener(POSTED_EVENT, onPosted);
+    return () => window.removeEventListener(POSTED_EVENT, onPosted);
+  }, [ownerKey]);
 
   useEffect(() => {
     if (!profileId || (type !== "salon" && type !== "artist")) return undefined;
-    const key = `${type}:${profileId}`;
-    const hit = cache.get(key);
+    const hit = cache.get(ownerKey);
     if (hit && Date.now() - hit.at < CACHE_MS) {
       setSlots(hit.days);
       return undefined;
@@ -58,34 +73,35 @@ export function StoryNudgeCard({ profile, cancelled = [], onNotify }) {
     let cancelledLoad = false;
     loadFreeSlots(type, profileId)
       .then((days) => {
-        cache.set(key, { at: Date.now(), days });
+        cache.set(ownerKey, { at: Date.now(), days });
         if (!cancelledLoad) setSlots(days);
       })
       .catch(() => { if (!cancelledLoad) setSlots([]); });
     return () => { cancelledLoad = true; };
-  }, [type, profileId]);
+  }, [type, profileId, ownerKey]);
+
+  const current = useMemo(() => activeBookings(type, bookings, today), [type, bookings, today]);
+  // Gone since the last look, and still ahead of us.
+  const vanished = useMemo(
+    () => (previous || []).filter((old) => old.key >= today && !current.some((now) => now.id === old.id)),
+    [previous, current, today]
+  );
+
+  // Remember the list for the next look, keeping the vanished ones until their day has passed.
+  useEffect(() => {
+    if (previous === null && !current.length && !bookings.length) {
+      writeSeen(ownerKey, []);
+      return;
+    }
+    writeSeen(ownerKey, [...current, ...vanished]);
+  }, [ownerKey, current, vanished, previous, bookings.length]);
+
+  const suggestion = useMemo(
+    () => (slots ? buildSuggestion({ days: slots, cancelled: type === "salon" ? bookings.map((b) => ({ ...b, booking_date: b.booking_date })) : [], vanished, posted, now: new Date() }) : null),
+    [slots, type, bookings, vanished, posted]
+  );
 
   if (!profileId || (type !== "salon" && type !== "artist")) return null;
-  if (hiddenDay === today && !open) return null;
-  const total = (slots || []).reduce((sum, day) => sum + day.times.length, 0);
-  if (!total && !open) return null;
-
-  // A cancelled booking whose time is free again, today or tomorrow.
-  let freed = "";
-  for (const day of slots || []) {
-    const hit = (cancelled || []).find((booking) => (
-      booking?.status === "لغو" && booking.booking_date === day.key && day.times.map(clock).includes(clock(booking.time))
-    ));
-    if (hit) { freed = clock(hit.time); break; }
-  }
-
-  const todayCount = (slots || []).find((day) => day.label === "امروز")?.times.length || 0;
-  const title = freed
-    ? `نوبت ساعت ${toPersianDigits(freed)} لغو شد و هنوز خالیه`
-    : todayCount
-      ? `امروز ${toPersianDigits(todayCount)} وقت خالی داری`
-      : `فردا ${toPersianDigits(total)} وقت خالی داری`;
-  const hint = freed ? "استوریش کن تا زود پر بشه." : "یه استوری آماده‌ست؛ یه لمس و می‌ره برای اینستاگرامت.";
   const path = `/${type === "salon" ? "salons" : "artists"}/${Number(profileId)}`;
   const url = typeof window !== "undefined" ? `${window.location.origin}${path}` : path;
 
@@ -98,20 +114,27 @@ export function StoryNudgeCard({ profile, cancelled = [], onNotify }) {
     setHiddenDay(today);
   }
 
+  const shown = suggestion && hiddenDay !== today;
+  const hint = !suggestion ? "" : suggestion.kind === "freed" ? "هنوز خالیه؛ استوریش کن." : "یه استوری آماده‌ست؛ یه لمس و می‌ره برای اینستاگرامت.";
+  const leftText = !suggestion ? "" : Number.isFinite(suggestion.left) && suggestion.left < 24 * 60 ? `${formatLeft(suggestion.left)} مونده` : "فردا";
+
   return (
     <>
-      {hiddenDay === today ? null : (
-        <section className={`storyNudge${freed ? " is-freed" : ""}`} aria-label="پیشنهاد استوری">
+      {shown ? (
+        <section className={`storyNudge${suggestion.kind === "freed" ? " is-freed" : ""}`} aria-label="پیشنهاد استوری">
           <span className="storyNudgeIcon" aria-hidden="true"><InstagramGlyph size={20} /></span>
           <button type="button" className="storyNudgeMain" onClick={() => setOpen(true)}>
-            <strong>{title}</strong>
-            <small>{hint}</small>
+            <strong>{suggestion.title}</strong>
+            <span className="storyNudgeRow">
+              <em className={`storyNudgeLeft is-${suggestion.tone}`}>{leftText}</em>
+              <small>{hint}</small>
+            </span>
           </button>
           <button type="button" className="storyNudgeNo" onClick={dismiss} aria-label="امروز نه">
             <X size={15} aria-hidden="true" />
           </button>
         </section>
-      )}
+      ) : null}
       <InstagramStorySheet
         open={open}
         name={profile?.data?.name || ""}
