@@ -3,7 +3,6 @@ import { TEST_BASE_URL } from "../globalSetup.js";
 import { confirmedAt, directConfirmed, newArtist, newClient, teamSalon } from "../integration/exitHelpers.js";
 import { formatPersianDateKey } from "../../app/shared/lib/persianCalendar.js";
 import { getTehranClockMinutes, timeLabelToMinutes } from "../../app/shared/lib/time.js";
-import { toAsciiDigits as toAscii, toPersianDigits } from "../../app/shared/lib/digits.js";
 import { closeBrowser, newPage } from "./browser.js";
 
 afterAll(closeBrowser);
@@ -13,18 +12,11 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const todayKey = () => formatPersianDateKey(new Date());
 const tomorrowKey = () => formatPersianDateKey(new Date(Date.now() + DAY_MS));
 
-/** The calm story card on an owner's home, in a real phone-sized browser against the real app and database (owner's
- *  request 2026-10-31: try every case, push on it, then make it smarter). */
+/** The story card and the story maker, in a real phone-sized browser against the real app and database (owner's rules
+ *  2026-11-01: frfro only suggests times, the owner decides; up to two days; nothing about cancelled bookings). */
 async function complete(api, extra = {}) {
   const res = await api.post("/api/profile", { data: { avatar: PNG, service: "مو", area: "تهران، خیابان گلستان", geo: { lat: 35.7219, lng: 51.3347 }, ...extra } });
   expect(res.ok).toBe(true);
-}
-
-/** The salon's shortest service: the card (like the story) reads free times for it. */
-async function shortestService(salon) {
-  const services = (await salon.api.get("/api/salon-services")).payload.data.services;
-  const minutes = (service) => Number(String(toAscii(service.duration)).match(/\d+/)?.[0]) || Infinity;
-  return [...services].sort((a, b) => minutes(a) - minutes(b))[0].name;
 }
 
 /** Free start times a client could still request, for one day, straight from the server. */
@@ -35,7 +27,7 @@ async function freeTimes(salon, day, service = "کوتاهی مو") {
   return res.payload?.data?.times || [];
 }
 
-/** A day (tomorrow first) with at least `need` free times, and the first `need` of them. */
+/** A day (tomorrow first) with at least `need` free times, and its times. */
 async function pickDay(salon, need = 1) {
   for (const day of [tomorrowKey(), todayKey()]) {
     const times = (await freeTimes(salon, day)).filter((time) => day !== todayKey() || timeLabelToMinutes(time) - getTehranClockMinutes() > 150);
@@ -44,8 +36,9 @@ async function pickDay(salon, need = 1) {
   throw new Error("no day with free times");
 }
 
-async function openHome(client, { init = "" } = {}) {
+async function openHome(client, { init = "", dark = false } = {}) {
   const opened = await newPage({ cookie: client.api.cookie() });
+  if (dark) await opened.page.emulateMedia({ colorScheme: "dark" });
   if (init) await opened.context.addInitScript({ content: init });
   // Nothing outside the app (fonts, maps) may hold the page back where the network is closed.
   await opened.context.route((url) => !url.href.startsWith(TEST_BASE_URL) && !url.href.startsWith("data:"), (route) => route.abort());
@@ -56,72 +49,30 @@ async function openHome(client, { init = "" } = {}) {
 
 const card = (page) => page.locator(".storyNudge");
 
+async function openMaker(page) {
+  await card(page).waitFor();
+  await page.locator(".storyNudgeMain").dispatchEvent("click");
+  await page.locator(".igStudioPicture img").first().waitFor({ timeout: 20000 });
+}
+
 describe("the story card on a salon's home (browser)", () => {
-  it("offers the free times, then names a cancelled booking with its team member and the time left", async () => {
+  it("says how many times are free and never talks about a cancelled booking", async () => {
     const { salon, members } = await teamSalon("Story Salon", 2);
     await complete(salon.api);
     const { day, times } = await pickDay(salon, 2);
     const client = await newClient("Story Client");
     const id = await confirmedAt(salon, client, { day, time: times[0], staff: members[0].staff.name });
-
-    const first = await openHome(salon);
-    await card(first.page).waitFor();
-    expect(await card(first.page).innerText()).toContain("وقت خالی داری");
-    expect(first.problems).toEqual([]);
-    await first.context.close();
-
     expect((await salon.api.patch("/api/salon-bookings", { id, status: "لغو" })).ok).toBe(true);
-    const second = await openHome(salon);
-    await card(second.page).waitFor();
-    const text = await card(second.page).innerText();
-    expect(text).toContain(`نوبت Story`);
-    expect(text).toContain(toPersianDigits(times[0]));
-    expect(text).toContain("لغو شد");
-    expect(text).toContain("مونده");
-    expect(await card(second.page).getAttribute("class")).toContain("is-freed");
-    expect(second.problems).toEqual([]);
-    await second.context.close();
-  });
 
-  it("does not call a time «freed» when somebody booked it again", async () => {
-    const { salon } = await teamSalon("Rebook Salon", 1);
-    await complete(salon.api);
-    const { day, times } = await pickDay(salon, 2);
-    const one = await newClient("Rebook One");
-    const two = await newClient("Rebook Two");
-    const id = await confirmedAt(salon, one, { day, time: times[0] });
-    expect((await salon.api.patch("/api/salon-bookings", { id, status: "لغو" })).ok).toBe(true);
-    await confirmedAt(salon, two, { day, time: times[0] });
     const { page, context, problems } = await openHome(salon);
     await card(page).waitFor();
     const text = await card(page).innerText();
-    expect(text).not.toContain("لغو شد");
-    expect(text).toContain("وقت خالی داری");
+    expect(text).toMatch(/(امروز|فردا) .+ وقت خالی داری/);
+    expect(text).not.toContain("لغو");
+    expect(text).not.toContain("آزاد شد");
+    expect(text).toContain("بساز");
     expect(problems).toEqual([]);
     await context.close();
-  });
-
-  it("stays quiet about times already on today's story, and calls the others «تازه»", async () => {
-    const { salon } = await teamSalon("Posted Salon", 1);
-    await complete(salon.api);
-    const { day } = await pickDay(salon, 2);
-    const all = [];
-    const shortest = await shortestService(salon);
-    for (const key of [todayKey(), tomorrowKey()]) for (const time of await freeTimes(salon, key, shortest)) all.push(`${key}|${time}`);
-    expect(all.length).toBeGreaterThan(2);
-
-    const quiet = await openHome(salon, { init: `localStorage.setItem("frfro-story-posted", ${JSON.stringify(JSON.stringify(all))});` });
-    await quiet.page.waitForTimeout(2500);
-    expect(await card(quiet.page).count()).toBe(0);
-    await quiet.context.close();
-
-    // One time left out of the story: only that one is news.
-    const left = all.find((entry) => entry.startsWith(`${day}|`));
-    const partial = all.filter((entry) => entry !== left);
-    const news = await openHome(salon, { init: `localStorage.setItem("frfro-story-posted", ${JSON.stringify(JSON.stringify(partial))});` });
-    await card(news.page).waitFor();
-    expect(await card(news.page).innerText()).toContain("تازه");
-    await news.context.close();
   });
 
   it("puts a card with the profile reminder in one slider of one size, moves by itself, and the × leaves the other", async () => {
@@ -138,7 +89,6 @@ describe("the story card on a salon's home (browser)", () => {
     expect(await page.locator(".homeCardsDots button").count()).toBe(2);
     const active = () => page.locator(".homeCardsDots button.is-on").evaluate((el) => [...el.parentElement.children].indexOf(el));
     const before = await active();
-    // Auto-moves within a few seconds (it waits five).
     await page.waitForFunction((was) => [...document.querySelectorAll(".homeCardsDots button")].findIndex((b) => b.classList.contains("is-on")) !== was, before, { timeout: 9000 });
     await page.locator(".homeCardsDots button").nth(before).dispatchEvent("click");
     await page.waitForTimeout(900);
@@ -148,36 +98,6 @@ describe("the story card on a salon's home (browser)", () => {
     expect(await card(page).count()).toBe(0);
     expect(await page.locator(".homeCardsDots").count()).toBe(0);
     expect(await page.locator(".homeCardsTrack > section").count()).toBe(1);
-    expect(problems).toEqual([]);
-    await context.close();
-  });
-
-  it("after the story is saved, nothing is news until a booked time is freed later", async () => {
-    const { salon } = await teamSalon("Post Salon", 1);
-    await complete(salon.api);
-    const { day, times } = await pickDay(salon, 2);
-    const client = await newClient("Post Client");
-    const id = await confirmedAt(salon, client, { day, time: times[0] });
-
-    const { page, context, problems } = await openHome(salon);
-    await card(page).waitFor();
-    await page.locator(".storyNudgeMain").dispatchEvent("click");
-    await page.locator(".igStudioPicture img").first().waitFor({ timeout: 20000 });
-    const download = page.waitForEvent("download", { timeout: 15000 });
-    await page.locator(".igStudioMain").dispatchEvent("click");
-    await download;
-    await page.locator(".igStudioClose").dispatchEvent("click");
-    await page.waitForTimeout(800);
-    // Everything free was told: the card steps aside, also for the times left off the picture.
-    expect(await card(page).count()).toBe(0);
-
-    // Later the booked time is freed: that is news.
-    expect((await salon.api.patch("/api/salon-bookings", { id, status: "لغو" })).ok).toBe(true);
-    await page.reload({ waitUntil: "load" });
-    await card(page).waitFor();
-    const text = await card(page).innerText();
-    expect(text).toContain("لغو شد");
-    expect(text).toContain(toPersianDigits(times[0]));
     expect(problems).toEqual([]);
     await context.close();
   });
@@ -200,10 +120,9 @@ describe("the story card on a salon's home (browser)", () => {
     await context.close();
   });
 
-  it("shows no card when nothing is free (a closed day, a full book)", async () => {
+  it("shows no card when nothing is free", async () => {
     const { salon } = await teamSalon("Closed Salon", 1);
     await complete(salon.api);
-    // No services listed: no time can be offered.
     const services = (await salon.api.get("/api/salon-services")).payload.data.services;
     for (const service of services) await salon.api.delete("/api/salon-services", { id: service.id });
     const { page, context, problems } = await openHome(salon);
@@ -212,60 +131,139 @@ describe("the story card on a salon's home (browser)", () => {
     expect(problems).toEqual([]);
     await context.close();
   });
+});
 
-  it("holds up when many bookings are cancelled at once", async () => {
-    const { salon } = await teamSalon("Crowd Salon", 3);
+describe("the story maker (browser)", () => {
+  it("opens with frfro's suggestion: at most two days and four times a day, all marked, all changeable", async () => {
+    const { salon } = await teamSalon("Maker Salon", 1);
     await complete(salon.api);
-    const { day, times } = await pickDay(salon, 6);
-    const ids = [];
-    const clients = [];
-    for (let i = 0; i < 6; i += 1) clients.push(await newClient(`Crowd Client ${i}`));
-    for (let i = 0; i < 6; i += 1) ids.push(await confirmedAt(salon, clients[i], { day, time: times[i] }));
-    const results = await Promise.all(ids.map((id) => salon.api.patch("/api/salon-bookings", { id, status: "لغو" })));
-    expect(results.every((res) => res.ok)).toBe(true);
-    for (let round = 0; round < 3; round += 1) {
-      const { page, context, problems } = await openHome(salon);
-      await card(page).waitFor();
-      expect(await card(page).innerText()).toContain("لغو شد");
-      expect(await card(page).innerText()).toContain(toPersianDigits(6));
-      expect(problems).toEqual([]);
-      await context.close();
+    await pickDay(salon, 4);
+    const { page, context, problems } = await openHome(salon);
+    await openMaker(page);
+
+    await page.locator(".igStudioTools button", { hasText: "ساعت‌ها" }).dispatchEvent("click");
+    const days = page.locator(".igDays button");
+    expect(await days.count()).toBe(3);
+    expect(await page.locator(".igDays button.is-on").count()).toBeGreaterThan(0);
+    expect(await page.locator(".igDays button.is-on").count()).toBeLessThanOrEqual(2);
+    const perDay = await page.locator(".igEditDay").evaluateAll((list) => list.map((d) => d.querySelectorAll("button.is-on").length));
+    expect(perDay.every((n) => n >= 1 && n <= 4)).toBe(true);
+    // Every time that starts on is frfro's suggestion.
+    expect(await page.locator(".igEditChips button.is-on:not(.is-suggested)").count()).toBe(0);
+
+    // A fifth time cannot be added to a full day; taking one off frees the others.
+    const first = page.locator(".igEditDay").first();
+    if ((await first.locator("button.is-on").count()) === 4) {
+      expect(await first.locator("button:not(.is-on)").first().isDisabled()).toBe(true);
     }
+    await first.locator("button.is-on").first().dispatchEvent("click");
+    expect(await first.locator("button:not(.is-on)").first().isDisabled()).toBe(false);
+
+    // Turning all three days on keeps two.
+    for (let i = 0; i < 3; i += 1) {
+      const button = days.nth(i);
+      if (!(await button.isDisabled()) && !(await button.getAttribute("class"))?.includes("is-on")) await button.dispatchEvent("click");
+    }
+    expect(await page.locator(".igDays button.is-on").count()).toBeLessThanOrEqual(2);
+
+    // «برگرد به پیشنهاد ما» puts the suggestion back.
+    await page.locator(".igEditReset").dispatchEvent("click");
+    expect(await page.locator(".igEditChips button.is-on:not(.is-suggested)").count()).toBe(0);
+    await page.locator(".igStudioPicture img").first().waitFor();
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+
+  it("draws every look, and the works look asks for three works when there are fewer", async () => {
+    const { salon } = await teamSalon("Looks Salon", 1);
+    await complete(salon.api);
+    await pickDay(salon, 2);
+    const { page, context, problems } = await openHome(salon);
+    await openMaker(page);
+    const dots = page.locator(".igLookDot");
+    const n = await dots.count();
+    // No works: night, rose, light and the works collage (the photo look needs a work).
+    expect(n).toBe(4);
+    for (let i = 0; i < n; i += 1) {
+      await dots.nth(i).dispatchEvent("click");
+      const slide = page.locator(".igStudioSlide").nth(i);
+      await slide.locator("img, .igStudioNote").first().waitFor({ timeout: 20000 });
+    }
+    expect(await page.locator(".igStudioSlide").nth(n - 1).locator(".igStudioNote").innerText()).toContain("نمونه‌کار");
+    // On the works look only «ظاهر» is offered.
+    expect(await page.locator(".igStudioTools button").count()).toBe(1);
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+
+  it("shows the link guide first, saves from it, and the card rests for the rest of the day", async () => {
+    const { salon } = await teamSalon("Guide Salon", 1);
+    await complete(salon.api);
+    await pickDay(salon, 2);
+    const { page, context, problems } = await openHome(salon);
+    await openMaker(page);
+    await page.locator(".igStudioMain").first().dispatchEvent("click");
+    await page.locator(".igGuide").waitFor();
+    expect(await page.locator(".igGuideSteps li").count()).toBe(3);
+    const download = page.waitForEvent("download", { timeout: 15000 });
+    await page.locator(".igGuide .igStudioMain").dispatchEvent("click");
+    await download;
+    expect(await page.locator(".igGuide").count()).toBe(0);
+    await page.locator(".igStudioClose").dispatchEvent("click");
+    await page.waitForTimeout(800);
+    expect(await card(page).count()).toBe(0);
+    await page.reload({ waitUntil: "load" });
+    await page.waitForTimeout(2500);
+    expect(await card(page).count()).toBe(0);
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+
+  it("stops the guide after three times, or at once on «دیگه نشونم نده»", async () => {
+    const { salon } = await teamSalon("Guide Off Salon", 1);
+    await complete(salon.api);
+    await pickDay(salon, 2);
+    const { page, context, problems } = await openHome(salon);
+    await openMaker(page);
+    await page.locator(".igStudioMain").first().dispatchEvent("click");
+    await page.locator(".igGuide").waitFor();
+    const download = page.waitForEvent("download", { timeout: 15000 });
+    await page.locator(".igGuideOff").dispatchEvent("click");
+    await download;
+    // Next save goes straight through.
+    const again = page.waitForEvent("download", { timeout: 15000 });
+    await page.locator(".igStudioMain").first().dispatchEvent("click");
+    await again;
+    expect(await page.locator(".igGuide").count()).toBe(0);
+    expect(await page.evaluate(() => localStorage.getItem("frfro-story-guide"))).toBe("3");
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+
+  it("keeps its white text white in the night theme", async () => {
+    const { salon } = await teamSalon("Night Salon", 1);
+    await complete(salon.api);
+    await pickDay(salon, 1);
+    const { page, context, problems } = await openHome(salon, { dark: true, init: `localStorage.setItem("frfro-theme","dark");` });
+    await openMaker(page);
+    expect(await page.locator(".igStudioTitle").evaluate((el) => getComputedStyle(el).color)).toBe("rgb(255, 255, 255)");
+    expect(await card(page).count()).toBeGreaterThanOrEqual(0);
+    expect(problems).toEqual([]);
+    await context.close();
   });
 });
 
 describe("the story card on an artist's home (browser)", () => {
-  it("finds a booking that disappeared since the last visit and says its time is free", async () => {
-    const artist = await newArtist("Vanish Artist");
+  it("offers the artist's free times and makes a story", async () => {
+    const artist = await newArtist("Story Artist");
     await complete(artist.api);
-    const client = await newClient("Vanish Client");
-    const day = tomorrowKey();
-    const id = await directConfirmed(artist, client, { day, time: "11:00" });
-
-    const opened = await openHome(artist);
-    await card(opened.page).waitFor();
-    expect(await card(opened.page).innerText()).toContain("وقت خالی داری");
-
-    // Cancelled elsewhere while the app is closed (the phone remembers what it saw).
-    expect((await artist.api.patch("/api/artist/me", { kind: "booking", id, status: "لغو", action: "cancel" })).ok).toBe(true);
-    await opened.page.reload({ waitUntil: "load" });
-    await card(opened.page).waitFor();
-    const text = await card(opened.page).innerText();
-    expect(text).toContain("آزاد شد");
-    expect(text).toContain(toPersianDigits("11:00"));
-    expect(opened.problems).toEqual([]);
-    await opened.context.close();
-  });
-});
-
-describe("what the card relies on from the server", () => {
-  it("a cancelled time is offered again and a booked one is not", async () => {
-    const { salon } = await teamSalon("Server Salon", 1);
-    const { day, times } = await pickDay(salon, 2);
-    const client = await newClient("Server Client");
-    const id = await confirmedAt(salon, client, { day, time: times[0] });
-    expect(await freeTimes(salon, day)).not.toContain(times[0]);
-    expect((await salon.api.patch("/api/salon-bookings", { id, status: "لغو" })).ok).toBe(true);
-    expect(await freeTimes(salon, day)).toContain(times[0]);
+    const client = await newClient("Artist Client");
+    await directConfirmed(artist, client, { day: tomorrowKey(), time: "11:00" });
+    const { page, context, problems } = await openHome(artist);
+    await card(page).waitFor();
+    expect(await card(page).innerText()).toContain("وقت خالی داری");
+    await openMaker(page);
+    expect(problems).toEqual([]);
+    await context.close();
   });
 });

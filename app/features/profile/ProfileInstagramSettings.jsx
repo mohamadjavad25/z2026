@@ -15,10 +15,8 @@ const BIO_COPIED = "کپی شد. حالا بذارش تو بیو اینستاگ�
 /** The pill on the story card: what is worth posting right now. */
 function storyNews(slots) {
   if (!slots) return "";
-  const [today, tomorrow] = slots;
-  if (tomorrow?.times.length) return `${toPersianDigits(tomorrow.times.length)} وقت خالی برای فردا`;
-  if (today?.times.length) return `${toPersianDigits(today.times.length)} وقت خالی برای امروز`;
-  return "نمونه‌کارهات رو استوری کن";
+  const day = slots.find((d) => d.times.length);
+  return day ? `${toPersianDigits(day.times.length)} وقت خالی برای ${day.label}` : "نمونه‌کارهات رو استوری کن";
 }
 
 /**

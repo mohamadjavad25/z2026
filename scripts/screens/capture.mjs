@@ -104,9 +104,8 @@ async function joinCodeOf(salonClient) {
 const tap = (name, opts = {}) => async (p) => { await p.getByRole("button", { name, ...opts }).first().click({ timeout: 4000, force: true }); await p.waitForTimeout(900); };
 const text = (t) => async (p) => { await p.getByText(t, { exact: true }).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
 const css = (selector, hasText) => async (p) => { await p.locator(selector, hasText ? { hasText } : {}).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
-// A slide of «استوری آماده» by its dot; the picture is drawn when the slide is reached.
-// A design of the full-screen «استوری آماده» by its name on top; the picture is drawn when it is reached.
-const storyTab = (name) => async (p) => { await p.locator(".igStudioTabs button", { hasText: name }).first().click({ timeout: 4000 }); await p.waitForTimeout(3000); };
+// A look of the full-screen «استوری آماده» by its dot under the picture; the picture is drawn when it is reached.
+const storyTab = (name) => async (p) => { await p.locator(`.igLookDot[aria-label="${name}"]`).first().click({ timeout: 4000 }); await p.waitForTimeout(3000); };
 const STORY_OPEN = async (p) => { await p.locator(".igSettingsStory").first().click({ timeout: 4000 }); await p.waitForTimeout(3500); };
 const fill = (selector, value) => async (p) => { await p.locator(selector).fill(value, { timeout: 4000 }); };
 // Sample works for the screens: our own pictures in scripts/screens/samples (the old AI photos in public/brand/photos are retired, owner 2026-10-29).
@@ -300,7 +299,7 @@ async function makeDirectBooking({ sessions, ids }) {
 /** The «کجا» card in the booking details opens the map sheet; the tiles get a moment to load. */
 const openMap = async (p) => { await p.locator(".locCard.is-pinned").first().click({ timeout: 6000 }); await p.waitForTimeout(2500); };
 
-/* ---------- the story suggestion: a complete profile (so the suggestion has the slot), and a freed time ---------- */
+/* ---------- the story suggestion: a complete profile, so the suggestion has free times ---------- */
 const STORY_READY = async (ctx) => {
   await instagram("salon.roz", "negar.kashi")(ctx);
   const image = await sample("work-3.jpg");
@@ -311,12 +310,6 @@ const STORY_READY = async (ctx) => {
 const STORY_PARTIAL = async (ctx) => {
   await STORY_READY(ctx);
   await ctx.sessions.salon.post("/api/profile", { data: { avatar: "" } });
-};
-/** A booking for tomorrow that was cancelled: its time is free again. */
-const FREED_TOMORROW = async ({ sessions, ids }) => {
-  const tomorrow = formatPersianDateKey(new Date(Date.now() + 24 * 60 * 60 * 1000));
-  const made = await sessions.client.post("/api/salon-bookings", { salonUserId: ids.salon, service: "براشینگ", bookingDate: tomorrow, time: "۱۱:۰۰", client: PEOPLE.client.name, phone: PEOPLE.client.phone });
-  if (made.ok) await sessions.salon.patch("/api/salon-bookings", { id: made.payload.data.booking.id, status: "لغو" });
 };
 
 const SCREENS = [
@@ -414,7 +407,7 @@ const SCREENS = [
   { id: "salon-instagram-open-set", role: "salon", title: "تنظیمات، اینستاگرام باز، پر", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio] },
   // «استوری آماده» slider (2026-10-28): the intro slide, then a design and the free slots of today and tomorrow
   { id: "salon-story-free", role: "salon", title: "استوری آماده، نوبت خالی", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio, STORY_OPEN] },
-  { id: "salon-story-works", role: "salon", title: "استوری آماده، نمونه‌کار", setup: async (ctx) => { await salonPosts(ctx); await IG_SET(ctx); }, steps: [tab(0), toInstagram, IG_OPEN, toBio, STORY_OPEN, storyTab("نمونه‌کار")] },
+  { id: "salon-story-works", role: "salon", title: "استوری آماده، نمونه‌کار", setup: async (ctx) => { await salonPosts(ctx); await IG_SET(ctx); }, steps: [tab(0), toInstagram, IG_OPEN, toBio, STORY_OPEN, storyTab("نمونه‌کارها")] },
   { id: "artist-story-free", role: "artist", title: "استوری آماده آرتیست، نوبت خالی", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio, STORY_OPEN] },
   { id: "salon-instagram-copied", role: "salon", title: "تنظیمات، لینک بیو کپی شد", setup: IG_SET, clipboard: true, steps: [tab(0), toInstagram, IG_OPEN, toBio, css(".igSettingsCopy")] },
   { id: "salon-instagram-remove", role: "salon", title: "تنظیمات، برداشتن پیج اینستاگرام", setup: IG_SET, steps: [tab(0), toInstagram, css(".igSettings .profileLocationRowClear"), toInstagram] },
@@ -423,12 +416,12 @@ const SCREENS = [
   { id: "artist-instagram-open-set", role: "artist", title: "تنظیمات آرتیست، اینستاگرام باز", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio] },
   // The calm story suggestion on an owner's home and the story maker's «شخصی‌سازی» (owner's request 2026-10-31).
   { id: "salon-home-story-nudge", role: "salon", title: "خانهٔ سالن، پیشنهاد استوری", setup: STORY_READY, steps: [async (p) => { await p.waitForTimeout(2500); }] },
-  { id: "salon-home-story-nudge-freed", role: "salon", title: "خانهٔ سالن، پیشنهاد استوری بعد از لغو", setup: async (ctx) => { await STORY_READY(ctx); await FREED_TOMORROW(ctx); }, steps: [async (p) => { await p.waitForTimeout(2500); }] },
-  { id: "salon-story-edit", role: "salon", title: "استوری آماده، شخصی‌سازی", setup: STORY_READY, steps: [css(".storyNudgeMain"), async (p) => { await p.waitForTimeout(3500); }, css(".igStudioEditBtn"), async (p) => { await p.waitForTimeout(1500); }] },
-  { id: "salon-story-edit-text", role: "salon", title: "استوری آماده، متن دلخواه", setup: STORY_READY, steps: [css(".storyNudgeMain"), async (p) => { await p.waitForTimeout(3500); }, css(".igStudioEditBtn"), css(".igEditTabs button", "متن"), fill(".igEditInput", "امشب دو تا وقت دارم"), async (p) => { await p.waitForTimeout(2500); }] },
-  { id: "salon-story-edit-ground", role: "salon", title: "استوری آماده، پس‌زمینه", setup: STORY_READY, steps: [css(".storyNudgeMain"), async (p) => { await p.waitForTimeout(3500); }, css(".igStudioEditBtn"), css(".igEditTabs button", "پس‌زمینه"), css(".igEditGrounds button.is-rose"), async (p) => { await p.waitForTimeout(2500); }] },
-  { id: "salon-home-cards", role: "salon", title: "خانهٔ سالن، کارت‌ها در اسلایدر (اول)", setup: async (ctx) => { await STORY_PARTIAL(ctx); await FREED_TOMORROW(ctx); }, steps: [async (p) => { const dot = (n) => p.locator(".homeCardsDots button").nth(n).dispatchEvent("click"); await dot(1); await p.waitForTimeout(1600); await dot(0); await p.waitForTimeout(1600); }] },
-  { id: "salon-home-cards-second", role: "salon", title: "خانهٔ سالن، کارت‌ها در اسلایدر (دوم)", setup: async (ctx) => { await STORY_PARTIAL(ctx); await FREED_TOMORROW(ctx); }, steps: [async (p) => { const dot = (n) => p.locator(".homeCardsDots button").nth(n).dispatchEvent("click"); await dot(0); await p.waitForTimeout(1600); await dot(1); await p.waitForTimeout(1600); }] },
+  { id: "salon-story-edit", role: "salon", title: "استوری آماده، ساعت‌ها", setup: STORY_READY, steps: [css(".storyNudgeMain"), async (p) => { await p.waitForTimeout(3500); }, css(".igStudioTools button", "ساعت‌ها"), async (p) => { await p.waitForTimeout(2500); }] },
+  { id: "salon-story-edit-text", role: "salon", title: "استوری آماده، متن دلخواه", setup: STORY_READY, steps: [css(".storyNudgeMain"), async (p) => { await p.waitForTimeout(3500); }, css(".igStudioTools button", "متن"), fill(".igEditInput", "امشب دو تا وقت دارم"), async (p) => { await p.waitForTimeout(2500); }] },
+  { id: "salon-story-edit-ground", role: "salon", title: "استوری آماده، صورتی با اسم و عکس", setup: STORY_READY, steps: [css(".storyNudgeMain"), async (p) => { await p.waitForTimeout(3500); }, storyTab("صورتی"), css(".igStudioTools button", "ظاهر"), css(".igSwitchRow"), async (p) => { await p.waitForTimeout(2500); }] },
+  { id: "salon-story-guide", role: "salon", title: "استوری آماده، راهنمای لینک", setup: STORY_READY, steps: [css(".storyNudgeMain"), async (p) => { await p.waitForTimeout(3500); }, css(".igStudioMain"), async (p) => { await p.waitForTimeout(1200); }] },
+  { id: "salon-home-cards", role: "salon", title: "خانهٔ سالن، کارت‌ها در اسلایدر (اول)", setup: async (ctx) => { await STORY_PARTIAL(ctx); }, steps: [async (p) => { const dot = (n) => p.locator(".homeCardsDots button").nth(n).dispatchEvent("click"); await dot(1); await p.waitForTimeout(1600); await dot(0); await p.waitForTimeout(1600); }] },
+  { id: "salon-home-cards-second", role: "salon", title: "خانهٔ سالن، کارت‌ها در اسلایدر (دوم)", setup: async (ctx) => { await STORY_PARTIAL(ctx); }, steps: [async (p) => { const dot = (n) => p.locator(".homeCardsDots button").nth(n).dispatchEvent("click"); await dot(0); await p.waitForTimeout(1600); await dot(1); await p.waitForTimeout(1600); }] },
   { id: "artist-home-story-nudge", role: "artist", title: "خانهٔ آرتیست، پیشنهاد استوری", setup: STORY_READY, steps: [async (p) => { await p.waitForTimeout(2500); }] },
   // where an artist on a salon team receives the clients who book them directly (owner's idea of 2026-10-24).
   // Each screen sets the state it shows first (the choice, the salon's switch, an address), so the order does not matter.

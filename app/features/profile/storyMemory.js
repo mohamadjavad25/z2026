@@ -1,18 +1,18 @@
 import { formatPersianDateKey } from "../../shared/lib/persianCalendar";
-import { slotKey } from "./storySuggestion";
 
 /**
- * What the phone remembers for the story card (owner's request 2026-10-31): the times already put on a story today,
- * so a time that is on it never comes back as news, and the bookings seen at the last look, so one that vanished
- * (cancelled elsewhere) is found. Storage failing (private mode) only means the card knows less; nothing breaks.
+ * What the phone remembers about stories (storage failing in private mode only means it remembers less):
+ * - the day a story was last shared or saved, so the home card rests for the rest of that day;
+ * - how many times the link guide was shown after sharing (it stops after three, or on «دیگه نشونم نده»).
  */
-const POSTED_KEY = "frfro-story-posted";
-const SEEN_KEY = "frfro-story-seen";
+const POSTED_KEY = "frfro-story-posted-day";
+const GUIDE_KEY = "frfro-story-guide";
 export const POSTED_EVENT = "frfro-story-posted";
+export const GUIDE_TIMES = 3;
 
 function read(key) {
   try {
-    return JSON.parse(window.localStorage.getItem(key) || "null");
+    return window.localStorage.getItem(key);
   } catch {
     return null;
   }
@@ -20,28 +20,18 @@ function read(key) {
 
 function write(key, value) {
   try {
-    window.localStorage.setItem(key, JSON.stringify(value));
+    window.localStorage.setItem(key, value);
   } catch {
     // Private mode: it just lasts until the page closes.
   }
 }
 
-/** "key|time" entries on stories made today or later (older days are dropped). */
-export function readPosted() {
-  const today = formatPersianDateKey(new Date());
-  const list = read(POSTED_KEY);
-  if (!Array.isArray(list)) return [];
-  // Normalised, so "۱۱:۰۰", "11:00" and "11:0" are one time.
-  return list
-    .filter((entry) => typeof entry === "string" && entry.includes("|") && entry.split("|")[0] >= today)
-    .map((entry) => { const [key, time] = entry.split("|"); return slotKey(key, time); });
+export function postedToday() {
+  return read(POSTED_KEY) === formatPersianDateKey(new Date());
 }
 
-/** Called when a free-times story is shared or saved, with every free time of that moment (see the sheet). */
-export function markPosted(days) {
-  const next = new Set(readPosted());
-  for (const day of days || []) for (const time of day.times || []) next.add(slotKey(day.key, time));
-  write(POSTED_KEY, [...next]);
+export function markPosted() {
+  write(POSTED_KEY, formatPersianDateKey(new Date()));
   try {
     window.dispatchEvent(new Event(POSTED_EVENT));
   } catch {
@@ -49,14 +39,16 @@ export function markPosted(days) {
   }
 }
 
-/** The upcoming bookings as seen last time: [{ id, key, time, staff }] for this owner. */
-export function readSeen(ownerKey) {
-  const all = read(SEEN_KEY);
-  const list = all && typeof all === "object" ? all[ownerKey] : null;
-  return Array.isArray(list) ? list : null;
+/** True while the link guide should still come up after a share. */
+export function guideWanted() {
+  const seen = Number(read(GUIDE_KEY) || 0);
+  return !(seen >= GUIDE_TIMES);
 }
 
-export function writeSeen(ownerKey, list) {
-  const all = read(SEEN_KEY);
-  write(SEEN_KEY, { ...(all && typeof all === "object" ? all : {}), [ownerKey]: list });
+export function guideShown() {
+  write(GUIDE_KEY, String(Number(read(GUIDE_KEY) || 0) + 1));
+}
+
+export function guideOff() {
+  write(GUIDE_KEY, String(GUIDE_TIMES));
 }

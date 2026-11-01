@@ -60,57 +60,86 @@
 .igSettingsStoryThumb.is-time::before { content: ""; position: absolute; inset: 8px 8px 44px; border-radius: 6px; background: var(--brand-blend); opacity: 0.85; }
 .igSettingsStoryThumb.is-work { left: 0; transform: rotate(-8deg); }
 
-/* The story maker, full screen (owner's redesign 2026-10-29): the story fills the screen, its two designs side by
-   side, and the bottom holds only the buttons. Always ink, day or night. */
-.igStudio { position: fixed; inset: 0; z-index: var(--z-top-sheet); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 12px; padding: calc(10px + env(safe-area-inset-top)) 0 calc(14px + env(safe-area-inset-bottom)); background: var(--brand-ink); color: var(--n-0); direction: rtl; }
+/* The story maker, full screen (owner's redesign 2026-11-01): one big picture swiped between looks, the look dots,
+   one small panel for the open tool, the three tools, and one main button. Always ink, day or night: its white is
+   the fixed photo white (--on-photo-rgb), never --n-0, which turns dark in the night theme. */
+.igStudio { --st: var(--on-photo-rgb); position: fixed; inset: 0; z-index: var(--z-top-sheet); display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto auto auto; gap: 10px; padding: calc(10px + env(safe-area-inset-top)) 0 calc(14px + env(safe-area-inset-bottom)); background: var(--brand-ink); color: rgb(var(--st)); direction: rtl; }
 body:has(.igStudio) .bottomNav, body:has(.igStudio) .floatingMobileCta { opacity: 0 !important; pointer-events: none !important; }
-.igStudioTop { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-inline: 14px; }
-.igStudioTabs { display: flex; gap: 2px; padding: 3px; border-radius: 99px; background: rgb(var(--n-0-rgb) / 0.12); }
-.igStudioTabs button { min-height: 36px; padding: 0 16px; border: 0; border-radius: 99px; background: transparent; color: rgb(var(--n-0-rgb) / 0.72); font: inherit; font-size: 0.82rem; font-weight: 850; cursor: pointer; }
-.igStudioTabs button.is-on { background: var(--n-0); color: var(--n-950); }
-/* Name and picture on the story, off by default: Instagram already shows them above it (owner's decision 2026-10-30). */
-.igStudioWho { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; margin-inline-start: auto; padding: 0 12px; border: 0; border-radius: 99px; background: rgb(var(--n-0-rgb) / 0.12); color: rgb(var(--n-0-rgb) / 0.82); font: inherit; font-size: 0.8rem; font-weight: 850; cursor: pointer; }
-.igStudioWhoBox { display: grid; place-items: center; width: 18px; height: 18px; border: 2px solid rgb(var(--n-0-rgb) / 0.6); border-radius: 6px; }
-.igStudioWho.is-on { color: var(--n-0); }
-.igStudioWho.is-on .igStudioWhoBox { border-color: var(--brand-pink); background: var(--brand-pink); color: var(--brand-ink); }
-.igStudioClose { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: rgb(var(--n-0-rgb) / 0.12); color: var(--n-0); cursor: pointer; }
+.igStudioTop { display: flex; align-items: center; gap: 10px; padding-inline: 14px; }
+.igStudioTitle { font-size: 0.98rem; font-weight: 950; }
+.igStudioCount { display: flex; flex: 1; justify-content: flex-end; align-items: baseline; gap: 8px; color: rgb(var(--st) / 0.7); font-size: 0.78rem; font-weight: 800; }
+.igStudioCount b { color: rgb(var(--st)); font-weight: 900; }
+.igStudioClose { display: grid; place-items: center; flex: none; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: rgb(var(--st) / 0.12); color: rgb(var(--st)); cursor: pointer; }
 .igStudioRail { display: flex; min-height: 0; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
 .igStudioRail::-webkit-scrollbar { display: none; }
 .igStudioSlide { flex: 0 0 100%; display: grid; place-items: center; min-height: 0; padding-inline: 14px; scroll-snap-align: center; box-sizing: border-box; }
-.igStudioPicture { display: grid; place-items: center; height: 100%; max-height: 100%; max-width: 100%; aspect-ratio: 9 / 16; overflow: hidden; border-radius: 22px; background: var(--n-900); }
+.igStudioPicture { display: grid; place-items: center; height: 100%; max-height: 100%; max-width: 100%; aspect-ratio: 9 / 16; overflow: hidden; border-radius: 22px; background: var(--n-900); box-shadow: 0 24px 60px -30px rgb(var(--brand-pink-rgb) / 0.45); }
 .igStudioPicture img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.igStudioNote { margin: 0; padding: 24px; color: rgb(var(--n-0-rgb) / 0.82); font-size: 0.9rem; font-weight: 800; line-height: 1.9; text-align: center; }
+.igStudioEmpty { display: grid; justify-items: center; gap: 10px; padding: 18px; }
+.igStudioEmpty button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 14px; background: var(--live-fill); color: var(--on-live-fill); font: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
+.igStudioNote { margin: 0; padding: 6px; color: rgb(var(--st) / 0.82); font-size: 0.9rem; font-weight: 800; line-height: 1.9; text-align: center; }
+/* The look dots: each one a tiny swatch of its look. */
+.igStudioLooks { display: flex; justify-content: center; gap: 8px; }
+.igLookDot { position: relative; width: 22px; height: 30px; padding: 0; border: 1.5px solid rgb(var(--st) / 0.25); border-radius: 7px; background: var(--brand-ink); cursor: pointer; transition: transform 0.2s ease; }
+.igLookDot::after { content: ""; position: absolute; inset: -7px -4px; }
+.igLookDot.is-night { background: radial-gradient(circle at 80% 15%, rgb(var(--brand-pink-rgb) / 0.8), var(--brand-ink) 70%); }
+.igLookDot.is-rose { background: var(--brand-blend); }
+.igLookDot.is-photo { background: linear-gradient(180deg, rgb(var(--st) / 0.75) 0 40%, var(--brand-ink) 75%); }
+.igLookDot.is-light { background: rgb(var(--st)); }
+.igLookDot.is-works { background: linear-gradient(90deg, var(--brand-blend-deep) 0 55%, var(--brand-ink) 55% 62%, var(--brand-blend) 62%); }
+.igLookDot.is-on { border-color: rgb(var(--st)); box-shadow: 0 0 0 2px var(--brand-pink); transform: translateY(-2px); }
+/* One panel at a time, above the tools; it scrolls on its own so the picture keeps its place. */
+.igStudioPanel { display: grid; gap: 10px; max-height: 38vh; overflow-y: auto; margin-inline: 14px; padding: 14px; border-radius: 22px; background: rgb(var(--st) / 0.1); }
+.igEditBlock { display: grid; gap: 10px; }
+.igEditHint { display: flex; align-items: center; gap: 5px; margin: 0; color: rgb(var(--st) / 0.64); font-size: 0.72rem; font-weight: 800; line-height: 1.7; }
+.igDays { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.igDays button { display: grid; gap: 0; min-height: 50px; padding: 4px; border: 0; border-radius: 16px; background: transparent; color: rgb(var(--st) / 0.82); box-shadow: inset 0 0 0 1px rgb(var(--st) / 0.26); font: inherit; cursor: pointer; }
+.igDays button b { font-size: 0.86rem; font-weight: 900; }
+.igDays button small { color: rgb(var(--st) / 0.6); font-size: 0.68rem; font-weight: 800; }
+.igDays button.is-on { background: rgb(var(--st)); color: var(--brand-ink); box-shadow: none; }
+.igDays button.is-on small { color: rgb(var(--shadow-rgb) / 0.6); }
+.igEditDay { display: grid; gap: 6px; }
+.igEditDayHead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.igEditDayHead span { font-size: 0.8rem; font-weight: 900; }
+.igEditDayHead small { color: rgb(var(--st) / 0.6); font-size: 0.72rem; font-weight: 800; }
+.igEditChips, .igEditList { display: flex; flex-wrap: wrap; gap: 6px; }
+.igEditChips button, .igEditList button { position: relative; min-height: 38px; padding: 0 13px; border: 0; border-radius: 99px; background: transparent; color: rgb(var(--st) / 0.82); box-shadow: inset 0 0 0 1px rgb(var(--st) / 0.28); font: inherit; font-size: 0.82rem; font-weight: 850; font-variant-numeric: tabular-nums; cursor: pointer; }
+.igEditChips button.is-on, .igEditList button.is-on { background: var(--brand-pink); color: var(--brand-ink); box-shadow: none; }
+/* frfro's suggestion: a small violet dot on the chip's corner, on or off. */
+.igEditChips button.is-suggested::before { content: ""; position: absolute; top: -1px; left: 1px; width: 9px; height: 9px; border-radius: 50%; background: var(--brand-violet); box-shadow: 0 0 0 2px var(--brand-ink); }
+.igEditReset { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 0; border-radius: 12px; background: rgb(var(--st) / 0.1); color: rgb(var(--st) / 0.86); font: inherit; font-size: 0.76rem; font-weight: 850; cursor: pointer; }
+.igEditInput { min-height: 44px; padding: 0 14px; border: 0; border-radius: 14px; background: rgb(var(--st) / 0.12); color: rgb(var(--st)); font: inherit; font-size: 0.88rem; font-weight: 800; }
+.igEditInput::placeholder { color: rgb(var(--st) / 0.5); }
+.igSwitchRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; padding: 0 4px; border: 0; background: transparent; color: rgb(var(--st)); font: inherit; font-size: 0.86rem; font-weight: 850; cursor: pointer; }
+.igSwitchRow i { position: relative; flex: none; width: 44px; height: 26px; border-radius: 99px; background: rgb(var(--st) / 0.22); transition: background 0.2s ease; }
+.igSwitchRow i::after { content: ""; position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%; background: rgb(var(--st)); transition: transform 0.2s ease; }
+.igSwitchRow i.is-on { background: var(--brand-pink); }
+.igSwitchRow i.is-on::after { transform: translateX(-18px); }
+.igStudioTools { display: flex; justify-content: center; gap: 22px; }
+.igStudioTools button { display: grid; justify-items: center; gap: 4px; padding: 0; border: 0; background: transparent; color: rgb(var(--st) / 0.7); font: inherit; font-size: 0.74rem; font-weight: 850; cursor: pointer; }
+.igStudioTools button span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: rgb(var(--st) / 0.12); color: rgb(var(--st)); transition: background 0.2s ease; }
+.igStudioTools button.is-on { color: rgb(var(--st)); }
+.igStudioTools button.is-on span { background: var(--brand-pink); color: var(--brand-ink); }
 .igStudioBar { display: flex; gap: 10px; padding-inline: 14px; }
 .igStudioMain { display: inline-flex; flex: 1; align-items: center; justify-content: center; gap: 8px; min-height: 54px; border: 0; border-radius: 18px; background: var(--live-fill); color: var(--on-live-fill); font: inherit; font-size: 0.98rem; font-weight: 950; cursor: pointer; }
-.igStudioSave { display: grid; place-items: center; width: 56px; min-height: 54px; padding: 0; border: 0; border-radius: 18px; background: rgb(var(--n-0-rgb) / 0.14); color: var(--n-0); cursor: pointer; }
-/* «شخصی‌سازی»: one panel above the buttons with three short blocks (times, words, ground); everything has a ready choice. */
-.igStudioEditBtn { display: grid; place-items: center; width: 56px; min-height: 54px; padding: 0; border: 0; border-radius: 18px; background: rgb(var(--n-0-rgb) / 0.14); color: var(--n-0); cursor: pointer; }
-.igStudioEditBtn.is-on { background: var(--n-0); color: var(--n-950); }
-.igEditTabs { display: flex; gap: 2px; padding: 3px; border-radius: 99px; background: rgb(var(--n-0-rgb) / 0.12); }
-.igEditTabs button { flex: 1; min-height: 34px; padding: 0 8px; border: 0; border-radius: 99px; background: transparent; color: rgb(var(--n-0-rgb) / 0.78); font: inherit; font-size: 0.8rem; font-weight: 850; cursor: pointer; }
-.igEditTabs button.is-on { background: var(--n-0); color: var(--n-950); }
-.igEditHint { color: rgb(var(--n-0-rgb) / 0.62); font-size: 0.72rem; font-weight: 800; }
-.igStudioEdit { display: grid; gap: 12px; max-height: 36vh; overflow-y: auto; margin-inline: 14px; padding: 14px; border-radius: 22px; background: rgb(var(--n-0-rgb) / 0.1); }
-.igEditBlock { display: grid; gap: 8px; }
-.igEditBlock > b { font-size: 0.84rem; font-weight: 950; }
-.igEditBlock > b small { color: rgb(var(--n-0-rgb) / 0.62); font-size: 0.7rem; font-weight: 800; }
-.igEditDay { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: start; gap: 8px; }
-.igEditDay > span { padding-top: 8px; color: rgb(var(--n-0-rgb) / 0.7); font-size: 0.76rem; font-weight: 850; }
-.igEditChips, .igEditList { display: flex; flex-wrap: wrap; gap: 6px; }
-.igEditChips button, .igEditList button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 99px; background: transparent; color: rgb(var(--n-0-rgb) / 0.8); box-shadow: inset 0 0 0 1px rgb(var(--n-0-rgb) / 0.28); font: inherit; font-size: 0.8rem; font-weight: 850; cursor: pointer; }
-.igEditChips button.is-on, .igEditList button.is-on { background: var(--brand-pink); color: var(--brand-ink); box-shadow: none; }
-.igEditInput { min-height: 42px; padding: 0 14px; border: 0; border-radius: 14px; background: rgb(var(--n-0-rgb) / 0.12); color: var(--n-0); font: inherit; font-size: 0.86rem; font-weight: 800; }
-.igEditInput::placeholder { color: rgb(var(--n-0-rgb) / 0.5); }
-.igEditGrounds { display: flex; gap: 10px; }
-.igEditGrounds button { display: grid; justify-items: center; gap: 4px; padding: 0; border: 0; background: transparent; color: rgb(var(--n-0-rgb) / 0.72); font: inherit; font-size: 0.72rem; font-weight: 850; cursor: pointer; }
-.igEditGrounds i { width: 44px; height: 44px; border-radius: 14px; box-shadow: inset 0 0 0 1px rgb(var(--n-0-rgb) / 0.25); background: var(--brand-ink); }
-.igEditGrounds .is-rose i { background: radial-gradient(circle at 80% 15%, rgb(var(--brand-pink-rgb) / 0.85), var(--brand-ink) 75%); }
-.igEditGrounds .is-violet i { background: radial-gradient(circle at 80% 15%, rgb(139 108 255 / 0.9), var(--brand-ink) 75%); }
-.igEditGrounds .is-photo i { background: var(--brand-blend); }
-.igEditGrounds button.is-on { color: var(--n-0); }
-.igEditGrounds button.is-on i { box-shadow: 0 0 0 2px var(--brand-pink); }
+.igStudioSave { display: grid; place-items: center; width: 56px; min-height: 54px; padding: 0; border: 0; border-radius: 18px; background: rgb(var(--st) / 0.14); color: rgb(var(--st)); cursor: pointer; }
+/* The link guide: a short white sheet over the maker, the first three times only. */
+.igGuideBack { position: absolute; inset: 0; z-index: 2; display: flex; align-items: flex-end; justify-content: center; background: rgb(var(--shadow-rgb) / 0.55); }
+.igGuide { display: grid; gap: 12px; width: min(480px, 100%); padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); border-radius: 26px 26px 0 0; background: var(--brand-white); color: var(--brand-ink); animation: igSheetUp 0.28s cubic-bezier(0.2, 0.9, 0.3, 1); }
+.igGuide h3 { margin: 0; font-size: 1rem; font-weight: 950; }
+.igGuideCopied { display: flex; align-items: center; gap: 6px; margin: 0; padding: 8px 12px; border-radius: 14px; background: var(--pink-soft); color: var(--pink-deep); font-size: 0.82rem; font-weight: 900; }
+.igGuideCopied.is-not { background: var(--warning-bg); color: var(--warning); }
+.igGuideSteps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.igGuideSteps li { display: grid; justify-items: center; align-content: start; gap: 6px; padding: 10px 6px; border-radius: 16px; background: var(--violet-soft); font-size: 0.74rem; font-weight: 850; line-height: 1.6; text-align: center; }
+.igGuideSteps b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--violet-deep); color: var(--brand-white); font-size: 0.72rem; }
+.igGuideSteps span { display: grid; place-items: center; min-width: 34px; height: 26px; padding: 0 6px; border-radius: 8px; background: var(--brand-white); color: var(--brand-ink); box-shadow: 0 1px 4px rgb(var(--shadow-rgb) / 0.18); }
+.igGuideSteps .igGuideLink { color: var(--violet-deep); font-size: 0.66rem; font-weight: 950; letter-spacing: 0.04em; }
+.igGuideSteps .igGuideSlot { min-width: 44px; border: 2px dashed var(--brand-pink); box-shadow: none; background: transparent; }
+.igGuideOff { justify-self: center; padding: 4px 10px; border: 0; background: transparent; color: rgb(var(--shadow-rgb) / 0.6); font: inherit; font-size: 0.78rem; font-weight: 800; cursor: pointer; }
 .igStudio .igEditInput:focus-visible, .igStudio button:focus-visible { outline: 3px solid var(--brand-pink); outline-offset: 2px; }
-.igStudio button:disabled { opacity: 0.55; cursor: default; }
+.igStudio button:disabled { opacity: 0.45; cursor: default; }
+@media (max-height: 640px) { .igStudioPanel { max-height: 32vh; } .igStudio { gap: 8px; } .igStudioTools button span { width: 40px; height: 40px; } }
+@media (prefers-reduced-motion: reduce) { .igGuide { animation: none; } .igLookDot, .igSwitchRow i, .igSwitchRow i::after, .igStudioTools button span { transition: none; } }
 @media (prefers-reduced-motion: reduce) { .igSheet { animation: none; } }
 
 /* ── The folder: Instagram's logo, untouched, in front; three works sticking out of its top ── */
@@ -177,18 +206,13 @@ a:hover > .igFolder .igFolderPost.is-3, a:active > .igFolder .igFolderPost.is-3,
 @media (prefers-reduced-motion: reduce) { .homeCardsDots button { transition: none; } }
 .homeCardsTrack > .profileCompleteness { background: linear-gradient(135deg, rgb(var(--brand-violet-rgb, 139 108 255) / 0.16), var(--n-0)); box-shadow: inset 0 0 0 1.5px rgb(var(--brand-violet-rgb, 139 108 255) / 0.45); }
 
-/* The calm story suggestion: ink; a pink edge when a time was freed. */
-.storyNudge { display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 12px; border-radius: 22px; background: var(--brand-ink); color: var(--n-0); }
-.storyNudge.is-freed { box-shadow: inset 0 0 0 2px var(--brand-pink); }
-.storyNudgeIcon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 14px; background: rgb(var(--n-0-rgb) / 0.12); }
+/* The calm story suggestion: ink, a pink edge, and a pink «بساز» (anything that brings clients is pink). Its white is the
+   fixed photo white, so the card reads the same in the night theme. */
+.storyNudge { --st: var(--on-photo-rgb); display: flex; align-items: center; gap: 10px; padding: 10px 8px 10px 12px; border-radius: 22px; background: var(--brand-ink); color: rgb(var(--st)); box-shadow: inset 0 0 0 1.5px rgb(var(--brand-pink-rgb) / 0.55); }
+.storyNudgeIcon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 14px; background: var(--ig-gradient); color: var(--brand-white); }
 .storyNudgeMain { display: grid; flex: 1; min-width: 0; gap: 1px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: right; cursor: pointer; }
-.storyNudgeMain strong { font-size: 0.88rem; font-weight: 950; line-height: 1.55; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.storyNudgeMain small { color: rgb(var(--n-0-rgb) / 0.72); font-size: 0.72rem; font-weight: 800; line-height: 1.6; }
-/* How much time is left, readable at a glance: pink when there is plenty, amber when short, red when nearly too late. */
-.storyNudgeRow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 3px; }
-.storyNudgeLeft { flex: none; padding: 1px 9px; border-radius: 99px; background: rgb(var(--n-0-rgb) / 0.12); font-size: 0.7rem; font-style: normal; font-weight: 900; }
-.storyNudgeLeft.is-ok { color: var(--brand-pink); }
-.storyNudgeLeft.is-soon { color: #ffc861; }
-.storyNudgeLeft.is-late { color: #ff8d8d; }
-.storyNudgeNo { display: grid; place-items: center; flex: none; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: rgb(var(--n-0-rgb) / 0.7); cursor: pointer; }
+.storyNudgeMain strong { font-size: 0.9rem; font-weight: 950; line-height: 1.55; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.storyNudgeMain small { color: rgb(var(--st) / 0.72); font-size: 0.72rem; font-weight: 800; line-height: 1.6; }
+.storyNudgeGo { flex: none; min-height: 34px; padding: 0 14px; border: 0; border-radius: 12px; background: var(--live-fill); color: var(--on-live-fill); font: inherit; font-size: 0.8rem; font-weight: 950; cursor: pointer; }
+.storyNudgeNo { display: grid; place-items: center; flex: none; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: rgb(var(--st) / 0.7); cursor: pointer; }
 .storyNudge button:focus-visible { outline: 3px solid var(--brand-pink); outline-offset: 2px; }

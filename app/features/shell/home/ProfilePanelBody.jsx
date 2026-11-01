@@ -36,7 +36,6 @@ export function ProfilePanelBody() {
     visibleArtistPortfolio,
     artistBookingList,
     salonHeroSheet,
-    salonAppointmentList,
     profileView,
     salonUnreadNoticeCount,
     recentlyExpiredSalonBookings,
@@ -286,7 +285,7 @@ export function ProfilePanelBody() {
                     }
                   }}
                 />
-                <StoryNudgeCard profile={createdProfile} bookings={createdProfile.type === "salon" ? salonAppointmentList : artistBookingList} onNotify={setAppToast} />
+                <StoryNudgeCard profile={createdProfile} onNotify={setAppToast} />
               </HomeCards>
             ) : null}
 

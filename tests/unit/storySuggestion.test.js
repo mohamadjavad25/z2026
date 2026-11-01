@@ -1,174 +1,137 @@
 import { describe, expect, it } from "vitest";
-import { buildSuggestion, clock, formatLeft, toneFor } from "../../app/features/profile/storySuggestion.js";
+import {
+  NEAR_MINUTES,
+  STORY_MAX_DAYS,
+  STORY_TIMES_PER_DAY,
+  buildSuggestion,
+  clock,
+  spreadTimes,
+  suggestDays,
+  suggestTimes,
+  toggleDay,
+  toggleTime,
+  usableTimes
+} from "../../app/features/profile/storySuggestion.js";
 import { formatPersianDateKey } from "../../app/shared/lib/persianCalendar.js";
 
-// 10:00 Tehran on a fixed day; times below are all after it.
-const now = new Date("2026-10-31T06:30:00Z");
-const todayKey = formatPersianDateKey(now);
-const tomorrowKey = formatPersianDateKey(new Date(now.getTime() + 24 * 60 * 60 * 1000));
-const days = [
-  { label: "امروز", key: todayKey, times: ["13:00", "13:30", "18:00"] },
-  { label: "فردا", key: tomorrowKey, times: ["09:00"] }
-];
+// 10:00 Tehran (06:30 UTC) on a fixed day.
+const NOW = new Date("2026-11-01T06:30:00Z");
+const DAY = 24 * 60 * 60 * 1000;
+const key = (offset) => formatPersianDateKey(new Date(NOW.getTime() + offset * DAY));
+const day = (offset, times, label = ["امروز", "فردا", "پس‌فردا"][offset]) => ({ label, key: key(offset), times });
 
-describe("story suggestion", () => {
-  it("reads times in any digits", () => {
-    expect(clock("۱۱:۰۰")).toBe("11:00");
+describe("story: the times frfro suggests (owner 2026-11-01: we only suggest)", () => {
+  it("reads every way a time is written as one", () => {
+    expect(clock("۰۸:۰۵")).toBe("08:05");
     expect(clock("8:05")).toBe("08:05");
-    expect(clock("")).toBe("");
+    expect(clock("8:5")).toBe("");
   });
 
-  it("says nothing when no time is free", () => {
-    expect(buildSuggestion({ days: [{ label: "امروز", key: todayKey, times: [] }], now })).toBeNull();
+  it("never offers a time less than an hour away, and nothing already past", () => {
+    const times = usableTimes(day(0, ["09:00", "10:30", "11:00", "11:30", "18:00"]), NOW);
+    expect(times).toEqual(["11:00", "11:30", "18:00"]);
+    expect(NEAR_MINUTES).toBe(60);
   });
 
-  it("offers today's free times first, with the time left to the nearest", () => {
-    const result = buildSuggestion({ days, now });
-    expect(result.kind).toBe("free");
-    expect(result.title).toContain("امروز");
-    expect(result.left).toBe(180);
-    expect(result.tone).toBe("ok");
+  it("keeps every time on later days, sorted and once each", () => {
+    expect(usableTimes(day(1, ["16:00", "09:00", "۰۹:۰۰", "12:00"]), NOW)).toEqual(["09:00", "12:00", "16:00"]);
   });
 
-  it("names a cancelled booking whose time is free again, with its team member", () => {
-    const result = buildSuggestion({ days, cancelled: [{ status: "لغو", booking_date: todayKey, time: "۱۳:۳۰", staff: "نگار کاشی" }], now });
-    expect(result.kind).toBe("freed");
-    expect(result.title).toBe("نوبت نگار ساعت ۱۳:۳۰ لغو شد");
-    expect(result.left).toBe(210);
+  it("goes by the day's key, not its label, so a list read before midnight stays right", () => {
+    // Read yesterday, labelled «فردا», but that day is today now: its early times are gone.
+    expect(usableTimes({ label: "فردا", key: key(0), times: ["09:00", "12:00"] }, NOW)).toEqual(["12:00"]);
   });
 
-  it("ignores a cancelled booking whose time was booked again", () => {
-    const result = buildSuggestion({ days, cancelled: [{ status: "لغو", booking_date: todayKey, time: "14:00" }], now });
-    expect(result.kind).toBe("free");
+  it("spreads four times over the day: first and last in, never four in a row", () => {
+    const all = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"];
+    const picked = spreadTimes(all);
+    expect(picked).toHaveLength(STORY_TIMES_PER_DAY);
+    expect(picked[0]).toBe("09:00");
+    expect(picked[picked.length - 1]).toBe("18:00");
+    expect(picked).toEqual([...picked].sort());
+    expect(new Set(picked).size).toBe(picked.length);
   });
 
-  it("finds a booking that vanished from the list and is free now", () => {
-    const result = buildSuggestion({ days, vanished: [{ key: tomorrowKey, time: "09:00" }], now });
-    expect(result.kind).toBe("freed");
-    expect(result.title).toBe("نوبت فردا ساعت ۰۹:۰۰ آزاد شد");
-    expect(result.tone).toBe("ok");
+  it("takes them all when there are four or fewer", () => {
+    expect(spreadTimes(["14:00", "11:00"])).toEqual(["11:00", "14:00"]);
+    expect(spreadTimes([])).toEqual([]);
   });
 
-  it("stays quiet when the freed time is already on today's story", () => {
-    const posted = [`${todayKey}|13:00`, `${todayKey}|13:30`, `${todayKey}|18:00`, `${tomorrowKey}|09:00`];
-    expect(buildSuggestion({ days, cancelled: [{ status: "لغو", booking_date: todayKey, time: "13:30" }], posted, now })).toBeNull();
+  it("starts with the first two days that still have a time", () => {
+    const days = [day(0, ["09:00"]), day(1, ["12:00"]), day(2, ["15:00"])];
+    // Today's only time is gone, so tomorrow and the day after.
+    expect(suggestDays(days, NOW)).toEqual([key(1), key(2)]);
+    expect(Object.keys(suggestTimes(days, NOW))).toEqual([key(1), key(2)]);
   });
 
-  it("calls a time that is not on the earlier story «تازه»", () => {
-    const posted = [`${todayKey}|13:00`, `${todayKey}|18:00`, `${tomorrowKey}|09:00`];
-    const result = buildSuggestion({ days, posted, now });
-    expect(result.kind).toBe("new");
-    expect(result.title).toContain("تازه");
-    expect(result.keys).toEqual([`${todayKey}|13:30`]);
-  });
-
-  it("tones the time left, and writes it in words", () => {
-    expect(toneFor(300)).toBe("ok");
-    expect(toneFor(90)).toBe("soon");
-    expect(toneFor(20)).toBe("late");
-    expect(formatLeft(190)).toBe("۳ ساعت و ۱۰ دقیقه");
-    expect(formatLeft(45)).toBe("۴۵ دقیقه");
-    expect(formatLeft(120)).toBe("۲ ساعت");
+  it("suggests nothing when no day has a time", () => {
+    expect(suggestDays([day(0, []), day(1, []), day(2, [])], NOW)).toEqual([]);
   });
 });
 
-describe("story suggestion, under pressure", () => {
-  // A small seeded generator so a failure can be replayed.
-  const rng = (seed) => () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
-  const pool = ["09:00", "09:30", "10:00", "10:30", "11:00", "13:00", "13:30", "14:00", "15:30", "18:00", "19:30"];
+describe("story: what the owner changes", () => {
+  const order = [key(0), key(1), key(2)];
 
-  it("never offers a time that is not free, never a posted freed time, never negative time left (500 random worlds)", () => {
-    const rand = rng(7);
-    for (let round = 0; round < 500; round += 1) {
-      const pick = (list, chance) => list.filter(() => rand() < chance);
-      const world = [
-        { label: "امروز", key: todayKey, times: pick(pool, 0.5).filter((t) => timeToMinutes(t) > 10 * 60 + 30) },
-        { label: "فردا", key: tomorrowKey, times: pick(pool, 0.5) }
-      ];
-      const freeKeys = new Set(world.flatMap((day) => day.times.map((time) => `${day.key}|${time}`)));
-      const everyKey = [...freeKeys, `${todayKey}|12:00`, `${tomorrowKey}|12:00`];
-      const posted = pick(everyKey, 0.3);
-      const cancelled = pick(everyKey, 0.4).map((entry) => { const [key, time] = entry.split("|"); return { status: "لغو", booking_date: key, time, staff: rand() < 0.5 ? "نگار کاشی" : "" }; });
-      const vanished = pick(everyKey, 0.3).map((entry) => { const [key, time] = entry.split("|"); return { key, time }; });
-      const result = buildSuggestion({ days: world, cancelled, vanished, posted, now });
-      if (!result) {
-        // Nothing offered means nothing free is news.
-        expect([...freeKeys].every((key) => posted.includes(key))).toBe(true);
-        continue;
-      }
-      expect(result.keys.length).toBeGreaterThan(0);
-      for (const key of result.keys) {
-        expect(freeKeys.has(key)).toBe(true);
-        expect(posted.includes(key)).toBe(false);
-      }
-      expect(result.left).toBeGreaterThan(-1);
-      expect(["ok", "soon", "late"]).toContain(result.tone);
-      expect(result.title.length).toBeGreaterThan(5);
-      if (result.kind === "freed") {
-        const asked = new Set([...cancelled.filter((c) => c.status === "لغو").map((c) => `${c.booking_date}|${c.time}`), ...vanished.map((v) => `${v.key}|${v.time}`)]);
-        for (const key of result.keys) expect(asked.has(key)).toBe(true);
+  it("turns days on and off, at most two, in calendar order", () => {
+    expect(toggleDay([], key(1), order)).toEqual([key(1)]);
+    expect(toggleDay([key(1)], key(0), order)).toEqual([key(0), key(1)]);
+    expect(toggleDay([key(0), key(1)], key(1), order)).toEqual([key(0)]);
+  });
+
+  it("a third day replaces the one picked first, so two stay on", () => {
+    const next = toggleDay([key(0), key(1)], key(2), order);
+    expect(next).toEqual([key(1), key(2)]);
+    expect(next.length).toBeLessThanOrEqual(STORY_MAX_DAYS);
+  });
+
+  it("turns times on and off, and refuses a fifth", () => {
+    let list = [];
+    for (const t of ["09:00", "11:00", "13:00", "15:00"]) list = toggleTime(list, t);
+    expect(list).toEqual(["09:00", "11:00", "13:00", "15:00"]);
+    expect(toggleTime(list, "17:00")).toEqual(list);
+    expect(toggleTime(list, "11:00")).toEqual(["09:00", "13:00", "15:00"]);
+  });
+
+  it("holds its limits whatever the taps (500 random sessions)", () => {
+    let seed = 7;
+    const rand = (n) => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed % n; };
+    const times = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"];
+    for (let run = 0; run < 500; run += 1) {
+      let days = [];
+      let on = [];
+      for (let tap = 0; tap < 30; tap += 1) {
+        if (rand(2)) days = toggleDay(days, order[rand(3)], order);
+        else on = toggleTime(on, times[rand(times.length)]);
+        expect(days.length).toBeLessThanOrEqual(STORY_MAX_DAYS);
+        expect(new Set(days).size).toBe(days.length);
+        expect(days).toEqual([...days].sort((a, b) => order.indexOf(a) - order.indexOf(b)));
+        expect(on.length).toBeLessThanOrEqual(STORY_TIMES_PER_DAY);
+        expect(new Set(on).size).toBe(on.length);
       }
     }
   });
-
-  it("puts the soonest freed time first and counts several", () => {
-    const cancelled = [
-      { status: "لغو", booking_date: todayKey, time: "18:00" },
-      { status: "لغو", booking_date: todayKey, time: "13:00" },
-      { status: "لغو", booking_date: tomorrowKey, time: "09:00" }
-    ];
-    const result = buildSuggestion({ days, cancelled, now });
-    expect(result.kind).toBe("freed");
-    expect(result.keys[0]).toBe(`${todayKey}|13:00`);
-    expect(result.title).toContain("۳ وقت");
-    expect(result.left).toBe(180);
-  });
-
-  it("treats a vanished booking and a cancelled one for the same time as one", () => {
-    const result = buildSuggestion({
-      days,
-      cancelled: [{ status: "لغو", booking_date: todayKey, time: "13:00" }],
-      vanished: [{ key: todayKey, time: "13:00" }],
-      now
-    });
-    expect(result.keys).toEqual([`${todayKey}|13:00`]);
-  });
-
-  it("uses «لغو شد» only when every freed time was cancelled; any other mix says «آزاد شد»", () => {
-    const both = buildSuggestion({ days, cancelled: [{ status: "لغو", booking_date: todayKey, time: "13:00" }], vanished: [{ key: tomorrowKey, time: "09:00" }], now });
-    expect(both.title).toContain("آزاد شد");
-    const only = buildSuggestion({ days, cancelled: [{ status: "لغو", booking_date: todayKey, time: "13:00" }, { status: "لغو", booking_date: tomorrowKey, time: "09:00" }], now });
-    expect(only.title).toContain("لغو شد");
-  });
-
-  it("ignores bookings with other statuses and junk rows", () => {
-    const result = buildSuggestion({
-      days,
-      cancelled: [{ status: "تایید شده", booking_date: todayKey, time: "13:00" }, null, {}, { status: "لغو" }],
-      vanished: [{}, { key: todayKey }, { time: "13:00" }],
-      now
-    });
-    expect(result.kind).toBe("free");
-  });
-
-  it("tones a freed time today by the hours left, and tomorrow is always roomy", () => {
-    const late = new Date("2026-10-31T13:30:00Z"); // 17:00 Tehran
-    const days2 = [{ label: "امروز", key: todayKey, times: ["17:30", "19:00", "21:00"] }, { label: "فردا", key: tomorrowKey, times: ["08:00"] }];
-    expect(buildSuggestion({ days: days2, cancelled: [{ status: "لغو", booking_date: todayKey, time: "17:30" }], now: late }).tone).toBe("late");
-    expect(buildSuggestion({ days: days2, cancelled: [{ status: "لغو", booking_date: todayKey, time: "19:00" }], now: late }).tone).toBe("soon");
-    expect(buildSuggestion({ days: days2, cancelled: [{ status: "لغو", booking_date: todayKey, time: "21:00" }], now: late }).tone).toBe("ok");
-    expect(buildSuggestion({ days: days2, cancelled: [{ status: "لغو", booking_date: tomorrowKey, time: "08:00" }], now: late }).tone).toBe("ok");
-  });
-
-  it("counts tomorrow's time left through midnight", () => {
-    const late = new Date("2026-10-31T19:30:00Z"); // 23:00 Tehran
-    const result = buildSuggestion({ days: [{ label: "امروز", key: todayKey, times: [] }, { label: "فردا", key: tomorrowKey, times: ["09:00"] }], now: late });
-    expect(result.left).toBe(10 * 60);
-  });
 });
 
-function timeToMinutes(time) {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
-}
+describe("story: the card on the owner's home", () => {
+  it("says today's free times first", () => {
+    const s = buildSuggestion({ days: [day(0, ["12:00", "15:00"]), day(1, ["10:00"])], now: NOW });
+    expect(s).toMatchObject({ when: "امروز", count: 2, title: "امروز ۲ وقت خالی داری" });
+  });
 
+  it("says tomorrow when today has nothing left an hour ahead", () => {
+    const s = buildSuggestion({ days: [day(0, ["10:30"]), day(1, ["10:00", "12:00", "16:00"])], now: NOW });
+    expect(s).toMatchObject({ when: "فردا", count: 3, title: "فردا ۳ وقت خالی داری" });
+  });
+
+  it("never mentions the day after (the card is about now)", () => {
+    expect(buildSuggestion({ days: [day(0, []), day(1, []), day(2, ["10:00"])], now: NOW })).toBeNull();
+  });
+
+  it("rests for the rest of the day once a story was made", () => {
+    expect(buildSuggestion({ days: [day(0, ["12:00"])], postedToday: true, now: NOW })).toBeNull();
+  });
+
+  it("is quiet when nothing is free", () => {
+    expect(buildSuggestion({ days: [], now: NOW })).toBeNull();
+  });
+});

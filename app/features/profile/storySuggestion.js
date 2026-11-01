@@ -1,106 +1,98 @@
 import { minutesUntilSlotStart } from "../../shared/lib/bookingWindow.js";
 import { toAsciiDigits, toPersianDigits } from "../../shared/lib/digits.js";
-import { getTehranClockMinutes, timeLabelToMinutes } from "../../shared/lib/time.js";
+import { formatPersianDateKey } from "../../shared/lib/persianCalendar.js";
 
 /**
- * What the calm story card on an owner's home should say right now (owner's request 2026-10-31). Pure: the card feeds
- * it what it knows and shows the answer, so every rule below is tested without a screen.
+ * The story's choices that need no screen (owner's rules 2026-11-01), kept pure so every rule is tested:
+ * frfro only suggests, the salon or artist decides. Cancelled bookings play no part (owner: «کاری به لغو شده‌ها
+ * نداشته باشیم»); a free time is simply free.
  *
- * - `days`: free times for today and tomorrow, as loadFreeSlots gives them ({ label, key, times }).
- * - `cancelled`: bookings the list itself marks as cancelled ({ booking_date, time, staff }).
- * - `vanished`: bookings that were on the list when the owner last looked and are gone now ({ key, time, staff }).
- *   A booking cancelled while the app was closed, or by an artist's client, is found this way.
- * - `posted`: the "key|time" entries already put on a story made today.
+ * - A story shows at most two days, picked from today, tomorrow and the day after.
+ * - Up to four times a day; the suggestion spreads them over the day (morning, midday, evening), never four in a row.
+ * - A time less than an hour away is never suggested and never on the home card.
  *
- * A time counts as freed only when it is free right now, so a time somebody booked again never shows. A freed time
- * that is already on today's story shows nothing: the audience already knows about it.
+ * `days` everywhere: [{ label: "امروز" | "فردا" | "پس‌فردا", key: "1405-08-11", times: ["11:00", …] }].
  */
 
-/** "8:5" → null, "8:05" and "۰۸:۰۵" → "08:05". */
+export const STORY_MAX_DAYS = 2;
+export const STORY_TIMES_PER_DAY = 4;
+export const NEAR_MINUTES = 60;
+
+/** "8:5" → "", "8:05" and "۰۸:۰۵" → "08:05". */
 export function clock(value) {
   const match = toAsciiDigits(String(value || "")).match(/(\d{1,2}):(\d{2})/);
   return match ? `${match[1].padStart(2, "0")}:${match[2]}` : "";
 }
 
-export function slotKey(dayKey, time) {
-  return `${dayKey}|${clock(time)}`;
-}
-
-/** Minutes from now to a free time today or tomorrow (tomorrow: through midnight, plus the time). */
-export function minutesLeft(day, now) {
-  return (time) => {
-    const today = minutesUntilSlotStart(day.key, time, now);
-    if (Number.isFinite(today)) return today;
-    return day.label === "امروز" ? today : 24 * 60 - getTehranClockMinutes(now) + timeLabelToMinutes(time);
-  };
-}
-
-/** «۳ ساعت و ۱۰ دقیقه» / «۴۵ دقیقه» / «۲ ساعت» */
-export function formatLeft(minutes) {
-  const total = Math.max(0, Math.round(minutes));
-  const hours = Math.floor(total / 60);
-  const rest = total % 60;
-  if (!hours) return `${toPersianDigits(rest)} دقیقه`;
-  return rest ? `${toPersianDigits(hours)} ساعت و ${toPersianDigits(rest)} دقیقه` : `${toPersianDigits(hours)} ساعت`;
-}
-
-/** How much a story is still worth at a glance: plenty of time, getting short, or nearly too late. */
-export function toneFor(minutes) {
-  if (minutes >= 180) return "ok";
-  if (minutes >= 60) return "soon";
-  return "late";
-}
-
-export function buildSuggestion({ days = [], cancelled = [], vanished = [], posted = [], now = new Date() }) {
-  const postedSet = new Set(posted);
-  const entries = [];
-  for (const day of days) {
-    const left = minutesLeft(day, now);
-    for (const time of day.times || []) {
-      const t = clock(time);
-      if (t) entries.push({ key: slotKey(day.key, t), dayKey: day.key, today: day.label === "امروز", time: t, left: left(t) });
-    }
-  }
-  if (!entries.length) return null;
-  const byKey = new Map(entries.map((entry) => [entry.key, entry]));
-
-  const freed = [];
+/** The day's times without the ones less than an hour away (only today has those), as "HH:MM", in order, once each. */
+export function usableTimes(day, now = new Date()) {
   const seen = new Set();
-  const add = (dayKey, time, staff, wasCancelled) => {
-    const key = slotKey(dayKey, time);
-    const entry = byKey.get(key);
-    if (!entry || seen.has(key)) return;
-    seen.add(key);
-    freed.push({ ...entry, staff: String(staff || "").trim(), wasCancelled });
-  };
-  for (const booking of cancelled) {
-    if (booking?.status === "لغو") add(booking.booking_date, booking.time, booking.staff, true);
-  }
-  // Gone from the list without the list saying why: cancelled elsewhere, or moved. «آزاد شد» is true either way.
-  for (const booking of vanished) add(booking.key, booking.time, booking.staff, false);
+  return (day?.times || [])
+    .map(clock)
+    .filter((time) => {
+      if (!time || seen.has(time)) return false;
+      seen.add(time);
+      // By the day's own key, not its label, so a list read just before midnight is still right after it.
+      const left = minutesUntilSlotStart(day.key, time, now);
+      return left !== null && left >= NEAR_MINUTES;
+    })
+    .sort();
+}
 
-  const freshFreed = freed.filter((entry) => !postedSet.has(entry.key)).sort((a, b) => a.left - b.left);
-  if (freshFreed.length) {
-    const first = freshFreed[0];
-    const when = `${first.today ? "" : "فردا "}ساعت ${toPersianDigits(first.time)}`;
-    const verb = freshFreed.every((entry) => entry.wasCancelled) ? "لغو شد" : "آزاد شد";
-    // Only the first name of a team member: the title has to fit one line on a phone.
-    const who = first.staff ? first.staff.split(/\s+/)[0] : "";
-    const title = freshFreed.length === 1
-      ? `${who ? `نوبت ${who} ` : "نوبت "}${when} ${verb}`
-      : `${toPersianDigits(freshFreed.length)} وقت ${verb}`;
-    return { kind: "freed", title, left: first.left, tone: first.today ? toneFor(first.left) : "ok", keys: freshFreed.map((entry) => entry.key) };
-  }
+/** Up to `count` times spread evenly from first to last (first and last always in), in order. */
+export function spreadTimes(times, count = STORY_TIMES_PER_DAY) {
+  const list = [...new Set((times || []).map(clock).filter(Boolean))].sort();
+  if (list.length <= count) return list;
+  if (count <= 1) return list.slice(0, Math.max(0, count));
+  const picked = new Set();
+  for (let i = 0; i < count; i += 1) picked.add(Math.round((i * (list.length - 1)) / (count - 1)));
+  return [...picked].sort((a, b) => a - b).map((index) => list[index]);
+}
 
-  const fresh = entries.filter((entry) => !postedSet.has(entry.key));
-  if (!fresh.length) return null;
-  const todayFresh = fresh.filter((entry) => entry.today);
-  const postedAny = entries.length > fresh.length || posted.length > 0;
-  const lead = todayFresh.length ? todayFresh : fresh;
-  const soonest = [...lead].sort((a, b) => a.left - b.left)[0];
-  const where = todayFresh.length ? "امروز" : "فردا";
-  const title = postedAny
-    ? `${toPersianDigits(lead.length)} وقت تازه خالی شد که توی استوری قبلیت نبود`
-    : `${where} ${toPersianDigits(lead.length)} وقت خالی داری`;
-  return { kind: postedAny ? "new" : "free", title, left: soonest.left, tone: todayFresh.length ? toneFor(soonest.left) : "ok", keys: fresh.map((entry) => entry.key) };
+/** The days a new story starts with: the first two that still have a usable time. */
+export function suggestDays(days, now = new Date()) {
+  return (days || []).filter((day) => usableTimes(day, now).length).slice(0, STORY_MAX_DAYS).map((day) => day.key);
+}
+
+/** The times a new story starts with, by day key, for the suggested days. */
+export function suggestTimes(days, now = new Date()) {
+  const keys = new Set(suggestDays(days, now));
+  return Object.fromEntries((days || []).filter((day) => keys.has(day.key)).map((day) => [day.key, spreadTimes(usableTimes(day, now))]));
+}
+
+/**
+ * Turns a day on or off. A third day replaces the one picked first, so two stay on and nobody hits a wall.
+ * Returns the new list of day keys, in calendar order.
+ */
+export function toggleDay(onDays, key, order) {
+  const list = [...(onDays || [])];
+  if (list.includes(key)) return list.filter((k) => k !== key);
+  const next = list.length >= STORY_MAX_DAYS ? [...list.slice(1), key] : [...list, key];
+  const rank = (k) => { const i = (order || []).indexOf(k); return i < 0 ? Infinity : i; };
+  return next.sort((a, b) => rank(a) - rank(b));
+}
+
+/** A time on or off for one day; a fifth time is refused (the list comes back unchanged). */
+export function toggleTime(onTimes, time) {
+  const list = (onTimes || []).map(clock);
+  const t = clock(time);
+  if (list.includes(t)) return list.filter((x) => x !== t);
+  if (list.length >= STORY_TIMES_PER_DAY) return list;
+  return [...list, t].sort();
+}
+
+/**
+ * The calm card on the owner's home, or null: «امروز ۳ وقت خالی داری» (today first, else tomorrow). Nothing once a
+ * story was made today: the card is a reminder, not a nag.
+ */
+export function buildSuggestion({ days = [], postedToday = false, now = new Date() }) {
+  if (postedToday) return null;
+  const today = formatPersianDateKey(now);
+  const tomorrow = formatPersianDateKey(new Date(now.getTime() + 24 * 60 * 60 * 1000));
+  for (const [key, label] of [[today, "امروز"], [tomorrow, "فردا"]]) {
+    const day = days.find((d) => d.key === key);
+    const count = day ? usableTimes(day, now).length : 0;
+    if (count) return { when: label, count, title: `${label} ${toPersianDigits(count)} وقت خالی داری` };
+  }
+  return null;
 }
