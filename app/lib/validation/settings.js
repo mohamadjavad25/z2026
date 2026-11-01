@@ -15,5 +15,6 @@ export const settingsPatchSchema = z.object({
   directBooking: z.boolean().optional(),
   autoConfirm: z.boolean().optional(),
   reminders: z.boolean().optional(),
-  dueReminders: z.boolean().optional()
+  dueReminders: z.boolean().optional(),
+  tutorialPending: z.boolean().optional()
 });

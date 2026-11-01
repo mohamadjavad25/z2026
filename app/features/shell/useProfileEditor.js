@@ -16,7 +16,8 @@ const DEFAULT_PROFILE_SETTINGS = {
   directBooking: true,
   autoConfirm: false,
   reminders: true,
-  dueReminders: true
+  dueReminders: true,
+  tutorialPending: false
 };
 
 /**

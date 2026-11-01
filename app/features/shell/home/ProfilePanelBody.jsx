@@ -16,6 +16,7 @@ import { ClientHome } from "../../client";
 import { ScanFlow } from "../../connect";
 
 import { useHome } from "../HomeContext";
+import { WelcomeHost } from "../../onboarding";
 export function ProfilePanelBody() {
   const {
     createdProfile,
@@ -166,6 +167,8 @@ export function ProfilePanelBody() {
 
   return (
     (!createdProfile ? (
+            <>
+            <WelcomeHost show={authMode === "signup" && signupStep === "role" && !arrivalIntent} />
             <AuthGateForms
               authMode={authMode}
               signupStep={signupStep}
@@ -193,6 +196,7 @@ export function ProfilePanelBody() {
               onLoginSubmit={handleLoginSubmit}
               onProfileSubmit={handleProfileSubmit}
             />
+            </>
           ) : (
             <>
             <ProfileHero

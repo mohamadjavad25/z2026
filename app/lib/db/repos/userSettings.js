@@ -19,7 +19,10 @@ export const DEFAULT_SETTINGS = {
   autoConfirm: false,
   reminders: true,
   // «یادآوری وقتش شده» for clients (owner's decision of 2026-10-25: on by default).
-  dueReminders: true
+  dueReminders: true,
+  // The role's tutorial slides are still to be seen: set once by sign-up, cleared when they end. Accounts made
+  // before the tutorial existed never had it, so they never get it uninvited (Settings › «آموزش فرفرو» replays it).
+  tutorialPending: false
 };
 
 const KNOWN_KEYS = new Set(Object.keys(DEFAULT_SETTINGS));

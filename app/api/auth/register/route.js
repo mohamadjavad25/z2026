@@ -22,6 +22,7 @@ import { REGISTER_PER_IP_HOUR } from "../../../lib/limits.js";
 import { toPersianDigits } from "../../../shared/lib/digits.js";
 import { hasUniqueName, NAME_TAKEN_MESSAGE } from "../../../lib/businessName.js";
 import { noteAdminEvent } from "../../../lib/adminNews.js";
+import { saveSettings } from "../../../lib/db/repos/userSettings.js";
 
 export const runtime = "nodejs";
 
@@ -131,6 +132,9 @@ async function _POST(request) {
     if (phoneVerified) await users.markPhoneVerified(user.id);
 
     if (type === "salon") await ensureSalonHours(user.id);
+    // The role's tutorial shows once on the first open of the new account. The account comes first: a failure
+    // here only skips the slides.
+    await saveSettings(user.id, { tutorialPending: true }).catch((error) => console.error(error));
 
     noteAdminEvent("signups", `${{ client: "مشتری", salon: "سالن", artist: "آرتیست" }[type] || ""} ${user.name || ""}`.trim());
 
