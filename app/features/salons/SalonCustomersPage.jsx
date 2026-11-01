@@ -22,7 +22,7 @@ export { buildBookingCustomers };
 const FILTERS = [
   { id: "all", label: "همه" },
   { id: "upcoming", label: "نوبت پیش‌رو" },
-  { id: "repeat", label: "تکراری" },
+  { id: "repeat", label: "دوباره اومدن" },
   { id: "lapsed", label: "یه مدته نیومده" },
   { id: "nobooking", label: "هنوز نوبت نگرفته" }
 ];
@@ -402,7 +402,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
         <>
           <div className="cuTiles" aria-label="خلاصهٔ مشتری‌ها">
             <span><Users size={16} /><b>{toPersianDigits(customers.length)}</b>مشتری</span>
-            <span><Repeat2 size={16} /><b>{toPersianDigits(repeatCount)}</b>تکراری</span>
+            <span><Repeat2 size={16} /><b>{toPersianDigits(repeatCount)}</b>دوباره اومدن</span>
             <span><CalendarCheck size={16} /><b>{toPersianDigits(upcomingCount)}</b>نوبت پیش‌رو</span>
           </div>
           <label className="salonCustomersSearch">

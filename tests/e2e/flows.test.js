@@ -207,20 +207,15 @@ describe("booking flow (browser)", () => {
     await clientView.context.close();
   });
 
-  it("a new artist is shown the «+» once, and tapping it opens a new booking", async () => {
+  it("a new artist gets no pop-up over the «+» (owner 2026-11-01: it came back on every visit), and the «+» opens a new booking", async () => {
     const artistApi = createClient();
     await registerUser(artistApi, { type: "artist", name: "آرتیست تازه" });
-    const { page, context, problems } = await newPage({ cookie: artistApi.cookie(), tipSeen: false });
+    const { page, context, problems } = await newPage({ cookie: artistApi.cookie() });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    const tip = page.locator(".createTip");
-    await tip.waitFor();
-    expect(await tip.innerText()).toContain("فهمیدم");
-    await page.locator(".createTipHole").click();
-    await tip.waitFor({ state: "detached" });
-    await page.locator(".visitBookerSheet").waitFor();
-    await page.reload({ waitUntil: "networkidle" });
     await page.waitForTimeout(1500);
-    expect(await tip.count()).toBe(0);
+    expect(await page.getByText("نوبت تازه از همین دکمه").count()).toBe(0);
+    await page.locator(".bottomNav .is-createBooking").click();
+    await page.locator(".visitBookerSheet").waitFor();
     expect(problems).toEqual([]);
     await context.close();
   });

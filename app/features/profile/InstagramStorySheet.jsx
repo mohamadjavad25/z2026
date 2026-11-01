@@ -287,7 +287,7 @@ export function dayLine(day) {
 
 /**
  * The free-times story, top to bottom (owner's redesign 2026-11-01): name row (optional), a pink label, the two-line
- * headline, one quiet line, then each day (at most two) with its times in two columns (at most four), then the link
+ * headline, then each day (at most two) with its times in two columns (at most four), then the link
  * box. Everything shrinks together when it would not fit, so two full days with the name row still clear the link box.
  */
 async function drawFree(ctx, { name, avatar, works, days, showWho, look, headline }) {
@@ -305,7 +305,7 @@ async function drawFree(ctx, { name, avatar, works, days, showWho, look, headlin
   const heightAt = (k) => {
     const rows = (day) => Math.ceil(Math.min(day.times.length, STORY_TIMES_PER_DAY) / 2);
     const daysH = open.reduce((sum, day) => sum + 64 * k + rows(day) * 128 * k - 20 * k, 0) + Math.max(0, open.length - 1) * 48 * k;
-    return 56 * k + 2 * 128 * k + 76 * k + 64 * k + daysH;
+    return 56 * k + 2 * 128 * k + 72 * k + daysH;
   };
   let k = 1;
   while (k > 0.66 && heightAt(k) > areaBottom - areaTop) k -= 0.02;
@@ -334,12 +334,8 @@ async function drawFree(ctx, { name, avatar, works, days, showWho, look, headlin
     ctx.fillStyle = index === 0 ? colors.text : (colors.text === "#ffffff" ? blendFill(ctx, right, ctx.measureText(line).width) : VIOLET_DEEP);
     ctx.fillText(line, right, lineY);
   });
-  y += 2 * 128 * k;
-
-  ctx.fillStyle = colors.soft;
-  ctx.font = `700 ${Math.round(36 * k)}px ${FONT}`;
-  ctx.fillText("با همین لینک، بی‌تماس و بی‌پیام.", right, y + 46 * k);
-  y += 76 * k + 64 * k;
+  // No line under the headline (owner 2026-11-01: «با همین لینک، بی‌تماس و بی‌پیام» is gone); the link box says it.
+  y += 2 * 128 * k + 72 * k;
 
   const gap = 24 * k;
   const chipW = (width - gap) / 2;

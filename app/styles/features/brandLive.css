@@ -149,8 +149,6 @@
     radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.1) 1px, transparent 0) 0 0 / 14px 14px,
     var(--violet-deep);
 }
-.pushSoftAsk { background: var(--violet-deep); border-color: rgb(255 255 255 / 0.2); }
-.pushSoftAsk > svg, .pushSoftAsk small { color: var(--on-photo); opacity: 0.82; }
 .teamNoticeActions .is-main,
 .staffCreateForm button,
 .serviceCreateForm button,
