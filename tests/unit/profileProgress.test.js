@@ -10,10 +10,10 @@ describe("profile progress", () => {
     expect(p.left.map((t) => t.key)).toEqual(["hours", "instagram"]);
   });
 
-  it("gives a client three, with the photo, email and place", () => {
-    const todos = profileTodos({ type: "client", data: { email: "a@b.com" }, hasDefaultAvatar: true });
-    expect(todos.map((t) => t.key)).toEqual(["avatar", "email", "location"]);
-    expect(progressOf(todos).pct).toBe(33);
+  it("gives a client two, the photo and place, and never asks for an email", () => {
+    const todos = profileTodos({ type: "client", data: { area: "تهران" }, hasDefaultAvatar: true });
+    expect(todos.map((t) => t.key)).toEqual(["avatar", "location"]);
+    expect(progressOf(todos).pct).toBe(50);
   });
 
   it("is 100 when nothing is left", () => {
