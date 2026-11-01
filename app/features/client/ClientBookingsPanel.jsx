@@ -95,11 +95,10 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
 
   return (
     <>
-      <section className="clientBookingsBoard" aria-label="نوبت‌هام">
+      <section className="clientBookingsBoard" aria-label="نوبت‌های پیش‌رو">
         <div className="boardHead cbpHead">
           <div>
-            <span>نوبت‌هام</span>
-            <strong>{upcoming.length ? "چه خبر از نوبت‌هات" : "فعلاً نوبتی نداری"}</strong>
+            <strong>{upcoming.length ? "نوبت‌های پیش‌رو" : "فعلاً نوبتی نداری"}</strong>
           </div>
           <button
             type="button"

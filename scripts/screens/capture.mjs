@@ -343,6 +343,7 @@ const SCREENS = [
   { id: "client-category-empty", role: "client", title: "دسته‌بندی بدون سالن", steps: [css(".cnCat", "ابرو")] },
   { id: "client-my-code", role: "client", title: "کد من", steps: [tap("کد من")] },
   { id: "client-book-tab", role: "client", title: "تب رزرو، سالن و آرتیست من", steps: [tab(2)] },
+  { id: "client-connect", role: "client", title: "وصل شدن به سالن یا آرتیست تازه (اسکن یا شماره)", steps: [tab(2), tap(/افزودن/)] },
   { id: "client-find-tab", role: "client", title: "تب رزرو، پیدا کردن", steps: [tab(2), async (p) => { await p.getByRole("tab", { name: "پیدا کردن" }).click(); await p.waitForTimeout(900); }] },
   { id: "client-salon-sheet", role: "client", title: "برگهٔ خدمات سالن با یک خدمت انتخاب‌شده", steps: [tab(2), async (p) => { await p.locator("button", { hasText: "رنگ مو" }).filter({ hasText: "رزرو" }).first().click(); await p.waitForTimeout(1200); }] },
   { id: "client-booker", role: "client", title: "انتخاب روز و ساعت", steps: [tab(2), async (p) => { await p.locator("button", { hasText: "رنگ مو" }).filter({ hasText: "رزرو" }).first().click(); await p.waitForTimeout(1200); await p.locator("button", { hasText: "رزرو «رنگ مو»" }).click(); await p.waitForTimeout(1500); }] },
@@ -472,6 +473,8 @@ async function main() {
       try { await step(page); } catch (error) { errors.push(`step: ${error.message.split("\n")[0]}`); }
     }
     await page.waitForTimeout(900);
+    // The «یه درخواست نوبت تازه!» banner (and any other glass alert) pops up on arrival and would sit on top of every picture.
+    if (!screen.keepNotices) await page.addStyleTag({ content: ".notice-glass { display: none !important; }" });
     const dir = path.join(OUT, screen.role);
     fs.mkdirSync(dir, { recursive: true });
     const file = path.join(dir, `${screen.id}.jpg`);
