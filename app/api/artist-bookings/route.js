@@ -26,7 +26,7 @@ async function _GET(request) {
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   if (auth.user.type !== "client") {
-    return json({ error: "فقط مشتری." }, { status: 403 });
+    return json({ error: "این بخش مال مشتری‌هاست." }, { status: 403 });
   }
   await sweepExpiredBookingRequestsIfDue();
   await salons.ensureBookingColumns();

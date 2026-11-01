@@ -1,4 +1,4 @@
-import { getDb, get, run } from "../connection.js";
+import { getDb, all, get, run } from "../connection.js";
 
 /**
  * Defaults for every known toggle across roles. getSettings always returns
@@ -38,6 +38,30 @@ export async function getSettings(userId, runner = null) {
     if (key in stored) settings[key] = stored[key];
   }
   return settings;
+}
+
+/**
+ * «نمایش قیمت‌ها» off (owner's decision of 2026-11-01): nobody but the provider sees a price of theirs. The price
+ * comes out as "" (the column's "no price") and `priceHidden` tells the page to leave the spot empty, with no
+ * «قیمت توافقی» in its place. Bookings still read the real menu on the server.
+ */
+export function hidesPrices(settings) {
+  return settings?.showPrices === false;
+}
+
+/** The services as a client sees them when the provider hides prices; as they are otherwise. */
+export function shownServices(services, hide) {
+  const list = Array.isArray(services) ? services : [];
+  return hide ? list.map((service) => ({ ...service, price: "", priceHidden: true })) : list;
+}
+
+/** Of these provider ids, the ones whose prices are hidden (one query). */
+export async function idsHidingPrices(ids, runner = null) {
+  const wanted = [...new Set((ids || []).map(Number).filter(Boolean))];
+  if (!wanted.length) return new Set();
+  const db = runner || (await getDb());
+  const rows = await all(db, "SELECT user_id FROM user_settings WHERE user_id = ANY($1) AND settings->>'showPrices' = 'false'", [wanted]);
+  return new Set(rows.map((row) => Number(row.user_id)));
 }
 
 /** Merges `patch` (only known keys, coerced to boolean) into the stored settings and returns the full result.

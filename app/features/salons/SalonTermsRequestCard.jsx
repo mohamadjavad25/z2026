@@ -23,7 +23,7 @@ export function SalonTermsRequestCard({ request, busy, anyBusy, error, onAnswer,
         </span>
         <div>
           <strong>{name}</strong>
-          <small>{request.artistService || request.artistArea || "آرتیست frfro"}</small>
+          <small>{request.artistService || request.artistArea || "آرتیست فرفرو"}</small>
         </div>
         <span className="ttChip">پیشنهاد تازه</span>
       </div>
@@ -36,7 +36,7 @@ export function SalonTermsRequestCard({ request, busy, anyBusy, error, onAnswer,
         <p className="ttNoteText">{request.baseTerms ? "همون شرایط تو رو قبول داره." : termsSummary(request.terms)}</p>
       )}
       {request.terms.note ? <p className="ttNoteText">«{request.terms.note}»</p> : null}
-      <small>با قبول کردن، {name} وارد تیم می‌شه. ۷ روز اعتبار داره.</small>
+      <small>با قبول کردن، {name} میاد توی تیم. این پیشنهاد ۷ روز اعتبار داره.</small>
 
       {error && !counter ? <p className="tsError" role="alert">{error}</p> : null}
       <div className="ttActions">

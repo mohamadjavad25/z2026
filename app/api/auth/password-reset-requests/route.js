@@ -30,7 +30,7 @@ async function _POST(request) {
     const note = String(body.note || "").slice(0, 300);
 
     if (!isValidIranMobile(phone)) {
-      return NextResponse.json({ error: "شماره تماس باید یک شماره موبایل معتبر ایران باشد." }, { status: 400 });
+      return NextResponse.json({ error: "شماره موبایلت رو این‌جوری بزن: ۰۹۱۲۳۴۵۶۷۸۹" }, { status: 400 });
     }
 
     const limited = await checkRateLimit(`password-reset-request:${phone}`, REQUEST_LIMIT, REQUEST_WINDOW_MS);
@@ -46,7 +46,7 @@ async function _POST(request) {
     return NextResponse.json({ data: { id: result.id } });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "ثبت درخواست انجام نشد." }, { status: 500 });
+    return NextResponse.json({ error: "درخواستت نرفت؛ چند لحظه دیگه دوباره بزن." }, { status: 500 });
   }
 }
 

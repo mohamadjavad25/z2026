@@ -52,7 +52,7 @@ export function SandboxBankClient({ authority }) {
   return (
     <main className="payPage">
       <section className="payCard is-bank">
-        <p className="payTest is-strong"><FlaskConical size={15} aria-hidden="true" /> درگاه آزمایشی؛ این صفحهٔ بانک واقعی نیست و هیچ پولی جابه‌جا نمی‌شود.</p>
+        <p className="payTest is-strong"><FlaskConical size={15} aria-hidden="true" /> درگاه آزمایشی؛ این صفحهٔ بانک واقعی نیست و هیچ پولی جابه‌جا نمی‌شه.</p>
         <span className="payIcon"><Landmark size={32} aria-hidden="true" /></span>
         <h1>پرداخت به فرفرو</h1>
         {info ? (

@@ -9,7 +9,7 @@ export const SERVICE_GONE_MESSAGE = "این خدمت دیگه نیست؛ یه خ
 export const continueText = (names, withName = "") => `ادامه برای: ${names.join(" + ")}${withName ? ` با ${withName}` : ""}`;
 
 /** The chosen team member is no longer on this salon's page (left the team, or the salon removed them). */
-export const memberGoneMessage = "اون آرتیست دیگه توی این سالن نیست؛ یه خدمت انتخاب کن تا با یکی دیگه از تیم رزرو کنی.";
+export const memberGoneMessage = "اون آرتیست دیگه توی این سالن نیست؛ یه خدمت انتخاب کن تا با یکی دیگه از تیم نوبت بگیری.";
 
 /**
  * A guest ticked a service on a public salon page, then signed up (shared/lib/appHandoff keeps the names). Once

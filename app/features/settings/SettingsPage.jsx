@@ -14,7 +14,7 @@ import { SalonRulesSettings } from "../salons/SalonRulesSettings";
 import { SmsPackCard, SubscriptionCard } from "../billing";
 import { ProfileProgress } from "./ProfileProgress";
 import { profileTodos } from "./profileProgress";
-import { AppearanceTile, ArtistBookingTile, NotificationsTile, PageLinkTile, TileSlot, VisibilityTile } from "./SettingsTiles";
+import { AppearanceTile, ArtistBookingTile, MyCodeTile, NotificationsTile, PageLinkTile, TileSlot, VisibilityTile } from "./SettingsTiles";
 
 /**
  * The camera-icon trigger over an existing avatar/poster opens a bottom
@@ -389,6 +389,12 @@ export function SettingsPage({
               </button>
             </div>
           </TileSlot>
+
+          {isClient ? (
+            <TileSlot id="mycode">
+              <MyCodeTile name={profile?.data?.name || ""} avatar={isDefaultAvatar(accountAvatar) ? "" : accountAvatar} />
+            </TileSlot>
+          ) : null}
 
           {isPro ? (
             <TileSlot id="hours" pending={pendingKeys.has("hours")}>

@@ -9,7 +9,6 @@ export function profileTodos({ type, data = {}, hasDefaultAvatar = true, openDay
   if (!isPro) {
     return [
       { key: "avatar", label: "عکست رو بذار", done: !hasDefaultAvatar, target: "avatar" },
-      { key: "email", label: "ایمیلت رو بذار", done: Boolean(String(data.email || "").trim()), target: "edit" },
       { key: "location", label: "جات رو روی نقشه بذار", done: hasLocation, target: "location" }
     ];
   }

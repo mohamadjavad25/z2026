@@ -190,7 +190,7 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
                 dir="ltr"
                 maxLength={13}
               />
-              <p className="vbPhoneNote"><Info size={15} aria-hidden="true" /><span>شماره‌ش رو بزن تا یادآوری براش پیامک بشه؛ دیگه لازم نیست خودت پیام بدی.
+              <p className="vbPhoneNote"><Info size={15} aria-hidden="true" /><span>شماره‌ش رو بزن تا یادآوری براش پیامک بشه.
                 {!String(state.phone || "").trim() ? <><br /><strong>بدون شماره هم می‌شه، فقط یادآوری نمی‌ره.</strong></> : null}
               </span></p>
               {suggestions.length ? (

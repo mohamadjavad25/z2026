@@ -19,7 +19,7 @@ export function WaitChoice({ value = "hour", onChange, who = "سالن", backups
   if (!open) {
     return (
       <button type="button" className="wcFold" aria-expanded="false" onClick={() => setOpen(true)}>
-        <span>اگه {who} دیر کرد: <b>{hour ? "۱ ساعت صبر می‌کنم" : "صبر می‌کنم"}</b></span>
+        <span>اگه {who} دیر جواب داد: <b>{hour ? "۱ ساعت صبر می‌کنم" : "صبر می‌کنم"}</b></span>
         <ChevronDown size={16} aria-hidden="true" />
       </button>
     );

@@ -14,7 +14,7 @@ async function _POST(request) {
   const salonUserId = Number(body.salonUserId || body.salonId);
   if (!salonUserId) return NextResponse.json({ error: "این سالن رو پیدا نکردیم." }, { status: 400 });
   const target = await getUserLiteById(salonUserId);
-  if (!target || target.type !== "salon") return NextResponse.json({ error: "سالن پیدا نشد." }, { status: 404 });
+  if (!target || target.type !== "salon") return NextResponse.json({ error: "این سالن رو پیدا نکردیم." }, { status: 404 });
   if (salonUserId === auth.user.id) return NextResponse.json({ error: "نمی‌تونی به خودت وصل شی." }, { status: 400 });
   const follow = body.follow !== false;
   // Only clients connect (owner's decision 2026-10-25); the same rule as /api/follows.

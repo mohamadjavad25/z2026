@@ -6,6 +6,7 @@ import { Camera, Check, ChevronDown, Crop, Globe, ImagePlus, Lock, Pin, Store, T
 import { createPortal } from "react-dom";
 import { ImageCropper } from "../../components/ImageCropper";
 import { SheetClose } from "../../components/SheetClose";
+import { toPersianDigits } from "../../shared/lib/digits";
 
 // A photo this small and no bigger than MAX_SOURCE_SIDE goes to the crop step untouched.
 const SMALL_ENOUGH_BYTES = 4 * 1024 * 1024;
@@ -126,7 +127,7 @@ export function ProfilePostComposer({
   async function acceptFile(file) {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      onNotify?.("فقط عکس می‌شه.");
+      onNotify?.("فقط عکس می‌تونی بذاری.");
       if (startedFromPicker.current) onClose?.();
       return;
     }
@@ -335,7 +336,7 @@ export function ProfilePostComposer({
                 ))}
               </div>
             ) : (
-              <small className="pcHint">هنوز خدمتی توی منوت نیست؛ بدون دسته می‌ره. بعداً می‌تونی به یه خدمت وصلش کنی.</small>
+              <small className="pcHint">هنوز خدمتی توی منوت نیست؛ فعلاً بدون خدمت می‌ره.</small>
             )}
           </div>
 
@@ -393,7 +394,7 @@ export function ProfilePostComposer({
               <Pin size={16} />
               <span>
                 <b>سنجاقش کن اول ویترین</b>
-                <small>{pinDisabled ? `حداکثر ${pinLimit} تا کار رو می‌تونی سنجاق کنی.` : "کارهای سنجاق‌شده همیشه اول دیده می‌شن."}</small>
+                <small>{pinDisabled ? `بیشتر از ${toPersianDigits(pinLimit)} تا سنجاق نمی‌شه؛ اول یکی رو بردار.` : "کارهای سنجاق‌شده همیشه اول دیده می‌شن."}</small>
               </span>
               <i>{value.featured ? "روشن" : "خاموش"}</i>
             </button>

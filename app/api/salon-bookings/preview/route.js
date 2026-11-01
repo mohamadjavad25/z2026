@@ -43,13 +43,13 @@ async function _GET(request) {
   const salonUserId = Number(searchParams.get("salonUserId"));
   if (!salonUserId) return noStoreJson({ error: "این سالن رو پیدا نکردیم." }, { status: 400 });
   const owner = auth.user.type === "salon" && auth.user.id === salonUserId;
-  if (!owner && auth.user.type !== "client") return noStoreJson({ error: "فقط مشتری یا خود سالن." }, { status: 403 });
+  if (!owner && auth.user.type !== "client") return noStoreJson({ error: "این بخش مال مشتری‌ها و خود سالنه." }, { status: 403 });
   const limited = await checkRateLimit(`visit-preview:${auth.user.id}`, 120, 60_000);
   if (!limited.ok) return noStoreJson({ error: "یه کم زیاد زدی؛ چند لحظه صبر کن." }, { status: 429 });
 
   const day = String(searchParams.get("day") || "").trim();
   const bookingDateKey = strictDayKey(day);
-  if (!day || !bookingDateKey) return noStoreJson({ error: "روز رزرو مشخص نیست." }, { status: 400 });
+  if (!day || !bookingDateKey) return noStoreJson({ error: "یه روز انتخاب کن." }, { status: 400 });
   // Strict on purpose: "HH:MM" (Persian or Latin digits) on a real clock, nothing the lenient
   // booking parser would turn into some other time.
   const time = parseBookingTime(String(searchParams.get("time") || ""));
@@ -59,7 +59,7 @@ async function _GET(request) {
     return noStoreJson({ error: "کارها درست نرسید؛ دوباره انتخاب کن." }, { status: 400 });
   }
   const salon = await salons.getSalon(salonUserId);
-  if (!salon) return noStoreJson({ error: "سالن پیدا نشد." }, { status: 404 });
+  if (!salon) return noStoreJson({ error: "این سالن رو پیدا نکردیم." }, { status: 404 });
   if (!owner) {
     const blocked = await onlineBookingBlock(salonUserId, "salon");
     if (blocked) return noStoreJson({ data: { ok: false, code: blocked.code, message: blocked.error, durationMinutes: 0, end: 0, parts: [] } });
@@ -76,7 +76,7 @@ async function _GET(request) {
   );
   const parts = people > 1 ? expandPartsForPeople(single.map((part) => ({ ...part, staff: "" })), people).map((part, index) => ({ ...single[index % single.length], ...part })) : single;
   const missing = single.find((part, index) => !part.listed && !(minutes[index] > 0));
-  if (missing) return noStoreJson({ error: `«${missing.service}» در خدمات این سالن نیست.` }, { status: 400 });
+  if (missing) return noStoreJson({ error: `«${missing.service}» توی کارهای این سالن نیست.` }, { status: 400 });
 
   const { durationMinutes } = summarizeBookingParts(parts);
   const slotProblem = visitSlotProblem({

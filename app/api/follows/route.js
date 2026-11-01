@@ -24,7 +24,7 @@ async function _POST(request) {
   // Only salons and artists can be followed: a follow puts the follower in their customers list.
   const target = await getUserLiteById(targetUserId);
   if (!target || (target.type !== "salon" && target.type !== "artist")) {
-    return NextResponse.json({ error: "این صفحه پیدا نشد." }, { status: 404 });
+    return NextResponse.json({ error: "این صفحه رو پیدا نکردیم." }, { status: 404 });
   }
   if (targetUserId === auth.user.id) {
     return NextResponse.json({ error: "نمی‌تونی به خودت وصل شی." }, { status: 400 });

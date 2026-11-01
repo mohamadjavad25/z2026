@@ -140,7 +140,7 @@ function notifyClientOfExpiry(booking, moved = null, triedBackup = false) {
   if (moved) {
     void sendPushToUser(clientUserId, {
       title: `درخواستت رفت برای ${moved.salonName}`,
-      body: `${service}: سالن اول یه ساعت جواب نداد، پس همون درخواست رو برای ${moved.salonName} فرستادیم.`
+      body: `${service}: سالن اول تا یه ساعت جواب نداد، پس درخواستت رو برای ${moved.salonName} فرستادیم.`
     });
   } else {
     const push = sendPushToUser(clientUserId, {
@@ -182,7 +182,7 @@ function notifyClientOfArtistBookingExpiry(booking, moved = null, triedBackup = 
   if (moved) {
     void sendPushToUser(clientUserId, {
       title: `درخواستت رفت برای ${moved.name}`,
-      body: `${service}: آرتیست اول یه ساعت جواب نداد، پس همون درخواست رو برای ${moved.name} فرستادیم.`
+      body: `${service}: آرتیست اول تا یه ساعت جواب نداد، پس درخواستت رو برای ${moved.name} فرستادیم.`
     });
   } else {
     const push = sendPushToUser(clientUserId, {
@@ -202,7 +202,7 @@ function notifyClientOfArtistBookingExpiry(booking, moved = null, triedBackup = 
   });
   if (moved?.booking) {
     const push = sendPushToUser(Number(moved.booking.artist_user_id), {
-      title: moved.booking.status === "تایید شده" ? "نوبت تازه (خودکار تأیید شد)" : "درخواست تازه",
+      title: moved.booking.status === "تایید شده" ? "نوبت تازه، خودکار تأیید شد" : "درخواست تازه",
       body: `${moved.booking.client_name || "مشتری"}، ${moved.booking.service || service}، ${bookingWhen(moved.booking.booking_date, moved.booking.time)}`
     }).catch(() => null);
     if (moved.booking.status !== "تایید شده") {

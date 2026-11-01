@@ -12,9 +12,11 @@ import { formatTomanNumber, parseTomanAmount } from "../shared/lib/money";
 export function ServicesOnPage({ services = [], onPick }) {
   if (!services.length) return null;
   const Row = onPick ? "button" : "div";
+  // «نمایش قیمت‌ها» off (the server sends priceHidden): no price, and no «قیمت توافقی» in its place.
+  const pricesHidden = services.every((service) => service.priceHidden);
   return (
     <section className="spvSection sopSection" aria-labelledby="spv-services-title">
-      <h3 className="spvHead" id="spv-services-title">خدمات و قیمت‌ها</h3>
+      <h3 className="spvHead" id="spv-services-title">{pricesHidden ? "خدمات" : "خدمات و قیمت‌ها"}</h3>
       <div className="sopList">
         {services.map((service) => {
           const amount = parseTomanAmount(service.price);
@@ -29,9 +31,11 @@ export function ServicesOnPage({ services = [], onPick }) {
                 <b>{service.name}</b>
                 <small>{service.duration || "مدتش فرق می‌کنه"}</small>
               </span>
-              <span className="sopPrice">
-                {amount ? <>{formatTomanNumber(amount)} <small>تومان</small></> : <small>قیمت توافقی</small>}
-              </span>
+              {service.priceHidden ? null : (
+                <span className="sopPrice">
+                  {amount ? <>{formatTomanNumber(amount)} <small>تومان</small></> : <small>قیمت توافقی</small>}
+                </span>
+              )}
               {onPick ? <ChevronLeft size={18} className="sopGo" aria-hidden="true" /> : null}
             </Row>
           );

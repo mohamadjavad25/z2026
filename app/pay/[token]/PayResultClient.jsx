@@ -95,7 +95,7 @@ export function PayResultClient({ token }) {
           <>
             <span className="payIcon"><CircleX size={34} aria-hidden="true" /></span>
             <h1>این پرداخت رو پیدا نکردیم</h1>
-            <p>لینک کامل نیست یا کهنه شده. اشتراکت رو توی اپ ببین: تنظیمات، اشتراک من.</p>
+            <p>لینک کامل نیست یا کهنه شده. اشتراکت رو توی اپ، بخش «تنظیمات» ببین.</p>
           </>
         ) : null}
 
@@ -103,7 +103,7 @@ export function PayResultClient({ token }) {
           <>
             <span className="payIcon"><CircleX size={34} aria-hidden="true" /></span>
             <h1>جواب بانک نرسید</h1>
-            <p>اینترنتت رو چک کن و صفحه رو دوباره باز کن؛ پرداختت ثبت شده و گم نمی‌شه.</p>
+            <p>اینترنتت رو چک کن و صفحه رو دوباره باز کن؛ نتیجهٔ پرداختت گم نمی‌شه.</p>
           </>
         ) : null}
 
@@ -112,7 +112,7 @@ export function PayResultClient({ token }) {
         {status !== "loading" && status !== "pending" ? (
           <>
             <a className="payAction" href={back}>بازگشت به فرفرو</a>
-            <p className="payHint">اگر از داخل اپ فرفرو پرداخت کردی، به اپ برگرد؛ نتیجه و رسید آنجا هم هست.</p>
+            <p className="payHint">اگه از اپ فرفرو پرداخت کردی، به اپ برگرد؛ رسیدش اونجا هم هست.</p>
           </>
         ) : null}
       </section>

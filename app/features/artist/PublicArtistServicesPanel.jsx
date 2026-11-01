@@ -18,7 +18,7 @@ export function PublicArtistServicesPanel({
         <div className="artistPublicServiceEmpty" role="status">
           <ServiceIconStrip size="md" />
           <b>هنوز خدمتی نذاشته</b>
-          <span>فعلاً خدمتی برای نوبت گرفتن نذاشته؛ بعداً یه سر بزن.</span>
+          <span>بعداً یه سر بزن.</span>
         </div>
       ) : (
         <div className="spvServiceList">
@@ -36,8 +36,9 @@ export function PublicArtistServicesPanel({
                   <b>{service.name}</b>
                   <small>{service.duration || "مدتش فرق می‌کنه"}</small>
                 </span>
+                {/* «نمایش قیمت‌ها» off (priceHidden from the server): the spot stays empty, the grid keeps its columns. */}
                 <span className="spvServicePrice">
-                  {amount ? <><b>{formatTomanNumber(amount)}</b><em>تومان</em></> : <em>قیمت توافقی</em>}
+                  {service.priceHidden ? null : amount ? <><b>{formatTomanNumber(amount)}</b><em>تومان</em></> : <em>قیمت توافقی</em>}
                 </span>
                 <span className="spvServiceGo">رزرو</span>
               </button>

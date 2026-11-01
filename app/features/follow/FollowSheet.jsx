@@ -84,7 +84,7 @@ function AccountForm({ gate }) {
   return (
     <div className="fsBody">
       <p className="fsLead">
-        وصل که بشی، «{gate.targetName}» میاد توی سالن و آرتیست‌هات و از همون‌جا با چند ضربه نوبت می‌گیری. فقط یه حساب می‌خواد؛ چند ثانیه.
+        وصل که بشی، «{gate.targetName}» میاد توی سالن و آرتیست‌هات و از همون‌جا با چند ضربه نوبت می‌گیری. فقط یه حساب می‌خواد.
       </p>
       <div className="fsModes" role="tablist" aria-label="حساب">
         <button type="button" role="tab" aria-selected={isSignup} className={isSignup ? "is-on" : ""} onClick={() => switchMode("signup")}>حساب تازه</button>
@@ -114,7 +114,7 @@ function AccountForm({ gate }) {
           }}
           footer={(
             <p className="fsConsent">
-              وصل که بشی، «{gate.targetName}» اسم و شماره‌ت رو می‌بینه تا بتونه باهات در تماس باشه. رمزت فقط پیش خودت می‌مونه.
+              وصل که بشی، «{gate.targetName}» اسم و شماره‌ت رو می‌بینه؛ رمزت فقط پیش خودته.
             </p>
           )}
         />

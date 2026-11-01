@@ -265,7 +265,7 @@ export function QrScanner({ title = "اسکن کن", hint = "QR رو بگیر ت
   if (typeof document === "undefined") return null;
 
   const cameraMessage = {
-    blocked: "به دوربین دسترسی نداریم. از تنظیمات مرورگر اجازهٔ دوربین بده و «دوباره» رو بزن، یا عکس کد رو انتخاب کن.",
+    blocked: "از تنظیمات مرورگر اجازهٔ دوربین رو بده و «دوباره» رو بزن، یا عکس کد رو انتخاب کن.",
     missing: "دوربین پیدا نشد؛ عکس کد رو انتخاب کن.",
     unsupported: "این مرورگر دوربین نداره؛ عکس کد رو انتخاب کن."
   }[cameraState] || "";

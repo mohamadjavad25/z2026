@@ -32,7 +32,8 @@
 /* It takes the look of the bell beside it (.profileHeroActions button, .cphBell); only the unread badge is its own. */
 .profileHeroActionsPair { display: flex; align-items: center; gap: 7px; pointer-events: auto; }
 .supportTopBtn { position: relative; cursor: pointer; }
-.profileHero.cphHero .cphBell.cphSupport { left: 62px; }
+/* Client home: the bell stays on the left, support goes to the right corner, so their dots never touch (owner, 2026-11-01). */
+.profileHero.cphHero .cphBell.cphSupport { left: auto; right: 12px; }
 .supportTopBadge { position: absolute; top: -5px; inset-inline-end: -5px; display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--fill-hot); color: var(--n-0); font-style: normal; font-size: 0.68rem; font-weight: 900; box-shadow: 0 0 0 2px var(--n-0); }
 
 /* ---------- Support center (list, conversation, new message) ---------- */

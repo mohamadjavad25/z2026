@@ -276,7 +276,7 @@ export function SalonNearbyInviteSheet({
                     <img src={artist.avatar || "/profile-icon.svg"} alt="" />
                   </span>
                   <div className="ivtCopy">
-                    <b>{artist.name || "آرتیست frfro"}</b>
+                    <b>{artist.name || "آرتیست فرفرو"}</b>
                     <span className="ivtRole">
                       <ServiceIcon name={artist.service} size="xs" />
                       {artist.service || "آرتیست"}

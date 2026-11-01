@@ -86,7 +86,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
             <div className="sduEmpty" role="status">
               <ServiceIconStrip size="md" />
               <b>هنوز خدمتی نذاشته</b>
-              <span>فعلاً خدمتی برای نوبت گرفتن نذاشته؛ بعداً یه سر بزن.</span>
+              <span>بعداً یه سر بزن.</span>
             </div>
           ) : (
             <>
@@ -133,9 +133,11 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                             <b>{service.name}</b>
                             <small>{service.duration || "مدتش فرق می‌کنه"}</small>
                           </span>
-                          <span className="sduItemPrice">
-                            {amount ? <>{formatTomanNumber(amount)} <small>تومان</small></> : <small>قیمت توافقی</small>}
-                          </span>
+                          {service.priceHidden ? null : (
+                            <span className="sduItemPrice">
+                              {amount ? <>{formatTomanNumber(amount)} <small>تومان</small></> : <small>قیمت توافقی</small>}
+                            </span>
+                          )}
                           {browseOnly ? null : <span className="sduCheck" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
                         </Item>
                       );

@@ -1,9 +1,10 @@
 "use client";
 
-import { Bell, BellRing, CalendarCheck, ChevronLeft, Globe, Link2 } from "lucide-react";
+import { Bell, BellRing, CalendarCheck, ChevronLeft, Globe, Link2, QrCode } from "lucide-react";
 import { useState } from "react";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { ProfileQrCodeSheet } from "../../components/ProfileQrCodeSheet";
+import { MyCodeSheet } from "../connect/MyCodeSheet";
 import { usePhonePush } from "./usePhonePush";
 import {
   AppearanceSettings,
@@ -144,6 +145,29 @@ export function PageLinkTile({ profile }) {
         <ChevronLeft size={16} className="profileLocationRowChevron" aria-hidden="true" />
       </button>
       <ProfileQrCodeSheet open={open} url={url} name={profile.data?.name || "صفحه‌م"} onOpenChange={setOpen} />
+    </>
+  );
+}
+
+/**
+ * Client only: «کد من», the same QR as on the bookings tab, so the client's tiles come out even and the
+ * notifications tile keeps the size of the others (owner, 2026-11-01).
+ */
+export function MyCodeTile({ name = "", avatar = "" }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button type="button" className="profileLocationRow" onClick={() => setOpen(true)} aria-haspopup="dialog">
+        <span className="profileLocationRowIcon" aria-hidden="true">
+          <QrCode size={17} />
+        </span>
+        <span className="profileLocationRowInfo">
+          <strong>کد من</strong>
+          <span>برای وصل شدن</span>
+        </span>
+        <ChevronLeft size={16} className="profileLocationRowChevron" aria-hidden="true" />
+      </button>
+      {open ? <MyCodeSheet name={name} avatar={avatar} onClose={() => setOpen(false)} /> : null}
     </>
   );
 }

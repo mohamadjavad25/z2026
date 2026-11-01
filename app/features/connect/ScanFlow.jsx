@@ -5,6 +5,9 @@ import { QrScanner } from "../../components/QrScanner";
 import { connectScannedClient, connectTo, lookupScannedCode } from "../../shared/api/connections";
 import { SalonRulesNote } from "../salons/SalonRulesNote";
 import { createSalonInvite } from "../../shared/api/salons";
+import { getSalonJoinTerms } from "../../shared/api/joinTerms";
+import { TermsProposalSheet } from "../team/TermsProposalSheet";
+import { DEFAULT_JOIN_TERMS } from "../salons/joinTermsFormat";
 import { readScannedCode } from "../../shared/lib/connectCodes";
 import { ConnectionCard } from "./ConnectionCard";
 
@@ -32,17 +35,17 @@ function profileAction(viewerType, profile, relation, joinCode) {
   if (viewerType === "salon") {
     if (relation === "member") return { note: "توی تیمته." };
     if (relation === "invited") return { note: "دعوتش کردی؛ منتظر جواب آرتیسته." };
-    return { note: "آرتیست دعوت رو که ببینه، تأیید می‌کنه.", label: "دعوتش کن به تیم", kind: "invite" };
+    return { note: "اگه دعوتت رو قبول کنه، میاد توی تیمت.", label: "دعوتش کن به تیم", kind: "invite" };
   }
   if (relation === "member") return { note: "توی تیم همین سالنی." };
   // A plain salon profile code proves nothing about who showed it -- only the
   // salon's own dedicated QR/link (with a secret) can join the team instantly.
   // Without it, the artist can send a collaboration proposal from the salon's page (owner's decision 2026-10-25).
   if (!joinCode) {
-    return { note: "این کد صفحهٔ سالنه؛ برای اومدن به تیم، پیشنهاد همکاری بفرست تا سالن جواب بده.", label: "پیشنهاد همکاری", kind: "propose" };
+    return { note: "این کد صفحهٔ سالنه؛ برای اومدن به تیمش، پیشنهاد همکاری بفرست.", label: "پیشنهاد همکاری", kind: "propose" };
   }
   return {
-    note: profile.rules ? "با رفتن به تیم، قوانین سالن رو قبول داری." : "می‌ری توی پرسنل این سالن.",
+    note: profile.rules ? "با رفتن به تیم، قوانین سالن رو قبول داری." : "می‌ری توی تیم این سالن.",
     label: profile.rules ? "قبول دارم، برم توی تیم" : "برم توی تیم",
     kind: "join"
   };
@@ -68,6 +71,8 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
   // { state: "scanning" } | { state: "busy", text } | { state: "profile", profile, relation } | { state: "message", text }
   const [step, setStep] = useState({ state: "scanning" });
   const [acting, setActing] = useState(false);
+  // A salon inviting a scanned artist: the sheet with the salon's standing terms, changeable for this one person.
+  const [invite, setInvite] = useState(null); // { profile, initial, busy, error }
 
   async function handleDetected(text) {
     const code = readScannedCode(text);
@@ -134,17 +139,35 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
         window.location.assign(`/join-salon/${profile.id}?k=${encodeURIComponent(joinCode)}`);
         return;
       }
-      const { ok, payload } = await createSalonInvite({ artistUserId: profile.id });
-      if (!ok) {
-        setStep({ state: "message", text: payload?.error || "نشد؛ دوباره بزن." });
-        return;
-      }
-      setStep({ state: "profile", profile, relation: kind === "invite" ? "invited" : "member" });
-      onChanged?.(kind);
+      const standing = await getSalonJoinTerms().then((result) => (result.ok ? result.data?.terms : null)).catch(() => null);
+      setInvite({ profile, initial: standing || DEFAULT_JOIN_TERMS, busy: false, error: "" });
     } catch {
       setStep({ state: "message", text: "وصل نشد؛ دوباره بزن." });
     } finally {
       setActing(false);
+    }
+  }
+
+  async function sendInvite(terms) {
+    const { profile } = invite;
+    setInvite((current) => ({ ...current, busy: true, error: "" }));
+    try {
+      const { ok, payload } = await createSalonInvite({
+        artistUserId: profile.id,
+        days: terms.days,
+        from: terms.from,
+        to: terms.to,
+        share: terms.share
+      });
+      if (!ok) {
+        setInvite((current) => ({ ...current, busy: false, error: payload?.error || "دعوت نرفت؛ دوباره بزن." }));
+        return;
+      }
+      setInvite(null);
+      setStep({ state: "profile", profile, relation: "invited" });
+      onChanged?.("invite");
+    } catch {
+      setInvite((current) => ({ ...current, busy: false, error: "دعوت نرفت؛ اینترنتت رو یه نگاه بنداز و دوباره بزن." }));
     }
   }
 
@@ -179,13 +202,27 @@ export function ScanFlow({ viewerType, connect, onOpenProfile, onChanged, onClos
   }
 
   return (
-    <QrScanner
-      title="اسکن کن"
-      hint={HINTS[viewerType] || HINTS.client}
-      paused={step.state !== "scanning"}
-      onDetected={handleDetected}
-      footer={footer}
-      onClose={onClose}
-    />
+    <>
+      <QrScanner
+        title="اسکن کن"
+        hint={HINTS[viewerType] || HINTS.client}
+        paused={step.state !== "scanning"}
+        onDetected={handleDetected}
+        footer={footer}
+        onClose={onClose}
+      />
+      {invite ? (
+        <TermsProposalSheet
+          mode="invite"
+          open
+          otherName={invite.profile.name || "آرتیست"}
+          initial={invite.initial}
+          busy={invite.busy}
+          error={invite.error}
+          onSend={sendInvite}
+          onClose={() => setInvite(null)}
+        />
+      ) : null}
+    </>
   );
 }

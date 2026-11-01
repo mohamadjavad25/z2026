@@ -183,7 +183,7 @@ describe("«پیشنهاد ساعت دیگر» on a confirmed booking", () => {
     expect((await salon.api.patch("/api/salon-bookings", { id, time: "13:00" })).ok).toBe(true);
     const texts = await smsEventually(client.phone, "booking_time_proposal", 1);
     expect(texts.length).toBe(1);
-    expect(texts[0].body).toContain("قبول می‌کنی؟");
+    expect(texts[0].body).toContain("توی فرفرو جواب بده");
   });
 
   it("an independent artist's direct booking: the same proposal and the same answer", async () => {

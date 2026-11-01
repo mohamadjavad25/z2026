@@ -57,7 +57,7 @@ export default function GlobalError({ error, reset }) {
               cursor: "pointer"
             }}
           >
-            تلاش دوباره
+            دوباره امتحان کن
           </button>
         </div>
       </body>

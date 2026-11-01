@@ -4,6 +4,7 @@ import { toLatinDigits } from "../../../shared/lib/digits.js";
 import { parseProfileLink } from "../../../shared/lib/connectCodes.js";
 import { serviceInCategory } from "../../../shared/constants/clientCategories.js";
 import { withoutHiddenProviders, withoutTestAccounts } from "../../billing/access.js";
+import { idsHidingPrices } from "./userSettings.js";
 
 /**
  * A client's "salons and artists" — the people they book with.
@@ -112,14 +113,23 @@ async function attachServices(db, cards) {
   if (!cards.length) return cards;
   const salonIds = cards.filter((card) => card.type === "salon").map((card) => card.id);
   const artistIds = cards.filter((card) => card.type === "artist").map((card) => card.id);
-  const [salonRows, artistRows] = await Promise.all([
+  const [salonRows, artistRows, hiding] = await Promise.all([
     salonIds.length ? all(db, "SELECT salon_user_id AS owner_id, name, price, duration, emoji FROM salon_services WHERE salon_user_id = ANY($1) ORDER BY id", [salonIds]) : [],
-    artistIds.length ? all(db, "SELECT user_id AS owner_id, name, price, duration, emoji FROM artist_services WHERE user_id = ANY($1) ORDER BY id", [artistIds]) : []
+    artistIds.length ? all(db, "SELECT user_id AS owner_id, name, price, duration, emoji FROM artist_services WHERE user_id = ANY($1) ORDER BY id", [artistIds]) : [],
+    // «نمایش قیمت‌ها» off: that salon's or artist's cards carry no price (userSettings.js hidesPrices).
+    idsHidingPrices([...salonIds, ...artistIds], db)
   ]);
   const byOwner = new Map();
   for (const row of [...salonRows, ...artistRows]) {
     const list = byOwner.get(row.owner_id) || [];
-    list.push({ name: row.name || "", price: row.price || "", duration: row.duration || "", emoji: row.emoji || "" });
+    const hidden = hiding.has(Number(row.owner_id));
+    list.push({
+      name: row.name || "",
+      price: hidden ? "" : row.price || "",
+      duration: row.duration || "",
+      emoji: row.emoji || "",
+      ...(hidden ? { priceHidden: true } : {})
+    });
     byOwner.set(row.owner_id, list);
   }
   return cards.map((card) => {

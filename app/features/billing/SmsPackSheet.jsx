@@ -70,7 +70,7 @@ export function SmsPackSheet({ open, overview, onClose }) {
       onClose={busy ? () => {} : onClose}
     >
       <p className="billSheetLead">
-        هر پیامکی که برای مشتری‌هات می‌ره، یکی از این پیامک‌ها کم می‌کنه. اول ۲۰۰ تای ماهانه‌ت مصرف می‌شه، بعد بسته‌ها. بسته تموم نشده می‌مونه.
+        اول ۲۰۰ پیامک ماهانه‌ت مصرف می‌شه، بعد بسته؛ پیامک بسته تا مصرف نکنی می‌مونه.
       </p>
 
       <fieldset className="billPlans" disabled={busy}>

@@ -512,7 +512,7 @@ export function ScheduleBookingMenuModal({
                   {proposal.time
                     ? `ساعت ${shortClock(proposal.time)} رو به مشتری پیشنهاد دادی.`
                     : `آرتیست «${proposal.staff}» رو به مشتری پیشنهاد دادی.`}
-                  {" "}هنوز جواب نداده؛ تا قبول نکنه، نوبت همون‌طور که بود می‌مونه.
+                  {" "}تا قبول نکنه، نوبت همون‌طور که بود می‌مونه.
                 </p>
                 {onWithdrawProposal ? (
                   <button type="button" className="pxBtn" disabled={actionDisabled} onClick={onWithdrawProposal}>پیشنهاد رو پس بگیر</button>
@@ -536,7 +536,7 @@ export function ScheduleBookingMenuModal({
                 </div>
               ) : (
                 <div className="pxNote is-started" role="group" aria-label="بعد از ساعت نوبت">
-                  <p>ساعت نوبت رسیده و دیگه لغو نمی‌شه. اگه مشتری نیومد، تا {toPersianDigits(NO_SHOW_HOURS)} ساعت بعد از ساعت نوبت می‌تونی «نیومد» رو بزنی.</p>
+                  <p>ساعت نوبت رسیده و دیگه لغو نمی‌شه. اگه مشتری نیومد، تا {toPersianDigits(NO_SHOW_HOURS)} ساعت بعدش می‌تونی «نیومد» رو بزنی.</p>
                   <button type="button" className="pxBtn is-dangerSoft" disabled={actionDisabled} onClick={() => setNoShowAsk(true)}><UserX size={15} aria-hidden="true" />{NO_SHOW_LABEL}</button>
                 </div>
               )

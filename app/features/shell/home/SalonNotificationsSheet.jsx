@@ -148,7 +148,7 @@ export function SalonNotificationsSheet() {
                 <div className="boardHead">
                   <div>
                     <span>بی‌جواب موندن</span>
-                    <strong>تا وقتی مشتری صبر کرد جواب نگرفتن</strong>
+                    <strong>وقتش گذشت و جواب نگرفتن</strong>
                   </div>
                   <b>{toPersianDigits(recentlyExpiredSalonBookings.length)} تا</b>
                 </div>

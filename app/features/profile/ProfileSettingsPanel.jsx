@@ -209,7 +209,7 @@ export function NotificationSettings({ profileType, profileSettings, onToggle, b
         icon={profileSettings.reservationAlerts ? Bell : BellOff}
         label="خبرهای داخل اپ"
         description={profileType === "client"
-          ? "وقتی برنامه بازه، بالای صفحه خبر می‌ده و نیم ساعت قبل نوبت زنگ می‌زنه."
+          ? "وقتی برنامه بازه، بالای صفحه خبر می‌ده و نیم ساعت قبل نوبت صدای یادآوری پخش می‌کنه."
           : "وقتی برنامه بازه، بالای صفحه خبر می‌ده."}
         checked={profileSettings.reservationAlerts}
         onChange={() => onToggle("reservationAlerts")}
@@ -226,8 +226,8 @@ export function NotificationSettings({ profileType, profileSettings, onToggle, b
       {profileType === "client" && (
         <SettingsToggle
           icon={profileSettings.dueReminders !== false ? CalendarClock : BellOff}
-          label="یادآوری وقتش شده"
-          description="چند هفته بعد از هر کار، یادت میندازه وقتشه"
+          label="یادآوری نوبت بعدی"
+          description="چند هفته بعد از هر کار، یادت میندازه وقت نوبت بعدیه"
           checked={profileSettings.dueReminders !== false}
           onChange={() => onToggle("dueReminders")}
         />
@@ -265,17 +265,16 @@ export function ProfileVisibilitySettings({ profileType, profileSettings, onTogg
         onLabel="عمومی"
         offLabel="خصوصی"
       />
-      {profileType === "artist" ? (
-        <SettingsToggle
-          icon={Tag}
-          label="نمایش قیمت‌ها"
-          description="قیمت‌ها توی صفحه‌ت دیده بشه؛ وگرنه «زنگ بزن»"
-          checked={Boolean(profileSettings.showPrices)}
-          onChange={() => onToggle("showPrices")}
-          onLabel="نمایش"
-          offLabel="مخفی"
-        />
-      ) : null}
+      {/* Artists and salons alike (owner's decision 2026-11-01); off = clients see no price (userSettings.js hidesPrices). */}
+      <SettingsToggle
+        icon={Tag}
+        label="نمایش قیمت‌ها"
+        description="قیمت‌ها توی صفحه‌ت دیده بشن"
+        checked={profileSettings.showPrices !== false}
+        onChange={() => onToggle("showPrices")}
+        onLabel="نمایش"
+        offLabel="مخفی"
+      />
     </SettingsGroup>
   );
 }

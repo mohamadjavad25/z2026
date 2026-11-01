@@ -118,7 +118,9 @@ export function PublicArtistBookingPanel({
             <Timer size={12} /> {activeService?.duration || `${toPersianDigits(durationMinutes)} دقیقه`}
           </small>
         </div>
-        <b>{activeService?.price ? `${formatTomanNumber(parseTomanAmount(activeService.price))} تومان` : "—"}</b>
+        {activeService?.priceHidden ? null : (
+          <b>{parseTomanAmount(activeService?.price) ? `${formatTomanNumber(parseTomanAmount(activeService.price))} تومان` : "—"}</b>
+        )}
       </div>
 
       <PlaceLine artist={artist} day={bookingDay} />
@@ -135,7 +137,7 @@ export function PublicArtistBookingPanel({
         timeOptions={freeSlots}
         timeValue={bookingSlot}
         onTimeChange={onSlotChange}
-        emptyTimeMessage="این روز ساعت خالی‌ای به این اندازه نیست."
+        emptyTimeMessage="این روز برای این کار جای خالی نداره."
       />
 
       <p className="artistPublicBookingNote">

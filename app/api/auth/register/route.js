@@ -49,7 +49,7 @@ async function _POST(request) {
       return NextResponse.json({ error: "شماره و رمزت رو بزن." }, { status: 400 });
     }
     if (!isValidIranMobile(phone)) {
-      return NextResponse.json({ error: "شماره تماس باید یک شماره موبایل معتبر ایران باشد (مثلا 09123456789)." }, { status: 400 });
+      return NextResponse.json({ error: "شماره موبایلت رو این‌جوری بزن: ۰۹۱۲۳۴۵۶۷۸۹" }, { status: 400 });
     }
 
     // Phone verification: required whenever SMS is on (otpConfig); a proof that is sent must always be valid.
@@ -64,7 +64,7 @@ async function _POST(request) {
       return NextResponse.json({ error: "رمزت خیلی بلنده؛ کوتاه‌ترش کن." }, { status: 400 });
     }
     if (password.trim().length < MIN_PASSWORD_LENGTH) {
-      return NextResponse.json({ error: `رمز عبور باید حداقل ${toPersianDigits(MIN_PASSWORD_LENGTH)} کاراکتر باشد.` }, { status: 400 });
+      return NextResponse.json({ error: `رمزت دست‌کم ${toPersianDigits(MIN_PASSWORD_LENGTH)} حرف باشه.` }, { status: 400 });
     }
 
     const limited = await checkRateLimit(`register:${phone}`, REGISTER_ATTEMPT_LIMIT, REGISTER_WINDOW_MS);
@@ -145,7 +145,7 @@ async function _POST(request) {
     const badInput = clientErrorResponse(error);
     if (badInput) return badInput;
     console.error(error);
-    return NextResponse.json({ error: "ثبت‌نام انجام نشد." }, { status: 500 });
+    return NextResponse.json({ error: "ثبت‌نام نشد؛ چند لحظه دیگه دوباره بزن." }, { status: 500 });
   }
 }
 

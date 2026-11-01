@@ -360,7 +360,7 @@ export const LEARN_ROLES = [
           { screen: "qr", els: [{ t: "bar", text: "کد من", back: true }, { t: "qr", name: SALON, text: "این کد را به مشتری‌هایت نشان بده یا چاپش کن و روی میز بگذار." }], say: "این کد را چاپ کن یا روی پیشخوان بگذار.", ms: 3400 },
           {
             screen: "customers",
-            els: [{ t: "bar", text: "مشتریان" }, { t: "rows", id: "people", items: [{ a: "مریم", b: "همین الان وصل شد", badge: "تازه" }, { a: CLIENT, b: "۴ نوبت" }, { a: "الهام", b: "۲ نوبت" }] }, navBiz(2)],
+            els: [{ t: "bar", text: "مشتری‌هام" }, { t: "rows", id: "people", items: [{ a: "مریم", b: "همین الان وصل شد", badge: "تازه" }, { a: CLIENT, b: "۴ نوبت" }, { a: "الهام", b: "۲ نوبت" }] }, navBiz(2)],
             toast: "مریم وصل شد",
             say: "مشتری کد را اسکن می‌کند و به «مشتریان» تو اضافه می‌شود؛ از آن به بعد مستقیم از تو وقت می‌گیرد.",
             ms: 4200

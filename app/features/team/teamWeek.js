@@ -96,7 +96,7 @@ export function memberToday(person, week, from = new Date()) {
   if (!week.some((item) => item.on)) return { tone: "ok", text: "سرکاره" };
   if (today?.on && own?.start) return { tone: "ok", text: `امروز از ${toPersianDigits(hourOnly(own.start))} تا ${toPersianDigits(hourOnly(own.end))} نیست` };
   if (today?.on) return { tone: "ok", text: `امروز تا ${toPersianDigits(hourOnly(today.close))} سرکاره` };
-  return { tone: "idle", text: "امروز نمی‌آد" };
+  return { tone: "idle", text: "امروز نمیاد" };
 }
 
 /**

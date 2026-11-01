@@ -35,6 +35,7 @@ export function ProfileEditModal({
   if (!open || !profile) return null;
 
   const isSalon = profile.type === "salon";
+  const isClient = profile.type !== "salon" && profile.type !== "artist";
   // Field of activity exists for artists and salons only; clients have none.
   const hasActivityField = profile.type === "artist" || isSalon;
   const avatarSrc = avatarDraft || profile.data?.avatar || defaultAvatarFor(profile.type);
@@ -109,17 +110,20 @@ export function ProfileEditModal({
           <section className="peGroup" aria-labelledby="pe-contact">
             <h4 id="pe-contact">تماس</h4>
             <PhoneChangeBox phone={profile.data?.phone || ""} onChanged={onPhoneChanged} />
-            <label className="peField">
-              <span>ایمیل <em>اگه بخوای؛ برای خبرها و وقتی رمزت یادت رفت</em></span>
-              <input
-                name="email"
-                defaultValue={profile.data?.email || ""}
-                type="email"
-                autoComplete="email"
-                dir="ltr"
-                placeholder="name@example.com"
-              />
-            </label>
+            {/* Clients are never asked for an email (owner, 2026-11-01). */}
+            {isClient ? null : (
+              <label className="peField">
+                <span>ایمیل <em>اگه بخوای</em></span>
+                <input
+                  name="email"
+                  defaultValue={profile.data?.email || ""}
+                  type="email"
+                  autoComplete="email"
+                  dir="ltr"
+                  placeholder="name@example.com"
+                />
+              </label>
+            )}
           </section>
 
           <section className="peGroup" aria-labelledby="pe-security">

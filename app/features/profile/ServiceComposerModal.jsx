@@ -155,7 +155,7 @@ export function ServiceComposerModal({
       className="svcPage"
       role="dialog"
       aria-modal="true"
-      aria-label={editing ? "ویرایش خدمت" : "افزودن خدمت"}
+      aria-label={editing ? "ویرایش خدمت" : "خدمت تازه"}
     >
       <article className={`svcSheet${mode === "preset" ? " is-catalog" : ""}`}>
         <header className="svcSheetHead">
@@ -172,7 +172,7 @@ export function ServiceComposerModal({
           </div>
         </header>
 
-        <div className="svcModeSwitch" role="tablist" aria-label="روش افزودن خدمت">
+        <div className="svcModeSwitch" role="tablist" aria-label="راه ساختن خدمت">
           <button
             type="button"
             role="tab"
@@ -248,7 +248,7 @@ export function ServiceComposerModal({
               </div>
 
               <p className="svcCatalogHint">
-                روی خدمت بزن تا اسم و قیمتش رو عوض کنی، یا با + یه‌راست اضافه‌ش کن. چندتا پشت‌سرهم هم می‌شه.
+                روی خدمت بزن تا اسم و قیمتش رو عوض کنی، یا با + یه‌راست بذارش توی منو.
               </p>
 
               <div className="svcPresetGrid" role="list">
@@ -288,8 +288,8 @@ export function ServiceComposerModal({
                         <button
                           type="button"
                           className="svcPresetQuick"
-                          aria-label={`افزودن سریع ${service.name}`}
-                          title="افزودن سریع"
+                          aria-label={`${service.name} رو بذار توی منو`}
+                          title="بذار توی منو"
                           onClick={() => onPickPreset?.(service)}
                         >
                           <Plus size={16} />
@@ -413,7 +413,7 @@ export function ServiceComposerModal({
               <textarea
                 value={draft.hint}
                 onChange={(event) => onDraftChange?.({ hint: event.target.value })}
-                placeholder="مثلاً مناسب مراسم و مهمانی"
+                placeholder="مثلاً مناسب مراسم و مهمونی"
                 rows={2}
               />
             </label>

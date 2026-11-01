@@ -117,7 +117,7 @@ export function useSalonPortfolioActions({
         // refreshes (workspace, public directory) run in the background.
         const createdItem = payload.data?.item;
         if (createdItem) setSalonPortfolioList((items) => [createdItem, ...items]);
-        shellNotify(isPublic ? "نمونه‌کارت رفت توی ویترین!" : "ذخیره شد؛ فقط خودت می‌بینیش.");
+        shellNotify(isPublic ? "نمونه‌کارت رفت توی صفحه‌ت!" : "ذخیره شد؛ فقط خودت می‌بینیش.");
         void Promise.all([
           refreshSalonSystemData(),
           typeof onPostsChanged === "function" ? onPostsChanged() : null

@@ -87,7 +87,7 @@ export function ArtistNotificationsSheet() {
                 <div className="boardHead">
                   <div>
                     <span>بی‌جواب موندن</span>
-                    <strong>تا وقتی مشتری صبر کرد جواب نگرفتن</strong>
+                    <strong>وقتش گذشت و جواب نگرفتن</strong>
                   </div>
                   <b>{toPersianDigits(recentlyExpiredArtistBookings.length)} تا</b>
                 </div>

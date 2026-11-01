@@ -48,7 +48,7 @@ export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBo
           type="button"
           onClick={() => onTabChange("customers")}
           className={activeTab === "customers" ? "active" : ""}
-          aria-label={customersBadge > 0 ? `مشتریان؛ ${toPersianDigits(customersBadge)} مشتری تازه` : undefined}
+          aria-label={customersBadge > 0 ? `مشتری‌هام؛ ${toPersianDigits(customersBadge)} مشتری تازه` : undefined}
         >
           <span className="bottomNavIcon">
             <PageIcon name="customers" size={24} />
@@ -56,7 +56,7 @@ export function BottomNav({ activeTab, createdProfile, onTabChange, showCreateBo
               <i className="bottomNavBadge" aria-hidden="true">{customersBadge > 9 ? "۹+" : toPersianDigits(customersBadge)}</i>
             ) : null}
           </span>
-          <span>مشتریان</span>
+          <span>مشتری‌هام</span>
         </button>
       ) : (
         <button type="button" onClick={() => onTabChange("salons")} className={activeTab === "salons" ? "active" : ""}>

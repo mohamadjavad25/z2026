@@ -166,7 +166,7 @@ describe("no time on the wanted day (browser)", () => {
     await openForm(page);
     const none = page.locator(".vbAhead", { hasText: "تا دو هفتهٔ دیگه جا نیست" });
     await none.waitFor();
-    expect(await none.innerText()).toContain("تا دو هفتهٔ دیگه جا نیست؛ به سالن پیام بده");
+    expect(await none.innerText()).toContain("تا دو هفتهٔ دیگه جا نیست؛ به سالن زنگ بزن");
     const call = none.getByRole("link", { name: "تماس" });
     expect(await call.getAttribute("href")).toMatch(/^tel:09\d{9}$/);
     expect(problems).toEqual([]);
@@ -294,7 +294,7 @@ describe("the salon did not answer (browser)", () => {
     const note = page.locator(".cvNotes li", { hasText: "جواب نداد" });
     await note.waitFor();
     await note.getByRole("button", { name: "همین نوبت رو جای دیگه بگیر" }).click();
-    await page.locator(".erEmpty", { hasText: "هنوز جای دیگه‌ای وصل نکردی. شمارهٔ یه سالن یا آرتیست دیگه رو بزن." }).waitFor();
+    await page.locator(".erEmpty", { hasText: "هنوز به جای دیگه‌ای وصل نشدی؛ از همین‌جا یکی رو اضافه کن." }).waitFor();
     expect(problems).toEqual([]);
     await context.close();
   });

@@ -1,12 +1,12 @@
 "use client";
 
 import { CalendarCheck, Plus, Timer } from "lucide-react";
-import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceGroups } from "../../components/ServiceGroups";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
+import { DueRemindersButton, DueServiceChip } from "../dueReminders/DueReminders";
 
 /**
  * Artist owner — services list tab.
@@ -21,10 +21,7 @@ export function ArtistServicesPanel({
   return (
     <section className="artistServiceBoard" aria-label="مدیریت خدمات آرتیست">
       <div className="svcToolbar">
-        <div>
-          <span>خدمات من</span>
-          <b>{toPersianDigits(services.length)} خدمت</b>
-        </div>
+        <DueRemindersButton />
         <button type="button" className="svcAddBtn" onClick={onCreate}>
           <Plus size={16} />
           خدمت تازه
@@ -65,6 +62,7 @@ export function ArtistServicesPanel({
                   <span className="svcChip is-price">{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "توافقی"}</span>
                   <span className="svcChip"><Timer size={12} /> {service.duration}</span>
                   <span className="svcChip"><CalendarCheck size={12} /> نوبت می‌گیره</span>
+                  <DueServiceChip name={service.name} />
                 </div>
               </div>
             </article>

@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 async function _GET(request, { params }) {
   await ensureDb();
   const limited = await checkRateLimit(`billing-return:${clientIp(request)}`, 120, 60_000);
-  if (!limited.ok) return json({ error: "درخواست‌های زیاد. چند لحظه صبر کن." }, { status: 429 });
+  if (!limited.ok) return json({ error: "یه کم زیاد زدی؛ چند لحظه صبر کن." }, { status: 429 });
   const payment = await getPaymentByToken((await params).token);
   if (!payment) return notFound("این پرداخت رو پیدا نکردیم.");
   const current = presentPayment(await refreshIfPending(payment));

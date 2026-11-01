@@ -90,7 +90,7 @@ describe("the bubbles card", () => {
     const view = smsView(overview(sms({ includedLeft: 120, packCredits: 100, left: 220 })));
     expect(view.sub).toContain("۱۲۰");
     expect(view.sub).toContain("۱۰۰");
-    expect(view.sub).toContain("تموم نمی‌شن");
+    expect(view.sub).toContain("تاریخ انقضا ندارن");
   });
 
   it("closes the buy button until paying is open", () => {

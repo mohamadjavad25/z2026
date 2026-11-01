@@ -14,7 +14,7 @@ export default function NotFound() {
         <p className="errorPage__code">۴۰۴</p>
         <h1 className="errorPage__title">این صفحه پیدا نشد</h1>
         <p className="errorPage__desc">لینکی که دنبالش اومدی یا اشتباهه یا دیگه وجود نداره.</p>
-        <Link href="/" className="errorPage__back">بازگشت به frfro</Link>
+        <Link href="/" className="errorPage__back">برگرد به فرفرو</Link>
       </div>
     </main>
   );

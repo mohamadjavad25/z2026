@@ -44,7 +44,7 @@ export function useSalonCatalogActions({
   // The manager joins their own team (or edits their card there), so they can be assigned to services and
   // booked like anyone else. An empty body rejoins with what they entered before. Resolves to the saved
   // profile, or null when it failed.
-  const joinSalonTeamAsOwner = useCallback(async (body = {}, notice = "حالا خودت هم توی تیمی؛ می‌تونی کارها رو به خودت بدی و برای خودت نوبت ثبت کنی.") => {
+  const joinSalonTeamAsOwner = useCallback(async (body = {}, notice = "حالا خودت هم توی تیمی؛ می‌تونی خدمت و نوبت به خودت بدی.") => {
     try {
       const result = await joinSalonTeamAsOwnerApi(body);
       if (!notifyFromResponse(shellNotify, result, { failure: "نشد بری توی تیم؛ دوباره بزن." })) {
@@ -67,7 +67,7 @@ export function useSalonCatalogActions({
     const person = safeSalonStaffList.find((item) => item.name === name);
     if (!person?.id) return;
     const question = person.is_owner
-      ? "خودت از تیم بری بیرون؟ کارتت می‌مونه و روشنش کنی برمی‌گردی. کارهایی که دستی به خودت داده بودی بدون آرتیست می‌مونن؛ نوبت‌های قبلی سر جاشون می‌مونن."
+      ? "خودت از تیم بری بیرون؟ خدمت‌هایی که به خودت داده بودی بی‌آرتیست می‌مونن؛ نوبت‌های قبلی سر جاشونن."
       : `«${person.name}» از تیم برداشته بشه؟ این کار برگشت نداره.`;
     if (!confirmed && typeof window !== "undefined" && !window.confirm(question)) {
       return;
@@ -237,7 +237,7 @@ export function useSalonCatalogActions({
       }
       // The artist picker is a sheet that stays open so several artists can be ticked in a row.
       const artistName = saved?.staff_name || safeSalonStaffList.find((person) => String(person.id) === String(staffId))?.name;
-      shellNotify(artistName ? `حالا «${artistName}» «${service.name}» رو انجام می‌ده.` : `آرتیست «${service.name}» برداشته شد.`);
+      shellNotify(artistName ? `حالا «${artistName}» «${service.name}» رو انجام می‌ده.` : `«${service.name}» دیگه آرتیست نداره.`);
     } catch {
       shellNotify("آرتیست انتخاب نشد؛ دوباره بزن.");
     }

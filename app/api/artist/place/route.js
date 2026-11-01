@@ -42,13 +42,13 @@ async function _PUT(request) {
     const day = formatRelativeBookingDayLabel(body.startsOn);
     notifyConnection(salonId, {
       title: "یه آرتیست مشتری‌هاش رو میاره سالنت",
-      body: `${auth.user.name || "یه آرتیست"} ${day === "امروز" ? "از امروز" : `از ${day}`} مشتری‌های خودش رو توی سالنت می‌بینه.${comingIn ? ` ${toPersianDigits(comingIn)} نوبتی که از قبل داشت هم اومد سالنت.` : ""} نوبت‌هاشون توی برنامهٔ روزت بنفش دیده می‌شن.`,
+      body: `${auth.user.name || "یه آرتیست"} ${day === "امروز" ? "از امروز" : `از ${day}`} مشتری‌های خودش رو توی سالنت می‌بینه.${comingIn ? ` ${toPersianDigits(comingIn)} نوبت قبلیش هم اومد سالنت.` : ""} توی برنامهٔ روزت بنفشن.`,
       url: "/"
     });
   } else if (comingIn) {
     notifyConnection(salonId, {
       title: "نوبت‌های یه آرتیست اومد سالنت",
-      body: `${toPersianDigits(comingIn)} نوبت ${auth.user.name || "یه آرتیست"} اومد سالنت. توی برنامهٔ روزت بنفش دیده می‌شن.`,
+      body: `${toPersianDigits(comingIn)} نوبت ${auth.user.name || "یه آرتیست"} اومد سالنت؛ توی برنامهٔ روزت بنفشن.`,
       url: "/"
     });
   }
@@ -61,7 +61,7 @@ async function _PUT(request) {
   for (const [fromSalonId, count] of leaving) {
     notifyConnection(fromSalonId, {
       title: "نوبت‌های یه آرتیست از سالنت رفت",
-      body: `${toPersianDigits(count)} نوبت ${auth.user.name || "یه آرتیست"} دیگه توی سالنت نیست و جای دیگه برگزار می‌شه. ساعتش توی برنامهٔ روزت فقط شلوغ دیده می‌شه.`,
+      body: `${toPersianDigits(count)} نوبت ${auth.user.name || "یه آرتیست"} دیگه توی سالنت نیست؛ اون ساعت‌ها توی برنامهٔ روزت فقط شلوغ دیده می‌شن.`,
       url: "/"
     });
   }

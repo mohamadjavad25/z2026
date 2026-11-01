@@ -50,7 +50,7 @@ function PasswordField({ name, placeholder, autoComplete = "current-password", c
         type="button"
         className="authPasswordToggle"
         onClick={() => setVisible((v) => !v)}
-        aria-label={visible ? "قایم کن رمز رو" : "نشونم بده رمز رو"}
+        aria-label={visible ? "رمز رو قایم کن" : "رمز رو نشونم بده"}
       >
         {visible ? <EyeOff size={16} /> : <Eye size={16} />}
       </button>
@@ -195,7 +195,7 @@ function PasswordRecoveryPanel({ onClose, otp }) {
       />
       {error ? <p className="authNotice" role="alert">{error}</p> : null}
       <button type="submit" className="profileSubmit" disabled={status === "sending"}>
-        {status === "sending" ? "دارم می‌فرستم…" : otp?.enabled ? "کد بفرست" : "رمز تازه بفرستید"}
+        {status === "sending" ? "دارم می‌فرستم…" : otp?.enabled ? "کد بفرست" : "رمز تازه بخواه"}
       </button>
       <p className="authSwitchHint">
         <button type="button" onClick={onClose}>برگرد به ورود</button>

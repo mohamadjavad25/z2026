@@ -147,7 +147,8 @@ export function useProfileEditor({
       };
       const body = { type: createdProfile.type, data: {} };
       for (const [key, value] of Object.entries(fields)) {
-        if (value !== "" || key === "email") body.data[key] = value;
+        // Email is sent even when empty (that clears it), but only when the form has the field: clients have none, so a stored one is kept.
+        if (value !== "" || (key === "email" && "email" in data)) body.data[key] = value;
       }
       if (nextAvatar) body.data.avatar = nextAvatar;
       const { ok, payload } = await apiFetch("/api/profile", {
@@ -233,7 +234,7 @@ export function useProfileEditor({
       lockSession();
       writeAuthSession(profile);
       setCreatedProfile(profile);
-      notify(removing ? "پیج اینستاگرامت از صفحه‌ت برداشته شد." : "ذخیره شد. حالا توی صفحه‌ت دیده میشه.");
+      notify(removing ? "پیج اینستاگرامت از صفحه‌ت برداشته شد." : "ذخیره شد. حالا توی صفحه‌ت دیده می‌شه.");
       return { ok: true };
     } catch {
       return { ok: false, error: "ذخیره نشد؛ اینترنتت رو یه نگاه بنداز و دوباره بزن." };

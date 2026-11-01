@@ -143,7 +143,7 @@ export function SalonStaffProfileModal({
           </span>
           <div className="smdMeta">
             <span className={`smdState ${isActive ? "is-active" : "is-idle"}`}>{staffState}</span>
-            {hasPublic ? <span className="smdLinked"><ShieldCheck size={12} />عضو frfro</span> : null}
+            {hasPublic ? <span className="smdLinked"><ShieldCheck size={12} />عضو فرفرو</span> : null}
             {isOwner ? <span className="smdLinked"><ShieldCheck size={12} />خودم، مدیر سالن</span> : null}
             {staffArea ? <span><MapPin size={12} />{staffArea}</span> : null}
           </div>
@@ -175,7 +175,7 @@ export function SalonStaffProfileModal({
         </div>}
 
         {isOwner ? (
-          <p className="smdSelfNote">این خودتی. از «خدمات» کارها رو به خودت بده تا نوبت‌ها به اسمت ثبت بشه؛ اگه فعلاً کار نمی‌کنی «غیرفعال» کن تا نوبت تازه برات گرفته نشه.</p>
+          <p className="smdSelfNote">این خودتی. از «خدمات» کارها رو به خودت بده؛ اگه فعلاً کار نمی‌کنی، «کار نمی‌کنه» رو بزن تا نوبت تازه برات گرفته نشه.</p>
         ) : null}
 
         <section className="smdSection tmNow">
@@ -305,7 +305,7 @@ export function SalonStaffProfileModal({
                 <b>نوبت مستقیم توی سالن</b>
                 <small>{directAllowed
                   ? `${staffName} می‌تونه مشتری‌هاش رو از صفحهٔ خودش بیاره اینجا.`
-                  : `${staffName} فقط جای خودش نوبت می‌گیره. نوبت‌هایی که از قبل داره سر جاشونن.`}</small>
+                  : `${staffName} نمی‌تونه مشتری‌هاش رو بیاره اینجا. نوبت‌هایی که از قبل داره سر جاشونن.`}</small>
               </span>
               <button
                 type="button"
@@ -318,7 +318,7 @@ export function SalonStaffProfileModal({
             </div>
             <div className="plStats">
               <div className="plStat"><b>{toPersianDigits(directStats.clientsThisMonth)}</b><span>مشتری این ماه</span></div>
-              <div className="plStat"><b>{toPersianDigits(directStats.connected)}</b><span>از اون‌ها وصل شدن به سالن</span></div>
+              <div className="plStat"><b>{toPersianDigits(directStats.connected)}</b><span>به سالن وصل شدن</span></div>
             </div>
             <p className="smdLockNote">اسم و شمارهٔ مشتری دیده نمی‌شه تا خودش به سالن وصل شه.</p>
           </section>

@@ -54,7 +54,7 @@ export default async function PostPage({ params }) {
           <Link className="ppOwner" href={ownerHref(post)}>
             <b>{post.salon}</b>
             {post.ownerArea ? <small>{post.ownerArea}</small> : null}
-            <span>مشاهدهٔ پروفایل و رزرو ←</span>
+            <span>صفحه‌ش رو ببین و نوبت بگیر ←</span>
           </Link>
         </div>
       </article>

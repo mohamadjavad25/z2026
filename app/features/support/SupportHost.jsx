@@ -14,8 +14,11 @@ export function SupportHost() {
   const [open, setOpen] = useState(null); // null = closed, otherwise { ticketId?, view? }
 
   const refresh = useCallback(async () => {
-    const { ok, payload } = await apiFetch("/api/support/unread");
-    if (ok) publishSupportUnread(Number(payload.data?.unread) || 0);
+    // A background poll: a dropped connection just waits for the next tick.
+    try {
+      const { ok, payload } = await apiFetch("/api/support/unread");
+      if (ok) publishSupportUnread(Number(payload.data?.unread) || 0);
+    } catch {}
   }, []);
 
   useEffect(() => {

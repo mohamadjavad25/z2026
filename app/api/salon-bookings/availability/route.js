@@ -38,7 +38,7 @@ async function _GET(request) {
   if (!salonUserId) return noStoreJson({ error: "این سالن رو پیدا نکردیم." }, { status: 400 });
   const day = String(searchParams.get("day") || "").trim();
   const bookingDateKey = strictDayKey(day);
-  if (!day || !bookingDateKey) return noStoreJson({ error: "روز رزرو مشخص نیست." }, { status: 400 });
+  if (!day || !bookingDateKey) return noStoreJson({ error: "یه روز انتخاب کن." }, { status: 400 });
   const names = searchParams.getAll("service").map((name) => name.trim()).filter(Boolean);
   if (!names.length || names.length > MAX_BOOKING_PARTS || names.some((name) => name.length > 120)) {
     return noStoreJson({ error: "کارها درست نرسید؛ دوباره انتخاب کن." }, { status: 400 });
@@ -63,11 +63,11 @@ async function _GET(request) {
 
 async function computeTimes(salonUserId, bookingDateKey, names, minutes, isClient, people = 1, prefer = "") {
   const salon = await salons.getSalon(salonUserId);
-  if (!salon) return { error: "سالن پیدا نشد.", status: 404 };
+  if (!salon) return { error: "این سالن رو پیدا نکردیم.", status: 404 };
   const single = salonVisitParts(salon, names.map((service, index) => ({ service, durationMinutes: minutes[index] })));
   const parts = people > 1 ? expandPartsForPeople(single, people) : single;
   const missing = single.find((part, index) => !part.listed && !(minutes[index] > 0));
-  if (missing) return { error: `«${missing.service}» در خدمات این سالن نیست.`, status: 400 };
+  if (missing) return { error: `«${missing.service}» توی کارهای این سالن نیست.`, status: 400 };
 
   const { durationMinutes } = summarizeBookingParts(parts);
   const hour = findSalonHourForDateKey(await salons.listSalonHours(salonUserId), bookingDateKey);

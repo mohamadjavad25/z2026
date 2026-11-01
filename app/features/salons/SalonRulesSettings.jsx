@@ -92,7 +92,7 @@ export function SalonRulesSettings({ onNotify }) {
         onClose={() => (saving ? null : setOpen(false))}
       >
         <p className="salonRulesHint">
-          هر بند رو یه خط بنویس. آرتیست‌ها اینا رو موقع اومدن به تیم می‌بینن و باید طبقش کار کنن.
+          هر بند رو یه خط بنویس؛ آرتیست‌ها موقع اومدن به تیم می‌بیننش و قبولش می‌کنن.
         </p>
         <textarea
           className="salonRulesInput"

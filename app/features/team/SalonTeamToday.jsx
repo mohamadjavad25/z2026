@@ -56,7 +56,7 @@ export function SalonTeamToday({ staffList = [], salonHours = [], onOpen }) {
           </button>
         );
       })}
-      <p className="twTodayNote">خط صورتی یعنی الان. لمس هر ردیف صفحهٔ همون آرتیست رو باز می‌کنه.</p>
+      <p className="twTodayNote">خط صورتی یعنی الان. روی هر کس بزنی، صفحه‌ش باز می‌شه.</p>
     </div>
   );
 }

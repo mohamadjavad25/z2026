@@ -12,7 +12,7 @@ export const profileRoles = [
   {
     id: "salon",
     label: "سالن",
-    hint: "رزرو و تیم سالن",
+    hint: "نوبت‌ها و تیم سالنت",
     icon: Scissors,
     image: "/role-salon.png",
     tone: "roleSalon"
@@ -20,7 +20,7 @@ export const profileRoles = [
   {
     id: "artist",
     label: "آرتیست",
-    hint: "نمونه‌کار و رزرو",
+    hint: "نمونه‌کار و نوبت",
     icon: Brush,
     image: "/role-artist.png",
     tone: "roleArtist"
@@ -30,21 +30,21 @@ export const profileRoles = [
 export const profileRoleMeta = {
   client: {
     kicker: "پروفایل مشتری",
-    desc: "رزرو نوبت از سالن‌ها و آرتیست‌ها",
+    desc: "نوبت گرفتن از سالن‌ها و آرتیست‌ها",
     heroClass: "is-client",
     overviewLabel: "پروفایل",
     overviewIcon: UserRound
   },
   salon: {
     kicker: "داشبورد سالن",
-    desc: "رزروها، پرسنل، ساعت کاری و نمونه‌کارها",
+    desc: "نوبت‌ها، تیم، ساعت کاری و نمونه‌کارها",
     heroClass: "is-salon",
     overviewLabel: "داشبورد",
     overviewIcon: Scissors
   },
   artist: {
     kicker: "پروفایل آرتیست",
-    desc: "نمونه‌کار، رزرو مستقیم و جذب مشتری",
+    desc: "نمونه‌کار، نوبت مستقیم و مشتری تازه",
     heroClass: "is-artist",
     overviewLabel: "پروفایل",
     overviewIcon: Brush

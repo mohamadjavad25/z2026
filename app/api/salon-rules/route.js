@@ -14,7 +14,7 @@ async function _PUT(request) {
   if (!auth.ok) return auth.response;
   const body = await request.json().catch(() => ({}));
   if (typeof body.rules !== "string") {
-    return json({ error: "متن قوانین معتبر نیست." }, { status: 400 });
+    return json({ error: "متن قوانین درست نرسید؛ دوباره بزن." }, { status: 400 });
   }
   return json({ data: { rules: await salons.updateSalonRules(auth.user.id, body.rules) } });
 }

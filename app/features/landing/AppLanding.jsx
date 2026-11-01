@@ -35,10 +35,10 @@ const AUDIENCES = [
     tag: "مشتری",
     title: "دنبال سالن خوبی؟",
     points: [
-      "سالن‌ها و آرتیست‌ها را با نمونه‌کار واقعی ببین.",
+      "سالن‌ها و آرتیست‌ها رو با نمونه‌کار واقعی ببین.",
       "از دسته‌ها شروع کن: ناخن، مو، ابرو و مژه، میکاپ، پوست…",
-      "ساعت آزاد را انتخاب کن و نوبت بگیر.",
-      "سالن را با شماره یا کد QR پیدا کن و به آن وصل شو."
+      "ساعت آزاد رو انتخاب کن و نوبت بگیر.",
+      "سالن رو با شماره یا کد QR پیدا کن و بهش وصل شو."
     ]
   },
   {
@@ -46,10 +46,10 @@ const AUDIENCES = [
     tag: "سالن",
     title: "سالن داری؟",
     points: [
-      "تقویم نوبت‌ها و تأیید و جابه‌جایی در یک صفحه.",
-      "خدمات، قیمت و آرتیست‌ها را مرتب نگه دار.",
-      "نمونه‌کار منتشر کن تا مشتری تازه پیدا کنی.",
-      "کد QR را روی میز بگذار؛ مشتری با یک اسکن وصل می‌شود."
+      "تقویم نوبت‌ها، تأیید و جابه‌جایی، همه توی یه صفحه.",
+      "خدمت‌ها، قیمت‌ها و آرتیست‌هات رو مرتب نگه دار.",
+      "نمونه‌کار بذار تا مشتری تازه پیدات کنه.",
+      "کد QR رو روی میز بذار؛ مشتری با یه اسکن وصل می‌شه."
     ]
   },
   {
@@ -57,52 +57,52 @@ const AUDIENCES = [
     tag: "آرتیست",
     title: "آرتیست هستی؟",
     points: [
-      "صفحهٔ نمونه‌کار شخصی با لینک قابل اشتراک.",
-      "ساعت کاری بچین و نوبت مستقیم بگیر.",
-      "با سالن‌ها همکاری کن و نوبت سالن هم بگیر."
+      "صفحهٔ نمونه‌کار خودت، با لینکی که می‌تونی برای هر کسی بفرستی.",
+      "ساعت کاریت رو بچین و مستقیم نوبت بگیر.",
+      "با سالن‌ها همکاری کن و نوبت‌های سالن رو هم بگیر."
     ]
   }
 ];
 
 const STEPS = [
-  { image: "/brand/mascot/find.webp", title: "پیدا کن", text: "از دسته‌ها یا جست‌وجو سالن و آرتیست پیدا کن." },
-  { image: "/brand/mascot/no-portfolio.webp", title: "ببین", text: "نمونه‌کار، خدمات و قیمت‌ها را قبل از رفتن ببین." },
-  { image: "/brand/mascot/booked.webp", title: "رزرو کن", text: "ساعت آزاد انتخاب کن؛ سالن تأیید می‌کند و یادآوری می‌گیری." },
-  { image: "/brand/mascot/connect.webp", title: "وصل شو", text: "به سالن و آرتیست محبوبت وصل شو تا نوبت گرفتن یک ضربه باشد و نمونه‌کار تازه‌شان را از دست ندهی." }
+  { image: "/brand/mascot/find.webp", title: "پیدا کن", text: "از دسته‌ها یا جست‌وجو، سالن و آرتیست پیدا کن." },
+  { image: "/brand/mascot/no-portfolio.webp", title: "ببین", text: "نمونه‌کار، خدمت‌ها و قیمت‌ها رو قبل از رفتن ببین." },
+  { image: "/brand/mascot/booked.webp", title: "نوبت بگیر", text: "ساعت آزاد رو انتخاب کن؛ سالن تأیید می‌کنه و یادآوری برات میاد." },
+  { image: "/brand/mascot/connect.webp", title: "وصل شو", text: "به سالن و آرتیست محبوبت وصل شو تا نمونه‌کار تازه‌شون رو ببینی و نوبت بعدی رو زودتر بگیری." }
 ];
 
 const PROMISES = [
-  { title: "رایگان", text: "نصب و استفاده برای مشتری رایگان است." },
-  { title: "بدون پرداخت در اپ", text: "در اپ پولی نمی‌دهد؛ هزینه خدمت را در سالن می‌دهی." },
-  { title: "دسترسی کم", text: "نه مخاطبین، نه پیامک، نه فایل‌ها. دوربین و موقعیت فقط با اجازه تو." }
+  { title: "رایگان", text: "نصب و استفاده برای مشتری رایگانه." },
+  { title: "بدون پرداخت در اپ", text: "توی اپ پولی نمی‌دی؛ هزینهٔ خدمت رو توی سالن می‌دی." },
+  { title: "دسترسی کم", text: "نه دفترچهٔ تلفن، نه پیامک، نه فایل‌ها؛ دوربین و موقعیت فقط با اجازهٔ تو." }
 ];
 
 const DOWNLOAD_FAQ = [
   {
-    q: "چرا گوشی موقع نصب هشدار می‌دهد؟",
-    a: "اندروید برای نصب از خارج از فروشگاه هشدار می‌دهد؛ این هشدار مربوط به فرفرو نیست. فایل با امضای فرفرو امضا شده و فقط از frfro.ir دانلودش کن."
+    q: "چرا گوشی موقع نصب هشدار می‌ده؟",
+    a: "اندروید برای هر برنامه‌ای که بیرون از فروشگاه نصب بشه هشدار می‌ده، نه فقط فرفرو. فایل امضای فرفرو رو داره؛ فقط از frfro.ir دانلودش کن."
   },
 ];
 
 const SHARED_FAQ = [
   {
-    q: "اپ به چه چیزهایی دسترسی دارد؟",
-    a: "فقط اینترنت، و با اجازه تو: دوربین (اسکن QR و عکس نمونه‌کار) و موقعیت (برای پیدا کردن سالن نزدیک). به مخاطبین، پیامک، تماس و فایل‌ها دسترسی ندارد."
+    q: "اپ به چی دسترسی داره؟",
+    a: "فقط اینترنت، و با اجازهٔ تو: دوربین (اسکن QR و عکس نمونه‌کار)، موقعیت (پیدا کردن سالن نزدیک) و اعلان (خبر نوبت‌ها). به فهرست مخاطبین، پیامک، تماس و فایل‌هات دسترسی نداره؛ اگه خودت یه مخاطب رو انتخاب کنی، فقط همون یکی رو می‌بینه."
   },
   {
     q: "پرداخت داخل اپ هست؟",
-    a: "برای مشتری نه. فرفرو فقط برای پیدا کردن و رزرو نوبت است؛ هزینه خدمت را در سالن می‌دهی."
+    a: "برای مشتری نه. فرفرو فقط برای پیدا کردن سالن و نوبت گرفتنه؛ هزینهٔ خدمت رو توی سالن می‌دی."
   }
 ];
 
 const IPHONE_FAQ = {
-  q: "آیفون چه می‌شود؟",
-  a: "نسخهٔ App Store در راه است. فعلاً در Safari باز کن، «افزودن به صفحهٔ اصلی» را بزن؛ مثل یک اپ کامل باز می‌شود."
+  q: "آیفون چی؟",
+  a: "نسخهٔ App Store در راهه. فعلاً توی Safari بازش کن و «افزودن به صفحهٔ اصلی» رو بزن؛ مثل یه اپ کامل باز می‌شه."
 };
 
 const SOON_FAQ = {
-  q: "اپلیکیشن کی می‌آید؟",
-  a: "اپ اندروید و آیفون به‌زودی منتشر می‌شود. تا آن موقع frfro.ir را در مرورگر گوشی باز کن و به صفحهٔ اصلی اضافه کن؛ مثل یک اپ کامل باز می‌شود."
+  q: "اپلیکیشن کی میاد؟",
+  a: "اپ اندروید و آیفون به‌زودی میاد. تا اون موقع frfro.ir رو توی مرورگر گوشی باز کن و به صفحهٔ اصلی اضافه‌ش کن؛ مثل یه اپ کامل باز می‌شه."
 };
 
 const FAQ = APP_DOWNLOADS_OPEN ? [...DOWNLOAD_FAQ, ...SHARED_FAQ, IPHONE_FAQ] : [SOON_FAQ, ...SHARED_FAQ];
@@ -136,7 +136,7 @@ function DownloadButtons({ tone = "light" }) {
     return (
       <div className={`appLanding__appSoon is-${tone}`}>
         <strong>اپلیکیشن فرفرو به‌زودی</strong>
-        <span>تا آن موقع فرفرو را در مرورگر گوشی باز کن.</span>
+        <span>تا اون موقع فرفرو رو توی مرورگر گوشی باز کن.</span>
       </div>
     );
   }
@@ -191,8 +191,8 @@ export async function AppLanding() {
           <span>فرفرو</span>
         </Link>
         <nav aria-label="بخش‌های صفحه">
-          <a href="#about">فرفرو چیست</a>
-          <a href="#how">چطور کار می‌کند</a>
+          <a href="#about">فرفرو چیه</a>
+          <a href="#how">چطور کار می‌کنه</a>
           <a href="#install">نصب</a>
           <a href="#faq">سؤال‌ها</a>
         </nav>
@@ -214,13 +214,13 @@ export async function AppLanding() {
               <em>بدرخش</em>
             </h1>
             <p className="appLanding__lead">
-              سالن و آرتیست زیبایی را پیدا کن، نمونه‌کار واقعی ببین و همان‌جا نوبت بگیر؛ بدون تماس و بدون دفترچه.
+              سالن و آرتیست زیبایی رو پیدا کن، نمونه‌کار واقعی ببین و همون‌جا نوبت بگیر؛ بدون تماس و بدون دفترچه.
             </p>
             <ScanToOpen />
             <DownloadButtons />
             <EnterAppButton className="appLanding__enter">یا ورود به فرفرو در مرورگر ←</EnterAppButton>
             <p className="appLanding__note">
-              {APP_DOWNLOADS_OPEN ? `نسخهٔ اندروید ${ANDROID_APP_VERSION} · ` : ""}رایگان برای مشتری · بدون پرداخت داخل برنامه
+              {APP_DOWNLOADS_OPEN ? `نسخهٔ اندروید ${ANDROID_APP_VERSION}، ` : ""}برای مشتری رایگان و بدون پرداخت توی اپ
             </p>
           </div>
 
@@ -241,9 +241,9 @@ export async function AppLanding() {
       <section id="about" className="appLanding__dark">
         <div className="appLanding__section">
           <header className="appLanding__head appLanding__reveal">
-            <p className="appLanding__kicker">فرفرو چیست</p>
-            <h2>یک اپ، برای <em>هر سه طرف</em></h2>
-            <p>فرفرو مشتری، سالن و آرتیست را کنار هم می‌آورد: کشف با نمونه‌کار، رزرو مستقیم و برنامهٔ کاری مرتب.</p>
+            <p className="appLanding__kicker">فرفرو چیه</p>
+            <h2>یه اپ، برای <em>هر سه طرف</em></h2>
+            <p>فرفرو مشتری، سالن و آرتیست رو کنار هم میاره: پیدا کردن با نمونه‌کار، نوبت مستقیم و برنامهٔ کاری مرتب.</p>
           </header>
           <div className="appLanding__cards">
             {AUDIENCES.map((audience, index) => (
@@ -265,7 +265,7 @@ export async function AppLanding() {
       <section id="how" className="appLanding__light">
         <div className="appLanding__section">
           <header className="appLanding__head appLanding__reveal">
-            <p className="appLanding__kicker">چطور کار می‌کند</p>
+            <p className="appLanding__kicker">چطور کار می‌کنه</p>
             <h2>از دیدن تا نشستن روی صندلی سالن، در <em>چهار قدم</em></h2>
           </header>
           <ol className="appLanding__steps">
@@ -296,18 +296,18 @@ export async function AppLanding() {
         <div className="appLanding__section">
           <header className="appLanding__head appLanding__reveal">
             <p className="appLanding__kicker">نصب</p>
-            <h2>فرفرو را روی گوشی‌ات بیاور</h2>
-            {APP_DOWNLOADS_OPEN ? null : <p>اپلیکیشن به‌زودی منتشر می‌شود. تا آن موقع فرفرو را به صفحهٔ اصلی گوشی اضافه کن.</p>}
+            <h2>فرفرو رو بیار روی گوشیت</h2>
+            {APP_DOWNLOADS_OPEN ? null : <p>اپلیکیشن به‌زودی میاد. تا اون موقع فرفرو رو به صفحهٔ اصلی گوشی اضافه کن.</p>}
           </header>
           <div className="appLanding__install">
             {APP_DOWNLOADS_OPEN ? (
               <article className="appLanding__guide appLanding__reveal">
                 <h3><AndroidIcon /> اندروید</h3>
                 <ol>
-                  <li>دکمهٔ دانلود اندروید را بزن.</li>
-                  <li>فایل <bdi>frfro.apk</bdi> را از اعلان دانلود یا فایل‌ها باز کن.</li>
-                  <li>اجازهٔ «نصب برنامه‌های ناشناس» را بده و دوباره فایل را باز کن.</li>
-                  <li>«نصب» را بزن. اگر Play Protect پرسید، «در هر صورت نصب شود» را بزن.</li>
+                  <li>دکمهٔ دانلود اندروید رو بزن.</li>
+                  <li>فایل <bdi>frfro.apk</bdi> رو از اعلان دانلود یا فایل‌ها باز کن.</li>
+                  <li>اجازهٔ «نصب برنامه‌های ناشناس» رو بده و دوباره فایل رو باز کن.</li>
+                  <li>«نصب» رو بزن. اگه Play Protect پرسید، «در هر صورت نصب شود» رو بزن.</li>
                 </ol>
                 <a className="appLanding__store is-primary is-small" href={ANDROID_APK_URL} download="frfro.apk">
                   <AndroidIcon />
@@ -318,9 +318,9 @@ export async function AppLanding() {
               <article className="appLanding__guide appLanding__reveal">
                 <h3><AndroidIcon /> اندروید</h3>
                 <ol>
-                  <li><bdi>frfro.ir</bdi> را در Chrome باز کن.</li>
-                  <li>منوی سه‌نقطهٔ بالای صفحه را بزن.</li>
-                  <li>«افزودن به صفحهٔ اصلی» یا «نصب برنامه» را انتخاب کن.</li>
+                  <li><bdi>frfro.ir</bdi> رو توی Chrome باز کن.</li>
+                  <li>منوی سه‌نقطهٔ بالای صفحه رو بزن.</li>
+                  <li>«افزودن به صفحهٔ اصلی» یا «نصب برنامه» رو بزن.</li>
                   <li>حالا فرفرو مثل یک اپ تمام‌صفحه باز می‌شود.</li>
                 </ol>
                 <p className="appLanding__soon">اپ اندروید به‌زودی.</p>
@@ -329,9 +329,9 @@ export async function AppLanding() {
             <article id="iphone" className="appLanding__guide appLanding__reveal">
               <h3><AppleIcon /> آیفون</h3>
               <ol>
-                <li><bdi>frfro.ir</bdi> را در Safari باز کن.</li>
-                <li>دکمهٔ اشتراک‌گذاری را بزن.</li>
-                <li>«افزودن به صفحهٔ اصلی» را انتخاب کن.</li>
+                <li><bdi>frfro.ir</bdi> رو توی Safari باز کن.</li>
+                <li>دکمهٔ اشتراک‌گذاری رو بزن.</li>
+                <li>«افزودن به صفحهٔ اصلی» رو بزن.</li>
                 <li>حالا فرفرو مثل یک اپ تمام‌صفحه باز می‌شود.</li>
               </ol>
               <p className="appLanding__soon">نسخهٔ App Store به‌زودی.</p>
@@ -361,8 +361,8 @@ export async function AppLanding() {
         <div className="appLanding__finale appLanding__reveal">
           <img className="appLanding__finaleMascot" src="/brand/mascot/done.webp" alt="" width="641" height="640" loading="lazy" />
           <div>
-            <h2>نوبت بعدی‌ات را با فرفرو بگیر.</h2>
-            <p>رایگان، سبک و بدون پرداخت داخل برنامه.</p>
+            <h2>نوبت بعدیت رو با فرفرو بگیر.</h2>
+            <p>برای مشتری رایگانه و توی اپ پولی نمی‌دی.</p>
             <DownloadButtons tone="dark" />
             <EnterAppButton className="appLanding__enter">یا ورود به فرفرو در مرورگر ←</EnterAppButton>
           </div>

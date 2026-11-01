@@ -45,7 +45,7 @@ async function _PATCH(request) {
   if (typeof body.directAllowed === "boolean" && person.artist_user_id) {
     notifyConnection(person.artist_user_id, body.directAllowed
       ? { title: "نوبت مستقیم توی سالن باز شد", body: `${auth.user.name || "سالن"} دوباره اجازه داد مشتری‌هات توی سالن نوبت بگیرن.`, url: "/" }
-      : { title: "نوبت مستقیم توی سالن بسته شد", body: `${auth.user.name || "سالن"} نوبت مستقیم توی سالن رو بست. نوبت‌های قبلیت سر جاشونن؛ برای نوبت تازه، «جای خودم» رو انتخاب کن.`, url: "/" });
+      : { title: "نوبت مستقیم توی سالن بسته شد", body: `${auth.user.name || "سالن"} بستش. نوبت‌های قبلیت سر جاشونن؛ برای نوبت تازه «جای خودم» رو انتخاب کن.`, url: "/" });
   }
   return json({ data: { person, staff: await teamWithDirect(auth.user.id) } });
 }

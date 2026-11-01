@@ -565,7 +565,7 @@ describe("one phone with two names (browser)", () => {
     const team = await seedSara();
     expect((await team.salonClient.post("/api/salon-bookings", { service: H, staff: team.hair.staff.name, bookingDate: dayKeyAhead(DAY3), time: "14:00", client: "مریم", phone: PHONE })).ok).toBe(true);
     const { page, context } = await openSalon(team);
-    await page.getByRole("button", { name: /مشتریان/ }).click();
+    await page.getByRole("button", { name: /مشتری‌هام/ }).click();
     await page.locator(".salonCustomerRow").first().waitFor();
     // (the client who follows the salon is a card too; the two names share one card)
     const both = page.locator(".salonCustomerRow", { hasText: "سارا" });

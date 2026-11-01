@@ -54,7 +54,7 @@ async function _GET(request) {
     // Only what another client needs to see: the live bookings of the next few weeks (never the salon's whole
     // history), briefly cached -- every client's booking screen asks for this.
     const hours = await salons.listSalonHours(salonUserId);
-    if (!hours.length) return noStoreJson({ error: "این سالن پیدا نشد." }, { status: 404 });
+    if (!hours.length) return noStoreJson({ error: "این سالن رو پیدا نکردیم." }, { status: 404 });
     const unavailableSlots = await salons.listUnavailableSlots(salonUserId);
     return noStoreJson({ data: { unavailableSlots, hours } });
   }
@@ -84,7 +84,7 @@ async function _POST(request) {
 
   const body = await readObjectBody(request);
   if (!["client", "salon"].includes(auth.user.type)) {
-    return noStoreJson({ error: "فقط مشتری یا سالن می‌تواند رزرو ثبت کند." }, { status: 403 });
+    return noStoreJson({ error: "این نوبت رو فقط مشتری یا خود سالن می‌تونه بذاره." }, { status: 403 });
   }
   // Validated/stripped body used only for the addSalonBooking() spread
   // below -- zod drops any unlisted key (in particular `status`), so a
@@ -189,7 +189,7 @@ async function _PATCH(request) {
     if (!suggestion) return noStoreJson({ error: "این نوبت رو پیدا نکردیم." }, { status: 404 });
     const anyone = suggestion.parts ? suggestion.parts.some((part) => part.staff) : Boolean(suggestion.staff);
     if (!anyone) {
-      return noStoreJson({ error: "در این ساعت آرتیست آزادی برای این نوبت نیست.", code: "NO_FREE_ARTIST" }, { status: 409 });
+      return noStoreJson({ error: "این ساعت آرتیست آزاد نداریم؛ یه ساعت دیگه بزن.", code: "NO_FREE_ARTIST" }, { status: 409 });
     }
     patch = suggestion.parts ? { parts: suggestion.parts } : { staff: suggestion.staff };
   }
@@ -263,7 +263,7 @@ async function _PATCH(request) {
       return noStoreJson({ error: "این نوبت رو پیدا نکردیم." }, { status: 404 });
     }
     if (result.error === "past") {
-      return noStoreJson({ error: "رزرو گذشته قابل ویرایش نیست." }, { status: 409 });
+      return noStoreJson({ error: "این نوبت گذشته و دیگه عوض نمی‌شه." }, { status: 409 });
     }
     if (result.error === "started") {
       return noStoreJson({ error: STARTED_NO_CANCEL_TEXT, code: "BOOKING_STARTED" }, { status: 409 });

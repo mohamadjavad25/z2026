@@ -350,7 +350,7 @@ export function useSalonWorkspace({
    * can say what went wrong; nothing here toasts a failure (the form shows it where the person is looking).
    */
   const submitSalonVisit = useCallback(async (body) => {
-    if (salonBookingSubmittingRef.current) return { ok: false, status: 0, payload: { error: "قبلیه هنوز تموم نشده؛ یه لحظه صبر کن." } };
+    if (salonBookingSubmittingRef.current) return { ok: false, status: 0, payload: { error: "نوبت قبلی داره ثبت می‌شه؛ یه لحظه صبر کن." } };
     salonBookingSubmittingRef.current = true;
     try {
       const { ok, status, payload } = await createSalonBooking({ ...body, status: "تازه" });
@@ -375,7 +375,7 @@ export function useSalonWorkspace({
         : [payload.data?.linkedArtistId].filter(Boolean);
       shellNotify(linkedArtistIds.length
         ? "نوبت ثبت شد و آرتیست هم خبردار شد."
-        : "نوبت ثبت شد؛ این آرتیست حساب فرفرو نداره، خودت خبرش کن.");
+        : "نوبت ثبت شد؛ آرتیستش حساب فرفرو نداره، خودت خبرش کن.");
       notify("نوبت ثبت شد!");
       setSalonToolSheetOpen(false);
       if (typeof onLinkedArtistBooked === "function") {

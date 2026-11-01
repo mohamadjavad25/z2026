@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { BellRing, Check, ChevronLeft } from "lucide-react";
 import { apiFetch } from "../../shared/api/client";
 import { ProfileSheet } from "../profile/ProfileSheet";
@@ -9,10 +9,13 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { DUE_CUSTOM_MAX, DUE_GAP_CHOICES, DUE_TEXTS, dueText, gapLabel } from "../../shared/lib/dueReminder";
 
 /**
- * «وقتش شده» on the salon's and the artist's side (owner's decisions of 2026-10-25): a card on the services page that asks
- * once («روشنش کن» / «اول فاصله‌ها رو ببینم») and a section below the services where each service's gap and text can be changed.
- * Nothing goes to the clients until the place has confirmed once.
+ * «یادآوری نوبت بعدی» on the salon's and the artist's side (owner's decisions of 2026-10-25; named so and moved into one
+ * button beside «خدمت تازه» on 2026-11-01): the button opens a sheet that switches it on once and lists each service's gap
+ * and text, and each service card shows its gap. Nothing goes to the clients until the place has confirmed once.
  */
+export const DUE_NAME = "یادآوری نوبت بعدی";
+
+const DueContext = createContext(null);
 
 function useDuePlan(reloadKey) {
   const [plan, setPlan] = useState(null);
@@ -31,65 +34,84 @@ function useDuePlan(reloadKey) {
 }
 
 /**
- * The services page with «وقتش شده» around it. Until the place has confirmed once, a card above the services asks
- * («روشنش کن» / «اول فاصله‌ها رو ببینم»); the full list where each gap and text can be changed sits below them. The question
- * lives here, not as a pop-up on the home page (owner's request 2026-10-26: each start-up question in its own section).
- * `reloadKey` changes when the menu changes.
+ * Wraps a services page: loads the plan once and holds its sheet, so the page's toolbar can show <DueRemindersButton />
+ * and each card <DueServiceChip />. The question lives here, not as a pop-up on the home page (owner's request
+ * 2026-10-26: each start-up question in its own section). `reloadKey` changes when the menu changes.
  */
 export function DueRemindersSection({ reloadKey = 0, children = null }) {
   const { plan, send } = useDuePlan(reloadKey);
-  const ready = plan && plan.services.length;
+  const [open, setOpen] = useState(false);
+  const ready = Boolean(plan && plan.services.length);
   return (
-    <>
-      {ready && !plan.confirmed ? <DueAskCard plan={plan} send={send} /> : null}
+    <DueContext.Provider value={ready ? { plan, openSheet: () => setOpen(true) } : null}>
       {children}
-      {ready ? <DueRulesSection plan={plan} send={send} /> : null}
-    </>
-  );
-}
-
-function DueAskCard({ plan, send }) {
-  const [editing, setEditing] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const shown = plan.services.filter((service) => service.gapDays > 0);
-  return (
-    <section className="dueCard" aria-labelledby="due-ask-title">
-      <div className="dueCardHead">
-        <span className="dueCardIcon" aria-hidden="true"><BellRing size={16} /></span>
-        <span>
-          <b id="due-ask-title">یادآوری وقتش شده</b>
-          <small>هنوز خاموشه</small>
-        </span>
-      </div>
-      <p>وقتی وقت دوبارهٔ هر خدمت برسه، یه یادآوری برای مشتری می‌ره تا دوباره نوبت بگیره.</p>
-      {shown.length ? (
-        <ul className="dueCardList">
-          {shown.slice(0, 4).map((service) => (
-            <li key={service.name}><span>{service.name}</span><em>{gapLabel(service.gapDays).replace("هر ", "")}</em></li>
-          ))}
-          {shown.length > 4 ? <li className="is-more">+{toPersianDigits(shown.length - 4)}</li> : null}
-        </ul>
+      {ready ? (
+        <ProfileSheet open={open} kicker="خدمت‌ها" title={DUE_NAME} onClose={() => setOpen(false)}>
+          <DuePanel plan={plan} send={send} />
+        </ProfileSheet>
       ) : null}
-      <div className="dueCardActions">
-        <button type="button" className="dueBtn is-main" disabled={busy} onClick={async () => { setBusy(true); await send({ confirm: true }); setBusy(false); }}>
-          <Check size={16} aria-hidden="true" />{busy ? "یه لحظه…" : "روشنش کن"}
-        </button>
-        <button type="button" className="dueLink" onClick={() => setEditing(true)}>{shown.length ? "اول فاصله‌ها رو ببینم" : "فاصله‌ها رو بذار"}</button>
-      </div>
-      <ProfileSheet open={editing} kicker="خدمت‌ها" title="یادآوری وقتش شده" onClose={() => setEditing(false)}>
-        <DueRuleList plan={plan} send={send} />
-      </ProfileSheet>
-    </section>
+    </DueContext.Provider>
   );
 }
 
-function DueRulesSection({ plan, send }) {
+function shownServices(plan) {
+  return plan.services.filter((service) => service.gapDays > 0);
+}
+
+/** Beside «خدمت تازه»: the name, whether it is on, and for how many services. Nothing outside DueRemindersSection. */
+export function DueRemindersButton() {
+  const due = useContext(DueContext);
+  if (!due) return null;
+  const { plan, openSheet } = due;
+  const count = shownServices(plan).length;
+  const state = !plan.confirmed ? "خاموشه؛ روشنش کن" : count ? `روشنه، برای ${toPersianDigits(count)} خدمت` : "روشنه، ولی برای هیچ خدمتی نیست";
   return (
-    <section className="dueSection" aria-labelledby="due-section-title">
-      <h3 id="due-section-title"><BellRing size={16} aria-hidden="true" />یادآوری وقتش شده</h3>
-      <p>{plan.confirmed ? "روشنه. برای عوض کردن فاصله یا متن، روی هر خدمت بزن." : "خاموشه؛ با «روشنش کن» بالای خدمت‌ها روشن می‌شه."}</p>
+    <button type="button" className={`dueOpenBtn${plan.confirmed ? " is-on" : ""}`} onClick={openSheet}>
+      <span className="dueOpenIcon" aria-hidden="true"><BellRing size={18} /></span>
+      <span className="dueOpenText">
+        <b>{DUE_NAME}</b>
+        <small><i aria-hidden="true" />{state}</small>
+      </span>
+      <ChevronLeft size={16} aria-hidden="true" />
+    </button>
+  );
+}
+
+/** On a service card: «هر ۶ هفته یادآوری» while it is on for that service. */
+export function DueServiceChip({ name }) {
+  const due = useContext(DueContext);
+  const service = due?.plan.confirmed ? due.plan.services.find((item) => item.name === name) : null;
+  if (!service?.gapDays) return null;
+  return <span className="svcChip is-due"><BellRing size={12} aria-hidden="true" />{gapLabel(service.gapDays)} یادآوری</span>;
+}
+
+/** The sheet: what it does, on/off, what the client sees, and each service's gap. */
+function DuePanel({ plan, send }) {
+  const [busy, setBusy] = useState(false);
+  const sample = shownServices(plan)[0] || null;
+  return (
+    <div className="duePanel">
+      <p className="duePanelLead">وقتی وقت دوبارهٔ هر خدمت برسه، به مشتری خبر می‌دیم تا نوبت بگیره.</p>
+      {plan.confirmed ? (
+        <p className="dueStatus is-on"><Check size={16} aria-hidden="true" />روشنه. برای عوض کردن فاصله یا متن، روی هر خدمت بزن.</p>
+      ) : (
+        <div className="dueStatus">
+          <span>هنوز خاموشه. اول فاصله‌ها رو ببین، بعد روشنش کن.</span>
+          <button type="button" className="dueBtn is-main" disabled={busy} onClick={async () => { setBusy(true); await send({ confirm: true }); setBusy(false); }}>
+            <Check size={16} aria-hidden="true" />{busy ? "یه لحظه…" : "روشنش کن"}
+          </button>
+        </div>
+      )}
+      {sample ? (
+        <div className="duePreview is-sample">
+          <small>مشتری این رو می‌بینه</small>
+          <b>{dueText(sample, sample.name)}</b>
+          <span>بزن و یه ساعت انتخاب کن.</span>
+        </div>
+      ) : null}
+      <p className="dueLabel">برای هر خدمت</p>
       <DueRuleList plan={plan} send={send} />
-    </section>
+    </div>
   );
 }
 
@@ -113,7 +135,7 @@ function DueRuleList({ plan, send }) {
           </li>
         ))}
       </ul>
-      <ProfileSheet open={Boolean(editing)} kicker="یادآوری وقتش شده" title={editing?.name || ""} onClose={() => setOpen("")}>
+      <ProfileSheet open={Boolean(editing)} kicker={DUE_NAME} title={editing?.name || ""} onClose={() => setOpen("")}>
         {editing ? <DueRuleEditor key={editing.name} service={editing} send={send} onDone={() => setOpen("")} /> : null}
       </ProfileSheet>
     </>
@@ -137,7 +159,7 @@ function DueRuleEditor({ service, send, onDone }) {
           </button>
         ))}
       </div>
-      {service.usualGap ? <small className="dueNote">معمولش {gapLabel(service.usualGap).replace("هر ", "")}ه.</small> : null}
+      {service.usualGap ? <small className="dueNote">معمولاً {gapLabel(service.usualGap).replace("هر ", "")} بعد.</small> : null}
       {gapDays ? (
         <>
           <p className="dueLabel">متن اعلان</p>

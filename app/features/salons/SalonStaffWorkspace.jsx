@@ -108,7 +108,7 @@ export function SalonStaffWorkspace({
                 <article className="twWaiting" key={`invite-${invite.id}`}>
                   <img src={invite.artistAvatar || DEFAULT_AVATAR} alt="" aria-hidden="true" draggable={false} />
                   <div>
-                    <b>دعوتت برای {invite.artistName} هنوز جواب نگرفته</b>
+                    <b>{invite.artistName} هنوز جواب دعوتت رو نداده</b>
                     <small>{invite.role || invite.artistService || "آرتیست"}{invite.artistArea ? `، ${invite.artistArea}` : ""}</small>
                   </div>
                   <button type="button" onClick={() => onCancelInvite?.(invite.id)} aria-label={`لغو دعوت ${invite.artistName}`}>

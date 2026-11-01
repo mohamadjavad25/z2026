@@ -110,7 +110,8 @@ export function SalonTeam({ salon, team, services, salonPosts = [], getFallbackS
                     <div className="stmService" key={service.id ?? service.name}>
                       <ServiceIcon emoji={service.emoji} name={service.name} size="sm" />
                       <span className="stmServiceBody"><b>{service.name}</b><small>{service.duration || "مدتش فرق می‌کنه"}</small></span>
-                      <em>{amount ? <>{formatTomanNumber(amount)} <small>تومان</small></> : <small>قیمت توافقی</small>}</em>
+                      {/* «نمایش قیمت‌ها» off: priceHidden from the server, no price and no «قیمت توافقی». */}
+                      {service.priceHidden ? null : <em>{amount ? <>{formatTomanNumber(amount)} <small>تومان</small></> : <small>قیمت توافقی</small>}</em>}
                     </div>
                   );
                 })}

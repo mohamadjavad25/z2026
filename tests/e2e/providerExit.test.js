@@ -104,7 +104,7 @@ describe("proposals and leaving (browser)", () => {
     expect(await confirm.getByRole("button", { name: "پاکش کن" }).isDisabled()).toBe(true);
     await panel.getByRole("button", { name: "لغو با اطلاع مشتری" }).click();
     await panel.getByRole("button", { name: "آره، لغو کن" }).click();
-    await panel.getByText("دیگه نوبتی جلوی این کار رو نگرفته.").waitFor();
+    await panel.getByText("دیگه نوبتی سر راه نیست؛ می‌تونی ادامه بدی.").waitFor();
     expect(await confirm.getByRole("button", { name: "پاکش کن" }).isDisabled()).toBe(false);
     expect((await salonRow(id)).cancelled_by).toBe("provider");
     expect((await q("SELECT 1 FROM users WHERE id = $1", [salon.id])).length).toBe(1);

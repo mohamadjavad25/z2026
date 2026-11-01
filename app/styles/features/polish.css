@@ -706,31 +706,40 @@
 .cuRowMain { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 10px; border: 0; background: transparent; text-align: start; font: inherit; color: inherit; cursor: pointer; }
 .cuAvatar { flex: 0 0 auto; width: 44px; height: 44px; display: grid; place-items: center; overflow: hidden; border-radius: 14px; background: var(--n-50); color: var(--n-900); font-weight: 950; box-shadow: inset 0 0 0 1px var(--pink-soft); }
 .cuAvatar img { width: 100%; height: 100%; object-fit: cover; }
-.cuAvatar.is-lg { width: 56px; height: 56px; border-radius: 18px; font-size: 1.2rem; }
+.cuAvatar.is-lg { width: 64px; height: 64px; border-radius: 20px; background: var(--accent-soft); color: var(--accent); font-size: 1.5rem; }
+/* The customer card (redrawn 2026-11-01): one top card with who they are and what you can do, a stats strip,
+   their names, then bookings ahead and before. */
 .cuSheetBody { display: grid; gap: 14px; padding: 4px 4px 70px; }
-.cuSheetTop { display: flex; align-items: center; gap: 12px; }
-.cuSheetTop div { flex: 1; min-width: 0; display: grid; gap: 2px; }
-.cuSheetTop b { font-size: 1rem; font-weight: 950; }
-.cuSheetTop span { color: var(--n-600); font-size: 0.78rem; font-weight: 800; }
+.cuHero { display: grid; gap: 12px; padding: 16px; border-radius: 22px; background: var(--n-0); box-shadow: inset 0 0 0 1px var(--n-100); }
+.cuSheetTop { display: flex; align-items: center; gap: 14px; }
+.cuSheetTop div { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.cuSheetTop b { font-size: 1.15rem; font-weight: 950; }
+.cuSheetTop span { color: var(--n-600); font-size: 0.8rem; font-weight: 800; }
+.cuSheetTop .cuLinked { justify-self: start; display: inline-flex; align-items: center; gap: 5px; margin-top: 2px; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 0.7rem; font-weight: 850; }
 .cuCall { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 999px; background: var(--fill-strong); color: var(--n-0); font-size: 0.78rem; font-weight: 900; text-decoration: none; }
-.cuStats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.cuStats span { display: grid; justify-items: center; gap: 2px; padding: 10px 4px; border-radius: 14px; background: var(--n-50); color: var(--n-600); font-size: 0.68rem; font-weight: 800; }
-.cuStats b { color: var(--n-900); font-size: 1.15rem; font-weight: 950; }
-.cuStats span.is-came { background: var(--success-bg); color: var(--success); }
+.cuHero .cuBookBtn { width: 100%; min-height: 52px; border-radius: 16px; background: var(--live-fill); color: var(--on-live-fill); font-size: 0.95rem; }
+.cuStats { display: grid; grid-template-columns: repeat(4, 1fr); border-radius: 18px; background: var(--n-0); box-shadow: inset 0 0 0 1px var(--n-100); }
+.cuStats span { display: grid; justify-items: center; gap: 2px; padding: 10px 4px; color: var(--n-600); font-size: 0.7rem; font-weight: 800; }
+.cuStats span + span { border-inline-start: 1px solid var(--n-100); }
+.cuStats b { color: var(--n-900); font-size: 1.2rem; font-weight: 950; }
 .cuStats span.is-came b { color: var(--success); }
-.cuStats span.is-noshow { background: var(--danger-bg); color: var(--danger); }
 .cuStats span.is-noshow b { color: var(--danger); }
+.cuStats span.is-ahead b { color: var(--accent); }
 /* «۵ بار اومد» / «۲ بار نیومد» under a customer's row (owner's request 2026-10-25) */
 .cuTally { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .cuTally i { display: inline-flex; align-items: center; gap: 4px; font-style: normal; font-size: 0.68rem; font-weight: 900; padding: 3px 9px; border-radius: 8px; }
 .cuTally i.is-came { background: var(--success-bg); color: var(--success); }
 .cuTally i.is-noshow { background: var(--danger-bg); color: var(--danger); }
-.cuHistoryTitle { margin: 4px 0 0; font-size: 0.82rem; font-weight: 950; }
-.cuHistory { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.cuHistory li { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 14px; background: var(--n-25); }
+.cuHistoryTitle { display: flex; align-items: baseline; justify-content: space-between; margin: 4px 2px -4px; font-size: 0.86rem; font-weight: 950; }
+.cuHistoryTitle small { color: var(--n-600); font-size: 0.72rem; font-weight: 800; }
+.cuHistory { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.cuHistory li { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 16px; background: var(--n-0); box-shadow: inset 0 0 0 1px var(--n-100); }
+.cuHistory.is-past li { opacity: 0.78; }
 .cuHistory li div { flex: 1; min-width: 0; display: grid; gap: 2px; }
-.cuHistory b { font-size: 0.82rem; font-weight: 900; }
-.cuHistory small { color: var(--n-600); font-size: 0.7rem; font-weight: 750; }
+.cuHistory b { font-size: 0.86rem; font-weight: 900; }
+.cuHistory small { color: var(--n-600); font-size: 0.72rem; font-weight: 750; }
+.cuWhen { flex: none; display: grid; justify-items: center; gap: 1px; width: 64px; padding: 6px 2px; border-radius: 12px; background: var(--n-50); color: var(--n-600); font-size: 0.66rem; font-weight: 800; line-height: 1.5; text-align: center; }
+.cuWhen b { color: var(--n-900); font-size: 0.86rem; font-weight: 950; }
 .cuHistory em { font-style: normal; font-size: 0.68rem; font-weight: 900; padding: 4px 9px; border-radius: 999px; background: var(--n-100); color: var(--n-700); }
 .cuHistory em.is-done { background: var(--n-100); color: var(--success); }
 .cuHistory em.is-bad, .cuHistory em.is-expired { background: var(--n-100); color: var(--danger); }
@@ -962,7 +971,8 @@ body:has([role="dialog"], [aria-modal="true"], .scOverlay, .supOverlay) .cbtPill
 /* ═══ Customers: sheet actions + "lapsed" count ═══ */
 .cuActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .cuActions .cuCall { justify-content: center; min-height: 46px; border-radius: 15px; font-size: 0.84rem; }
-.cuCall.is-soft { background: var(--n-100); color: var(--n-900); }
+.cuCall.is-soft { background: var(--n-0); color: var(--n-900); box-shadow: inset 0 0 0 1px var(--n-150); }
+.cuCall.is-soft svg { color: var(--accent); }
 .cuChipCount { margin-inline-start: 6px; min-width: 18px; padding: 1px 6px; border-radius: 999px; background: var(--fill-hot); color: var(--n-0); font-size: 0.64rem; font-weight: 950; }
 .cuChips button.is-on .cuChipCount { background: var(--n-0); color: var(--n-900); }
 
@@ -1078,18 +1088,18 @@ main.appShell.is-auth-gate .workspace { background: var(--n-0) !important; }
 .appShell.is-auth-gate .authGateAurora { background: none; }
 .appShell.is-auth-gate .authGateScrim { display: none; }
 /* The blobs used to be a short gradient under a big blur(); on a dark screen that shows as visible rings
-   (banding). Now each blob is a long, eased fade with no blur, and a faint static grain on top dithers
-   what is left, so the light reads as one smooth wash. */
+   (banding). Now each blob is a bell-shaped fade made of 25 small steps (a few big steps showed as
+   «tree rings»), no blur, and a static grain on top dithers what is left, so the light reads as one smooth wash. */
 .appShell.is-auth-gate .authAuroraBlob { mix-blend-mode: normal; opacity: 0.4; filter: none; scale: 1.5; }
-.appShell.is-auth-gate .authAuroraBlob--gold { background: radial-gradient(circle closest-side, rgb(var(--brand-pink-rgb) / 1) 0%, rgb(var(--brand-pink-rgb) / 0.96) 12.5%, rgb(var(--brand-pink-rgb) / 0.85) 25%, rgb(var(--brand-pink-rgb) / 0.69) 37.5%, rgb(var(--brand-pink-rgb) / 0.5) 50%, rgb(var(--brand-pink-rgb) / 0.31) 62.5%, rgb(var(--brand-pink-rgb) / 0.15) 75%, rgb(var(--brand-pink-rgb) / 0.04) 87.5%, rgb(var(--brand-pink-rgb) / 0) 100%); }
-.appShell.is-auth-gate .authAuroraBlob--blush { background: radial-gradient(circle closest-side, rgb(var(--brand-violet-rgb) / 1) 0%, rgb(var(--brand-violet-rgb) / 0.96) 12.5%, rgb(var(--brand-violet-rgb) / 0.85) 25%, rgb(var(--brand-violet-rgb) / 0.69) 37.5%, rgb(var(--brand-violet-rgb) / 0.5) 50%, rgb(var(--brand-violet-rgb) / 0.31) 62.5%, rgb(var(--brand-violet-rgb) / 0.15) 75%, rgb(var(--brand-violet-rgb) / 0.04) 87.5%, rgb(var(--brand-violet-rgb) / 0) 100%); }
-.appShell.is-auth-gate .authAuroraBlob--teal { background: radial-gradient(circle closest-side, rgb(var(--brand-pink-rgb) / 1) 0%, rgb(var(--brand-pink-rgb) / 0.96) 12.5%, rgb(var(--brand-pink-rgb) / 0.85) 25%, rgb(var(--brand-pink-rgb) / 0.69) 37.5%, rgb(var(--brand-pink-rgb) / 0.5) 50%, rgb(var(--brand-pink-rgb) / 0.31) 62.5%, rgb(var(--brand-pink-rgb) / 0.15) 75%, rgb(var(--brand-pink-rgb) / 0.04) 87.5%, rgb(var(--brand-pink-rgb) / 0) 100%); opacity: 0.3; }
+.appShell.is-auth-gate .authAuroraBlob--gold { background: radial-gradient(circle closest-side, rgb(var(--brand-pink-rgb) / 1.000) 0%, rgb(var(--brand-pink-rgb) / 0.992) 4.2%, rgb(var(--brand-pink-rgb) / 0.969) 8.3%, rgb(var(--brand-pink-rgb) / 0.931) 12.5%, rgb(var(--brand-pink-rgb) / 0.881) 16.7%, rgb(var(--brand-pink-rgb) / 0.821) 20.8%, rgb(var(--brand-pink-rgb) / 0.752) 25%, rgb(var(--brand-pink-rgb) / 0.678) 29.2%, rgb(var(--brand-pink-rgb) / 0.602) 33.3%, rgb(var(--brand-pink-rgb) / 0.526) 37.5%, rgb(var(--brand-pink-rgb) / 0.452) 41.7%, rgb(var(--brand-pink-rgb) / 0.382) 45.8%, rgb(var(--brand-pink-rgb) / 0.317) 50%, rgb(var(--brand-pink-rgb) / 0.259) 54.2%, rgb(var(--brand-pink-rgb) / 0.207) 58.3%, rgb(var(--brand-pink-rgb) / 0.163) 62.5%, rgb(var(--brand-pink-rgb) / 0.126) 66.7%, rgb(var(--brand-pink-rgb) / 0.095) 70.8%, rgb(var(--brand-pink-rgb) / 0.069) 75%, rgb(var(--brand-pink-rgb) / 0.049) 79.2%, rgb(var(--brand-pink-rgb) / 0.033) 83.3%, rgb(var(--brand-pink-rgb) / 0.021) 87.5%, rgb(var(--brand-pink-rgb) / 0.012) 91.7%, rgb(var(--brand-pink-rgb) / 0.005) 95.8%, rgb(var(--brand-pink-rgb) / 0.000) 100%); }
+.appShell.is-auth-gate .authAuroraBlob--blush { background: radial-gradient(circle closest-side, rgb(var(--brand-violet-rgb) / 1.000) 0%, rgb(var(--brand-violet-rgb) / 0.992) 4.2%, rgb(var(--brand-violet-rgb) / 0.969) 8.3%, rgb(var(--brand-violet-rgb) / 0.931) 12.5%, rgb(var(--brand-violet-rgb) / 0.881) 16.7%, rgb(var(--brand-violet-rgb) / 0.821) 20.8%, rgb(var(--brand-violet-rgb) / 0.752) 25%, rgb(var(--brand-violet-rgb) / 0.678) 29.2%, rgb(var(--brand-violet-rgb) / 0.602) 33.3%, rgb(var(--brand-violet-rgb) / 0.526) 37.5%, rgb(var(--brand-violet-rgb) / 0.452) 41.7%, rgb(var(--brand-violet-rgb) / 0.382) 45.8%, rgb(var(--brand-violet-rgb) / 0.317) 50%, rgb(var(--brand-violet-rgb) / 0.259) 54.2%, rgb(var(--brand-violet-rgb) / 0.207) 58.3%, rgb(var(--brand-violet-rgb) / 0.163) 62.5%, rgb(var(--brand-violet-rgb) / 0.126) 66.7%, rgb(var(--brand-violet-rgb) / 0.095) 70.8%, rgb(var(--brand-violet-rgb) / 0.069) 75%, rgb(var(--brand-violet-rgb) / 0.049) 79.2%, rgb(var(--brand-violet-rgb) / 0.033) 83.3%, rgb(var(--brand-violet-rgb) / 0.021) 87.5%, rgb(var(--brand-violet-rgb) / 0.012) 91.7%, rgb(var(--brand-violet-rgb) / 0.005) 95.8%, rgb(var(--brand-violet-rgb) / 0.000) 100%); }
+.appShell.is-auth-gate .authAuroraBlob--teal { background: radial-gradient(circle closest-side, rgb(var(--brand-pink-rgb) / 1.000) 0%, rgb(var(--brand-pink-rgb) / 0.992) 4.2%, rgb(var(--brand-pink-rgb) / 0.969) 8.3%, rgb(var(--brand-pink-rgb) / 0.931) 12.5%, rgb(var(--brand-pink-rgb) / 0.881) 16.7%, rgb(var(--brand-pink-rgb) / 0.821) 20.8%, rgb(var(--brand-pink-rgb) / 0.752) 25%, rgb(var(--brand-pink-rgb) / 0.678) 29.2%, rgb(var(--brand-pink-rgb) / 0.602) 33.3%, rgb(var(--brand-pink-rgb) / 0.526) 37.5%, rgb(var(--brand-pink-rgb) / 0.452) 41.7%, rgb(var(--brand-pink-rgb) / 0.382) 45.8%, rgb(var(--brand-pink-rgb) / 0.317) 50%, rgb(var(--brand-pink-rgb) / 0.259) 54.2%, rgb(var(--brand-pink-rgb) / 0.207) 58.3%, rgb(var(--brand-pink-rgb) / 0.163) 62.5%, rgb(var(--brand-pink-rgb) / 0.126) 66.7%, rgb(var(--brand-pink-rgb) / 0.095) 70.8%, rgb(var(--brand-pink-rgb) / 0.069) 75%, rgb(var(--brand-pink-rgb) / 0.049) 79.2%, rgb(var(--brand-pink-rgb) / 0.033) 83.3%, rgb(var(--brand-pink-rgb) / 0.021) 87.5%, rgb(var(--brand-pink-rgb) / 0.012) 91.7%, rgb(var(--brand-pink-rgb) / 0.005) 95.8%, rgb(var(--brand-pink-rgb) / 0.000) 100%); opacity: 0.3; }
 .appShell.is-auth-gate .authGateAurora::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.05;
+  opacity: 0.08;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1.6 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E") repeat;
 }
 .appShell.is-auth-gate .authAuroraSparkle { background: var(--brand-pink); box-shadow: 0 0 6px 1px rgb(255 134 184 / 0.8); }

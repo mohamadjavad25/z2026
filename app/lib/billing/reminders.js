@@ -40,14 +40,14 @@ export function reminderMessage(kind, access, { graceDays = 3 } = {}) {
   if (kind === "ends_1d") {
     return {
       title: "کمتر از یه روز مونده",
-      body: `${what} ${until} تموم می‌شه. اشتراک بخری، نوبت آنلاین و دیده شدنت توی جست‌وجو بی‌وقفه ادامه داره.`,
+      body: `${what} ${until} تموم می‌شه. از تنظیمات اشتراک بخر تا نوبت آنلاین قطع نشه.`,
       sms: { key: "billing_reminder", values: { days: toPersianDigits(1), until: untilShort } }
     };
   }
   if (kind === "ended") {
     return {
       title: "اشتراکت تموم شد",
-      body: `تا ${toPersianDigits(graceDays)} روز دیگه همه‌چی مثل قبل کار می‌کنه. بعدش تا تمدید نکنی، توی جست‌وجو دیده نمی‌شی و نوبت آنلاین نمی‌گیری.`,
+      body: `تا ${toPersianDigits(graceDays)} روز دیگه همه‌چی کار می‌کنه؛ بعدش تا تمدید نکنی، نوبت آنلاین نمی‌گیری و توی جست‌وجو دیده نمی‌شی.`,
       sms: { key: "billing_ended", values: { days: toPersianDigits(graceDays) } }
     };
   }
