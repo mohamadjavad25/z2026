@@ -270,7 +270,7 @@ export function LearnSection({ icons = {} }) {
           <div className="learn__steps">
             <p className="learn__stepsHead">
               مرحله‌به‌مرحله: <strong>{tutorial.title}</strong>
-              <span> · {toFa(seconds)} ثانیه</span>
+              <span>، {toFa(seconds)} ثانیه</span>
             </p>
             <ol>
               {tutorial.scenes.map((item, index) => (

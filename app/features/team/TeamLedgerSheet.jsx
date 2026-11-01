@@ -93,7 +93,7 @@ export function TeamLedgerSheet({ open, pair, otherName, onClose }) {
               <div><small>سهم سالن</small><b>{toman(totals.salonShare)}</b></div>
             </div>
             {data.terms?.share != null ? <p className="tlMuted">درصد الان: آرتیست {toPersianDigits(data.terms.share)} درصد{data.terms.ownShare != null ? `، مشتری خودش ${toPersianDigits(data.terms.ownShare)} درصد` : ""}.</p> : null}
-            {totals.unknown ? <p className="tlWarn">برای {toPersianDigits(totals.unknown)} کار درصد مشخص نیست. توی «شرایط کار» درصد رو پیشنهاد بدین؛ وقتی قبول شد، حساب این کارها هم حساب می‌شه.</p> : null}
+            {totals.unknown ? <p className="tlWarn">برای {toPersianDigits(totals.unknown)} کار درصد مشخص نیست؛ توی «شرایط کار» درصد رو پیشنهاد بده تا اینا هم حساب بشن.</p> : null}
           </section>
 
           {waiting ? (
@@ -162,7 +162,7 @@ export function TeamLedgerSheet({ open, pair, otherName, onClose }) {
             ) : (
               <p className="tlMuted">هنوز کاری انجام نشده. وقتی نوبتی تموم شه، حسابش اینجا میاد.</p>
             )}
-            <p className="tlMuted">فقط کارهای انجام‌شده حساب می‌شن. لغو و «نیومد» حساب نمی‌شن.{side === "artist" ? " قیمت هر کار رو فقط سالن می‌تونه عوض کنه، ولی تو تغییرش رو می‌بینی." : " قیمت هر کار رو می‌تونی تا قبل از تصفیه عوض کنی (مثلاً برای تخفیف)؛ قیمت اولش می‌مونه."}</p>
+            <p className="tlMuted">فقط کارهای انجام‌شده حساب می‌شن، نه لغو و «نیومد».{side === "artist" ? " قیمت هر کار رو فقط سالن عوض می‌کنه و تو هم تغییرش رو می‌بینی." : " تا تصفیه نشده، می‌تونی قیمت هر کار رو عوض کنی (مثلاً برای تخفیف)."}</p>
           </section>
 
           {data.closed.length ? (

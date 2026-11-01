@@ -14,10 +14,10 @@ async function _POST(request) {
 
   const body = await request.json().catch(() => null);
   const subscription = body?.subscription;
-  if (!subscription?.endpoint) return json({ error: "اشتراک نامعتبر است." }, { status: 400 });
+  if (!subscription?.endpoint) return json({ error: "اعلان‌ها روشن نشد؛ دوباره بزن." }, { status: 400 });
 
   const result = await push.saveSubscription(auth.user.id, subscription);
-  if (!result.ok) return json({ error: result.error || "ذخیره اشتراک انجام نشد." }, { status: 400 });
+  if (!result.ok) return json({ error: result.error || "اعلان‌ها روشن نشد؛ دوباره بزن." }, { status: 400 });
   return json({ data: { ok: true } });
 }
 
@@ -30,7 +30,7 @@ async function _DELETE(request) {
 
   const body = await request.json().catch(() => null);
   const endpoint = body?.endpoint;
-  if (!endpoint) return json({ error: "endpoint لازم است." }, { status: 400 });
+  if (!endpoint) return json({ error: "اعلان‌ها خاموش نشد؛ دوباره بزن." }, { status: 400 });
 
   await push.removeSubscription(auth.user.id, endpoint);
   return json({ data: { ok: true } });

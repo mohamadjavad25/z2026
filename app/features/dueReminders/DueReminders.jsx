@@ -64,7 +64,7 @@ export function DueRemindersButton() {
   if (!due) return null;
   const { plan, openSheet } = due;
   const count = shownServices(plan).length;
-  const state = !plan.confirmed ? "خاموشه · روشنش کن" : count ? `روشنه · برای ${toPersianDigits(count)} خدمت` : "روشنه · هیچ خدمتی فاصله نداره";
+  const state = !plan.confirmed ? "خاموشه؛ روشنش کن" : count ? `روشنه، برای ${toPersianDigits(count)} خدمت` : "روشنه، ولی برای هیچ خدمتی نیست";
   return (
     <button type="button" className={`dueOpenBtn${plan.confirmed ? " is-on" : ""}`} onClick={openSheet}>
       <span className="dueOpenIcon" aria-hidden="true"><BellRing size={18} /></span>
@@ -91,7 +91,7 @@ function DuePanel({ plan, send }) {
   const sample = shownServices(plan)[0] || null;
   return (
     <div className="duePanel">
-      <p className="duePanelLead">وقتی وقت دوباره‌ی هر خدمت برسه، به مشتری خبر می‌دیم تا دوباره نوبت بگیره.</p>
+      <p className="duePanelLead">وقتی وقت دوبارهٔ هر خدمت برسه، به مشتری خبر می‌دیم تا نوبت بگیره.</p>
       {plan.confirmed ? (
         <p className="dueStatus is-on"><Check size={16} aria-hidden="true" />روشنه. برای عوض کردن فاصله یا متن، روی هر خدمت بزن.</p>
       ) : (
@@ -159,7 +159,7 @@ function DueRuleEditor({ service, send, onDone }) {
           </button>
         ))}
       </div>
-      {service.usualGap ? <small className="dueNote">معمولش {gapLabel(service.usualGap).replace("هر ", "")}ه.</small> : null}
+      {service.usualGap ? <small className="dueNote">معمولاً {gapLabel(service.usualGap).replace("هر ", "")} بعد.</small> : null}
       {gapDays ? (
         <>
           <p className="dueLabel">متن اعلان</p>

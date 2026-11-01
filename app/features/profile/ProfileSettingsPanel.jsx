@@ -209,7 +209,7 @@ export function NotificationSettings({ profileType, profileSettings, onToggle, b
         icon={profileSettings.reservationAlerts ? Bell : BellOff}
         label="خبرهای داخل اپ"
         description={profileType === "client"
-          ? "وقتی برنامه بازه، بالای صفحه خبر می‌ده و نیم ساعت قبل نوبت زنگ می‌زنه."
+          ? "وقتی برنامه بازه، بالای صفحه خبر می‌ده و نیم ساعت قبل نوبت صدای یادآوری پخش می‌کنه."
           : "وقتی برنامه بازه، بالای صفحه خبر می‌ده."}
         checked={profileSettings.reservationAlerts}
         onChange={() => onToggle("reservationAlerts")}
@@ -269,7 +269,7 @@ export function ProfileVisibilitySettings({ profileType, profileSettings, onTogg
         <SettingsToggle
           icon={Tag}
           label="نمایش قیمت‌ها"
-          description="قیمت‌ها توی صفحه‌ت دیده بشه؛ وگرنه «زنگ بزن»"
+          description="قیمت‌ها توی صفحه‌ت دیده بشن"
           checked={Boolean(profileSettings.showPrices)}
           onChange={() => onToggle("showPrices")}
           onLabel="نمایش"

@@ -460,7 +460,7 @@ describe("QR scanning (browser)", () => {
     await salonView.context.addInitScript(withCamera(await QRCode.toDataURL(code)));
     const sp = salonView.page;
     await sp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
-    await sp.getByRole("button", { name: "مشتریان" }).click();
+    await sp.getByRole("button", { name: "مشتری‌هام" }).click();
     await sp.locator(".cnScanCustomerBtn").first().click();
     // the client is already connected (they scanned the salon above), and the scanner says so
     await sp.locator(".cnScanResult").getByText("مشتری اسکن از قبل وصل بود.").waitFor();

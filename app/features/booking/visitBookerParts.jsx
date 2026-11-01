@@ -27,7 +27,7 @@ function AheadNotice({ ahead, phone, onAhead }) {
   }
   return (
     <div className="vbInfo vbAhead" role="status">
-      <span>تا دو هفتهٔ دیگه جا نیست؛ به سالن پیام بده</span>
+      <span>تا دو هفتهٔ دیگه جا نیست؛ به سالن زنگ بزن</span>
       {phone ? <a className="vbAction" href={telHref(phone)}>تماس</a> : null}
     </div>
   );
@@ -75,10 +75,10 @@ export function TimesList({ state, role, onPick, onRetry, onAhead, onChain, phon
       <>
         <p className="vbInfo" role="status">
           {withName
-            ? `${withName} این روز وقت خالی نداره؛ یه روز دیگه رو ببین یا با یکی دیگه از تیم رزرو کن.`
+            ? `${withName} این روز وقت خالی نداره؛ یه روز دیگه یا یکی دیگه از تیم رو انتخاب کن.`
             : state.picked.length > 1 || (group && state.chain)
-            ? "این روز ساعتی نیست که همهٔ این کارها پشت‌سرهم جا بشن. یه روز دیگه انتخاب کن."
-            : role === "artist" ? "این روز ساعت خالی‌ای به این اندازه نیست." : "این روز ساعت خالی نداره. یه روز دیگه انتخاب کن."}
+            ? "این روز برای همهٔ این کارها پشت‌سرهم جا نیست؛ یه روز دیگه انتخاب کن."
+            : role === "artist" ? "این روز برای این کار جای خالی نداره." : "این روز ساعت خالی نداره. یه روز دیگه انتخاب کن."}
         </p>
         {isClient ? <AheadNotice ahead={times.ahead} phone={phone} onAhead={onAhead} /> : null}
       </>
@@ -183,7 +183,7 @@ export function PlanList({ role, state, onStaff, onRetry }) {
                       onClick={() => { if (unavailable) return; onStaff(index, option.name); setOpenIndex(-1); }}
                     >
                       {option.name}
-                      <small>{option.away || (!option.free ? "مشغول" : option.skilled ? "" : "تخصص دیگر")}</small>
+                      <small>{option.away || (!option.free ? "مشغول" : option.skilled ? "" : "تخصصش نیست")}</small>
                     </button>
                   );
                 })}

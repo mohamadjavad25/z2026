@@ -5,6 +5,8 @@ export function reportClientError(error, source = "window") {
   try {
     const message = String(error?.message || error || "unknown").slice(0, 500);
     if (message === lastMessage) return;
+    // Scripts an in-app browser (Instagram, Telegram…) injects into the page are not ours to fix.
+    if (/iabjs:\/\/|Java object is gone/.test(`${message} ${error?.stack || ""}`)) return;
     lastMessage = message;
     const payload = JSON.stringify({
       message,

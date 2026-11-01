@@ -298,7 +298,7 @@ export function SalonHoursEditor({
       </ul>
       <div className="hrsBtns">
         <button type="button" className="hrsBtn is-main" disabled={!copyTargets.length} onClick={applyCopy}>
-          {copyTargets.length ? `روی ${toPersianDigits(copyTargets.length)} روز بزن` : "یه روز انتخاب کن"}
+          {copyTargets.length ? `برای ${toPersianDigits(copyTargets.length)} روز بذار` : "یه روز انتخاب کن"}
         </button>
         <button type="button" className="hrsBtn" onClick={() => setCopyFrom(null)}>بی‌خیال</button>
       </div>
@@ -384,7 +384,7 @@ export function SalonHoursEditor({
               <div className="hrsSaveBar">
                 <span>{toPersianDigits(changedDays.length)} روز عوض شد</span>
                 <button type="button" onClick={requestSave} disabled={saving}>
-                  {saving ? "در حال ذخیره…" : "ذخیره"}
+                  {saving ? "دارم ذخیره می‌کنم…" : "ذخیره"}
                 </button>
               </div>
             ) : null}

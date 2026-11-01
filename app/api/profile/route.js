@@ -130,7 +130,7 @@ async function _POST(request) {
     const badInput = clientErrorResponse(error);
     if (badInput) return badInput;
     console.error(error);
-    return NextResponse.json({ error: "ذخیره پروفایل انجام نشد." }, { status: 500 });
+    return NextResponse.json({ error: "ذخیره نشد؛ دوباره بزن." }, { status: 500 });
   }
 }
 

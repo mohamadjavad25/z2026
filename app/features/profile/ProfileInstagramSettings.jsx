@@ -102,7 +102,7 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", av
       window.setTimeout(() => setCopied(false), 2200);
       onNotify?.(BIO_COPIED);
     } catch {
-      onNotify?.("کپی نشد؛ لینک رو نگه دار و کپی کن.");
+      onNotify?.("کپی نشد؛ انگشتت رو روی لینک نگه دار و کپی کن.");
     }
   }
 
@@ -140,7 +140,7 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", av
           ) : value ? <Check size={18} className="igSettingsSaved" aria-label="ذخیره شده" /> : null}
         </div>
         <p className={error ? "igSettingsError" : "igSettingsHelp"} id="igSettingsHelp" role={error ? "alert" : undefined}>
-          {error || `اسم پیجت یا لینکش رو بزن، مثلا ${example}`}
+          {error || `اسم پیجت یا لینکش رو بزن، مثلاً ${example}`}
         </p>
 
         <div className="igSettingsBio">
@@ -153,7 +153,7 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", av
             {copied ? "کپی شد" : "کپی لینک"}
           </button>
         </div>
-        <p className="igSettingsHelp">بذارش تو بیو؛ دنبال‌کننده‌هات با یه لمس نوبت می‌گیرن.</p>
+        <p className="igSettingsHelp">بذارش تو بیو تا از اینستاگرام با یه لمس نوبت بگیرن.</p>
 
         <button type="button" className="igSettingsStory" onClick={() => setStoryOpen(true)}>
           <span className="igSettingsStoryText">
@@ -176,7 +176,7 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", av
       {askClear ? (
         <div className="profileLocationAsk" role="alertdialog" aria-label="برداشتن پیج اینستاگرام">
           <strong>پیج اینستاگرامت از صفحه‌ت برداشته بشه؟</strong>
-          <span>پوشه‌ی اینستاگرام از صفحه‌ت می‌ره.</span>
+          <span>مشتری‌ها دیگه از صفحه‌ت به پیجت نمی‌رسن.</span>
           <div>
             <button type="button" className="profileLocationAskYes" disabled={saving} onClick={async () => { const r = await onSave?.(""); if (r?.ok) setAskClear(false); }}>آره، بردار</button>
             <button type="button" className="profileLocationAskNo" onClick={() => setAskClear(false)}>نه، بمونه</button>

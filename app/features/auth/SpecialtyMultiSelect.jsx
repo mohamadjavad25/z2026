@@ -138,7 +138,7 @@ export function SpecialtyMultiSelect({
               }
             }}
           />
-          <button type="button" onClick={addCustomOption} aria-label="افزودن" disabled={!draft.trim()}>
+          <button type="button" onClick={addCustomOption} aria-label="اضافه کن" disabled={!draft.trim()}>
             <Plus size={16} />
           </button>
         </div>

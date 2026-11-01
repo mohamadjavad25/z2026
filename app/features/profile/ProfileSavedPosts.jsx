@@ -184,8 +184,8 @@ export function ProfileSavedPosts({
         <ProfileEmptyState
           className="emptySavedState"
           visual={<Mascot pose="saved-empty" size={150} />}
-          title="هنوز چیزی نشون نکردی"
-          description="هر جا ذخیره رو زدی، اینجا جمع می‌شه."
+          title="هنوز چیزی ذخیره نکردی"
+          description="هر چی ذخیره کنی، اینجا جمع می‌شه."
         />
       ) : null}
     </div>

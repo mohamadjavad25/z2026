@@ -137,7 +137,7 @@ export function ProfileHero({
           open={qrSheetOpen}
           url={salonPublicUrl}
           name={name}
-          hint="مشتری‌ها این کد رو اسکن کنن، بهت وصل می‌شن و از همون‌جا نوبت می‌گیرن. برای آوردن آرتیست به تیمت، از «پرسنل ← دعوت آرتیست» کد تیم رو نشونش بده."
+          hint="مشتری اسکنش کنه، بهت وصل می‌شه و نوبت می‌گیره. برای آوردن آرتیست به تیمت، برو «پرسنل ← دعوت آرتیست»."
           onScan={scanFromSheet}
           onOpenChange={setQrSheetOpen}
         />
@@ -233,7 +233,7 @@ export function ProfileHero({
           open={qrSheetOpen}
           url={artistPublicUrl}
           name={name}
-          hint="مشتری‌ها این کد رو اسکن کنن بهت وصل می‌شن، و سالن‌ها دعوتت می‌کنن به تیمشون."
+          hint="مشتری اسکنش کنه، بهت وصل می‌شه؛ سالن هم با همین کد به تیمش دعوتت می‌کنه."
           onScan={scanFromSheet}
           onOpenChange={setQrSheetOpen}
         />

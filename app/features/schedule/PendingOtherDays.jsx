@@ -20,10 +20,10 @@ export function PendingOtherDays({ requests = [], visibleIds = [], onSelectDay }
   const days = [...byDay.entries()].sort(([a], [b]) => a.localeCompare(b));
   const total = days.reduce((sum, [, count]) => sum + count, 0);
   return (
-    <div className="pendingOtherDays" role="group" aria-label="درخواست‌های روزهای دیگر">
+    <div className="pendingOtherDays" role="group" aria-label="درخواست‌های روزهای دیگه">
       <span className="pendingOtherDaysTitle">
         <BellRing size={14} aria-hidden="true" />
-        {toPersianDigits(total)} درخواست در روزهای دیگر
+        {toPersianDigits(total)} درخواست توی روزهای دیگه
       </span>
       <span className="pendingOtherDaysList">
         {days.map(([dateKey, count]) => (

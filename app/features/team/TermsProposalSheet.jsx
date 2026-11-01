@@ -62,9 +62,9 @@ export function TermsProposalSheet({ open, otherName, initial, busy, error, onSe
   return (
     <ProfileSheet open={open} kicker={isSalon ? "سالن" : isInvite ? "دعوت به تیم" : "شرایط کار"} title={isSalon ? "شرایط همکاری" : isInvite ? `دعوت ${otherName}` : `پیشنهاد تو به ${otherName}`} panelClassName={`tsSheet${isInvite ? " tsInviteSheet" : ""}`} onClose={onClose} hideClose>
       {isSalon ? (
-        <p className="tsLead">برای آرتیست‌های تازه‌ست؛ کسایی که الان تو تیمن دست نمی‌خورن.</p>
+        <p className="tsLead">فقط برای آرتیست‌های تازه‌ست؛ شرایط کسایی که الان تو تیمن عوض نمی‌شه.</p>
       ) : isInvite ? (
-        <p className="tsLead">این شرایط عمومی سالنته. اگه برای {otherName} چیزی فرق داره، همین‌جا عوضش کن. تا قبول نکنه، توی تیمت نیست.</p>
+        <p className="tsLead">شرایط همیشگی سالنته؛ اگه برای {otherName} فرق داره، همین‌جا عوضش کن. تا قبول نکنه، توی تیمت نیست.</p>
       ) : (
         <p className="tsLead">فقط چیزی رو عوض کن که می‌خوای عوض شه. {mode === "join" ? `تا ${otherName} جواب نده، هنوز تو تیم نیستی.` : mode === "counter" ? `تا ${otherName} جواب نده، هنوز تو تیمت نیست.` : `تا ${otherName} جواب نده، شرایط قبلی می‌مونه.`}</p>
       )}
@@ -123,7 +123,7 @@ export function TermsProposalSheet({ open, otherName, initial, busy, error, onSe
       )}
 
       {error || problem ? <p className="tsError" role="alert">{error || problem}</p> : null}
-      <button type="button" className="tsSend" disabled={busy || Boolean(problem)} onClick={send}>{busy ? "یه لحظه…" : isSalon ? "ذخیره" : isInvite ? "بفرست دعوت" : `بفرست برای ${otherName}`}</button>
+      <button type="button" className="tsSend" disabled={busy || Boolean(problem)} onClick={send}>{busy ? "یه لحظه…" : isSalon ? "ذخیره" : isInvite ? "دعوت رو بفرست" : `بفرست برای ${otherName}`}</button>
     </ProfileSheet>
   );
 }

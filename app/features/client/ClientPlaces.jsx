@@ -45,7 +45,7 @@ function serviceMeta(service) {
   return [
     service.duration ? toPersianDigits(service.duration) : "",
     price ? `${formatTomanNumber(price)} تومان` : ""
-  ].filter(Boolean).join(" · ");
+  ].filter(Boolean).join("، ");
 }
 
 function Avatar({ place, size = "md" }) {

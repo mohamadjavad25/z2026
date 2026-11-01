@@ -488,7 +488,7 @@ export function useArtistWorkspace({
         return;
       }
       setArtistCollabOffers((items) => ([payload.data?.collab, ...items].filter(Boolean)));
-      notify("پیشنهاد همکاریت آماده‌ست.");
+      notify(`پیشنهاد همکاریت رفت برای «${salon.name || "سالن"}».`);
     } catch {
       notify("پیشنهاد همکاری نرفت؛ دوباره بزن.");
     }

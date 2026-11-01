@@ -86,7 +86,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
             <div className="sduEmpty" role="status">
               <ServiceIconStrip size="md" />
               <b>هنوز خدمتی نذاشته</b>
-              <span>فعلاً خدمتی برای نوبت گرفتن نذاشته؛ بعداً یه سر بزن.</span>
+              <span>بعداً یه سر بزن.</span>
             </div>
           ) : (
             <>

@@ -18,7 +18,7 @@ export function PublicArtistServicesPanel({
         <div className="artistPublicServiceEmpty" role="status">
           <ServiceIconStrip size="md" />
           <b>هنوز خدمتی نذاشته</b>
-          <span>فعلاً خدمتی برای نوبت گرفتن نذاشته؛ بعداً یه سر بزن.</span>
+          <span>بعداً یه سر بزن.</span>
         </div>
       ) : (
         <div className="spvServiceList">

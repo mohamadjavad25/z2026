@@ -99,7 +99,7 @@ function TimeOfferBlock({ booking, offer, onAnswer }) {
           ? "اگه رد کنی، این نوبت لغو می‌شه."
           : otherTimes.length
             ? `اگه رد کنی، این نوبت لغو می‌شه. ساعت‌های خالی دیگهٔ این روز: ${otherTimes.slice(0, 4).map((time) => toPersianDigits(time)).join("، ")}${otherTimes.length > 4 ? " و …" : ""}`
-            : "این روز ساعت خالی دیگه‌ای برای این کارها نداره؛ اگه رد کنی، نوبت لغو می‌شه و باید یه روز دیگه بگیری."}
+            : "اگه رد کنی، این نوبت لغو می‌شه؛ این روز ساعت خالی دیگه‌ای نداره."}
       </p>
       <div className="cbOfferActions">
         <button type="button" className="is-accept" disabled={Boolean(answering)} onClick={() => send(true)}>

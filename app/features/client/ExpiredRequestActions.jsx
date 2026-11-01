@@ -110,7 +110,7 @@ function PlacesSheet({ booking, clientName, onClose, onNotify, onFindPlaces, onO
         ) : null}
         {state.status === "ready" && !state.places.length ? (
           <div className="erEmpty">
-            <p role="status">هنوز جای دیگه‌ای وصل نکردی. شمارهٔ یه سالن یا آرتیست دیگه رو بزن.</p>
+            <p role="status">هنوز به جای دیگه‌ای وصل نشدی؛ از همین‌جا یکی رو اضافه کن.</p>
             <AddPlaceActions
               clientName={clientName}
               onNotify={onNotify}

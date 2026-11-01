@@ -17,12 +17,12 @@ async function _GET(request, { params }) {
   }
   const viewer = await getUserFromRequest(request);
   const artist = await artists.getPublicArtist(artistUserId, viewer?.id || null);
-  if (!artist) return NextResponse.json({ error: "آرتیست یافت نشد." }, { status: 404 });
+  if (!artist) return NextResponse.json({ error: "این آرتیست رو پیدا نکردیم." }, { status: 404 });
   // An artist switched to "خصوصی" in تنظیمات → ویترین عمومی آرتیست is only
   // visible to its own owner, same rule GET /api/salons/[id] already
   // enforces for its equivalent toggle.
   if (!artist.isPublic && viewer?.id !== artistUserId) {
-    return NextResponse.json({ error: "آرتیست یافت نشد." }, { status: 404 });
+    return NextResponse.json({ error: "این آرتیست رو پیدا نکردیم." }, { status: 404 });
   }
   // The number is the artist's login phone: only a signed-in viewer gets it (the app's «تماس با آرتیست»); the public
   // web page never shows it, so an anonymous request does not get it either.

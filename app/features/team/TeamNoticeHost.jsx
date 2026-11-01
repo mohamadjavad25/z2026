@@ -44,9 +44,9 @@ export function TeamNoticeHost({ profileType }) {
   const removed = notice.kind === "removed" || gone;
   const title = removed ? `همکاری با ${notice.fromName} تموم شد` : `${notice.fromName} از تیمت رفت`;
   const text = gone
-    ? `${notice.fromName} حسابش رو پاک کرد. نوبت‌های خودت سر جاشه.`
+    ? `${notice.fromName} حسابش رو پاک کرد. نوبت‌های خودت سر جاشونن.`
     : removed
-    ? `${notice.fromName} تو رو از تیمش برداشت. نوبت‌های خودت سر جاشه.`
+    ? `${notice.fromName} تو رو از تیمش برداشت. نوبت‌های خودت سر جاشونن.`
     : "دیگه توی تیمت نیست و نوبت تازه‌ای به اسمش نمیاد.";
 
   return (

@@ -51,7 +51,7 @@ export function SubscriptionCard() {
         <b className="billCardTitle">{view.title}</b>
         <p className="billCardSub">{view.sub}</p>
         {meterPct !== null ? (
-          <div className="billMeter" role="progressbar" aria-label="روزهای باقی‌مانده" aria-valuemin={0} aria-valuemax={100} aria-valuenow={meterPct} aria-valuetext={`${toPersianDigits(meterPct)} درصد مانده`}>
+          <div className="billMeter" role="progressbar" aria-label="روزهای باقی‌مانده" aria-valuemin={0} aria-valuemax={100} aria-valuenow={meterPct} aria-valuetext={`${toPersianDigits(meterPct)} درصد مونده`}>
             <i style={{ width: `${Math.max(meterPct, 3)}%` }} />
           </div>
         ) : null}
@@ -89,7 +89,7 @@ function TestAccountCard() {
           <span className="billBadge is-brand"><FlaskConical size={13} aria-hidden="true" /> حساب آزمایشی</span>
         </div>
         <b className="billCardTitle">این حساب همیشه رایگانه</b>
-        <p className="billCardSub">اشتراک نمی‌خواد و بسته نمی‌شه. توی جست‌وجو و فهرست سالن‌ها و آرتیست‌ها هم دیده نمی‌شه؛ فقط با لینک صفحه‌ش می‌شه رفت سراغش.</p>
+        <p className="billCardSub">اشتراک نمی‌خواد و توی جستجو دیده نمی‌شه؛ فقط با لینک صفحه‌ش باز می‌شه.</p>
       </div>
     </section>
   );
@@ -112,7 +112,7 @@ function PaymentsOffCard({ overview }) {
         </div>
         <b className="billCardTitle">فعلاً همه‌چی رایگانه</b>
         <p className="billCardSub">
-          پرداخت هنوز باز نشده. از روزی که باز بشه، {toPersianDigits(overview.trialDays)} روز رایگان داری و از همون روز شمارشش شروع می‌شه. بعدش با یکی از این پلن‌ها ادامه می‌دی.
+          پرداخت هنوز باز نشده. از روزی که باز بشه، {toPersianDigits(overview.trialDays)} روز رایگان داری؛ بعدش با یکی از این پلن‌ها ادامه می‌دی.
         </p>
         <ul className="billOffPlans">
           {overview.plans.map((plan) => (

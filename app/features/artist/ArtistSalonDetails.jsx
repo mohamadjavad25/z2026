@@ -43,7 +43,7 @@ export function ArtistSalonDetails({ card, team, leaveBusy, onLeave, onOpenSelf 
             <p className="cwSub">{weekSentence(week) || "الان هیچ روزی با ساعت سالن جور نیست."}</p>
           </>
         ) : (
-          <p className="cwSub">هنوز ساعت کاریت رو نذاشتی. از تنظیمات بذارش تا مشتری‌ها بدونن کی هستی.</p>
+          <p className="cwSub">هنوز ساعت کاریت رو نذاشتی؛ از تنظیمات بذارش.</p>
         )}
         {away ? <p className="cwSub">{team.salonName} تو رو مرخصی گذاشته. تا برگردی نوبت تازه نمی‌گیری.</p> : null}
         <div>
@@ -215,7 +215,7 @@ export function ArtistSelfSheet({ open, team, artistName, onClose, onChanged }) 
           <p className="cwSub">هنوز نمونه‌کاری نذاشتی. از تب «نمونه‌کار» یکی بذار، بعد برای این سالن بفرستش.</p>
         )}
         {message ? <p className="cwSub" role="alert" style={{ color: "var(--danger)" }}>{message}</p> : null}
-        <p className="cwSub">پست وقتی روی صفحهٔ سالن میاد که سالن قبولش کنه. تا ۱۰ تا پست می‌تونن هم‌زمان منتظر جواب باشن.</p>
+        <p className="cwSub">هر پست وقتی سالن قبولش کنه روی صفحه‌ش میاد؛ هم‌زمان تا ۱۰ تا می‌تونن منتظر باشن.</p>
       </section>
     </ProfileSheet>
   );

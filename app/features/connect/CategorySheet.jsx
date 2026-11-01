@@ -103,7 +103,7 @@ export function CategorySheet({ category, matches = [], hasConnections = false, 
 
         {matches.length && !finding ? (
           <button type="button" className="cnSheetMore" onClick={() => setFinding(true)}>
-            سالن یا آرتیست دیگری می‌خواهم
+            سالن یا آرتیست دیگه می‌خوام
           </button>
         ) : null}
 
@@ -111,8 +111,8 @@ export function CategorySheet({ category, matches = [], hasConnections = false, 
           <div className="cnFindBlock">
             <p className="cnFindHint">
               {contacts
-                ? "سالن یا آرتیستی که همیشه پیشش می‌ری رو از مخاطب‌هات انتخاب کن، یا QRش رو اسکن کن."
-                : "شمارهٔ سالن یا آرتیستی که می‌شناسی رو بزن، یا QRش رو اسکن کن."}
+                ? "سالن یا آرتیستت رو از مخاطب‌هات انتخاب کن، یا QRش رو اسکن کن."
+                : "شمارهٔ سالن یا آرتیستت رو بزن، یا QRش رو اسکن کن."}
             </p>
             <div className="cnScanRow">
               {contacts ? (

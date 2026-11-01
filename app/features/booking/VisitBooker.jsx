@@ -195,10 +195,10 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
       <div className="vb vbNoService" role="group" aria-label={title}>
         <span className="vbNoServiceIcon"><Scissors size={30} aria-hidden="true" /></span>
         <h2>اول خدمت‌هات رو اضافه کن</h2>
-        <p>برای ثبت نوبت دست‌کم یه خدمت لازمه تا مدت نوبت و ساعت‌های خالی حساب بشه. فقط یه بار.</p>
+        <p>برای ثبت نوبت دست‌کم یه خدمت لازمه؛ فقط یه بار.</p>
         <button type="button" className="vbSubmit" onClick={onAddService}>
           <Plus size={18} aria-hidden="true" />
-          افزودن خدمت
+          خدمت تازه
         </button>
         <button type="button" className="vbLink" onClick={onClose}>بعداً</button>
       </div>
@@ -251,7 +251,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
         {/* The client's own name and number are already known; the card shows only to ask for a missing number. */}
         {phoneMissing ? (
           <section className="vbWho is-readonly" aria-label="اطلاعات تماس">
-            <span><small>شماره موبایل</small><b dir="ltr">نداری هنوز</b></span>
+            <span><small>شماره موبایل</small><b dir="ltr">هنوز نذاشتی</b></span>
             {typeof onEditProfile === "function" ? (
               <button type="button" className="vbLink" onClick={onEditProfile}>شماره‌ت رو بذار</button>
             ) : null}

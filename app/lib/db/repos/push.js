@@ -14,7 +14,7 @@ export async function saveSubscription(userId, subscription) {
   const endpoint = String(subscription?.endpoint || "");
   const p256dh = String(subscription?.keys?.p256dh || "");
   const auth = String(subscription?.keys?.auth || "");
-  if (!userId || !endpoint || !p256dh || !auth) return { ok: false, error: "اشتراک نامعتبر است." };
+  if (!userId || !endpoint || !p256dh || !auth) return { ok: false, error: "اعلان‌ها روشن نشد؛ دوباره بزن." };
 
   const db = await getDb();
   await run(db, `

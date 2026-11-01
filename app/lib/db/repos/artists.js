@@ -349,7 +349,7 @@ export async function createJoinProposal(artistUserId, input) {
     }
     const terms = await getJoinTerms(salonUserId, tx, { lock: true });
     if (!joinTermsReady(terms)) return { ok: false, code: "TERMS_NOT_READY", error: "این لینک هنوز آماده نیست؛ از سالن بخواه شرایط همکاری رو بذاره." };
-    if (!terms.allowProposals) return { ok: false, code: "PROPOSALS_OFF", error: "این سالن پیشنهاد دیگه قبول نمی‌کنه؛ با شرایطش بپیوند." };
+    if (!terms.allowProposals) return { ok: false, code: "PROPOSALS_OFF", error: "این سالن پیشنهاد شرایط قبول نمی‌کنه؛ با همین شرایطش بیا توی تیم." };
     if (Number(input.termsVersion) !== terms.version) {
       return { ok: false, code: "TERMS_CHANGED", error: "سالن شرایط رو عوض کرده؛ یه بار دیگه ببین و بعد پیشنهادت رو بفرست.", terms };
     }
@@ -420,7 +420,7 @@ export async function acceptSalonCollab(id, salonUserId) {
     if (fromJoinPage) {
       // The salon's opening hours may have changed since she asked: never agree to hours the salon is closed in.
       const checked = await checkTerms(salonUserId, { days: row.days, from: row.from_time, to: row.to_time, share: row.share_percent, ownShare: row.own_share_percent }, tx);
-      if (!checked.ok) throw new Refusal({ ok: false, code: "TERMS_INVALID", error: `این پیشنهاد دیگه با ساعت سالن جور نیست (${checked.error}) شرایط خودت رو پیشنهاد بده.` });
+      if (!checked.ok) throw new Refusal({ ok: false, code: "TERMS_INVALID", error: `این پیشنهاد دیگه با ساعت سالن جور نیست: ${checked.error} شرایط خودت رو پیشنهاد بده.` });
       terms = checked.value;
     }
     await run(tx, "UPDATE artist_collabs SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2", [COLLAB_ACCEPTED, row.id]);

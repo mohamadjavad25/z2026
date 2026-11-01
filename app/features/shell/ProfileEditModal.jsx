@@ -113,7 +113,7 @@ export function ProfileEditModal({
             {/* Clients are never asked for an email (owner, 2026-11-01). */}
             {isClient ? null : (
               <label className="peField">
-                <span>ایمیل <em>اگه بخوای؛ برای خبرها و وقتی رمزت یادت رفت</em></span>
+                <span>ایمیل <em>اگه بخوای</em></span>
                 <input
                   name="email"
                   defaultValue={profile.data?.email || ""}

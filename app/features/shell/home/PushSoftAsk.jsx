@@ -14,7 +14,7 @@ export function PushSoftAsk() {
             <BellRing size={17} />
             <div>
               <b>اعلان‌ها رو روشن کن</b>
-              <small>تا حتی وقتی اپ بسته‌ست بفهمی نوبتت تأیید شد یا نه.</small>
+              <small>تا وقتی اپ بسته‌ست هم خبر نوبت‌ها بهت برسه.</small>
             </div>
             <div className="pushSoftAskActions">
               <button

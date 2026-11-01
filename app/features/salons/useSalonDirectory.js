@@ -182,7 +182,7 @@ export function useSalonDirectory({
       )));
       notify(accept
         ? `نوبتت برای ساعت ${updated.time || booking.time} قطعی شد!`
-        : "درخواست لغو شد. یه ساعت دیگه بگیر.");
+        : "درخواستت لغو شد؛ یه ساعت دیگه بگیر.");
       return true;
     } catch {
       notify("جوابت نرسید؛ دوباره بزن.");
@@ -203,7 +203,7 @@ export function useSalonDirectory({
         notify(payload?.error || "جوابت نرسید؛ دوباره بزن.");
         return false;
       }
-      notify(action === "accept" ? "قبول شد؛ نوبتت رفت ساعت تازه." : "نوبت لغو شد؛ اشکال نداره، هر وقت خواستی دوباره بگیر.");
+      notify(action === "accept" ? "قبول شد؛ نوبتت رفت ساعت تازه." : "نوبت لغو شد؛ هر وقت خواستی دوباره بگیر.");
       return true;
     } catch {
       notify("جوابت نرسید؛ اینترنتت رو یه نگاه بنداز و دوباره بزن.");
@@ -424,7 +424,7 @@ export function useSalonDirectory({
   const submitSalonClientVisit = useCallback(async (body) => {
     const salonUserId = selectedSalon?.id || selectedSalon?.source_key;
     if (!salonUserId) return { ok: false, status: 0, payload: { error: "سالن پیدا نشد؛ صفحه رو دوباره باز کن." } };
-    if (clientVisitBusyRef.current) return { ok: false, status: 0, payload: { error: "قبلیه هنوز تموم نشده؛ یه لحظه صبر کن." } };
+    if (clientVisitBusyRef.current) return { ok: false, status: 0, payload: { error: "درخواستت داره می‌ره؛ یه لحظه صبر کن." } };
     clientVisitBusyRef.current = true;
     try {
       const { ok, payload, status } = await createSalonBooking({ ...body, salonUserId, status: "درخواست" });

@@ -20,7 +20,7 @@ export function visitSlotProblem({ hours, bookingDateKey, time, durationMinutes,
   if (isClient && isTooSoonToRequest(bookingDateKey, time, now)) {
     return {
       status: 409,
-      error: `این ساعت خیلی نزدیکه؛ سالن باید دست‌کم ${toPersianDigits(BOOKING_REQUEST_LEAD_MINUTES)} دقیقه وقت داشته باشه جواب بده. یه ساعت دیرتر بزن.`,
+      error: `این ساعت خیلی نزدیکه؛ سالن فرصت جواب نداره. ساعتی رو بزن که دست‌کم ${toPersianDigits(BOOKING_REQUEST_LEAD_MINUTES)} دقیقه بعد باشه.`,
       code: "TOO_SOON"
     };
   }

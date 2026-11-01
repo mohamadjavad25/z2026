@@ -47,7 +47,7 @@ function noteOf(booking) {
   if (tone === "bad" && isPlaceGone(booking)) return { Icon: Ban, tone, text: `${booking.bookingSource === "artist" ? ARTIST_GONE_TEXT : SALON_GONE_TEXT}؛ نوبت ${service} لغو شد`, when };
   if (tone === "bad" && booking.cancelled_by === "provider") return { Icon: Ban, tone, text: cancelledByProviderText(booking.bookingSource === "artist" ? "artist" : "salon", booking.salonName || booking.salon_name || ""), when };
   if (tone === "bad") return { Icon: Ban, tone, text: `نوبت ${service} در ${place} لغو شد`, when };
-  if (tone === "expired") return { Icon: TimerOff, tone, text: `${place} به درخواست ${service} جواب نداد؛ تموم شد`, when };
+  if (tone === "expired") return { Icon: TimerOff, tone, text: `${place} به درخواست ${service} جواب نداد؛ وقتش تموم شد`, when };
   if (booking.no_show_at) return { Icon: Ban, tone: "bad", text: noShowClientText(booking.bookingSource === "artist" ? "artist" : "salon", booking.salonName || booking.salon_name || ""), when };
   return { Icon: CheckCircle2, tone: "done", text: `نوبت ${service} در ${place} انجام شد`, when };
 }
@@ -149,13 +149,13 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
                     {awaitingClient ? (
                       <p className="cvNote">
                         <CalendarClock size={14} aria-hidden="true" />
-                        سالن یه ساعت تازه پیشنهاد داده؛ کارت رو باز کن و جواب بده.
+                        سالن یه ساعت تازه پیشنهاد داده؛ بازش کن و جواب بده.
                       </p>
                     ) : null}
                     {proposal ? (
                       <p className="cvNote">
                         <CalendarClock size={14} aria-hidden="true" />
-                        {booking.bookingSource === "artist" ? "آرتیست" : "سالن"} می‌خواد نوبتت رو جابه‌جا کنه؛ کارت رو باز کن و جواب بده.
+                        {booking.bookingSource === "artist" ? "آرتیست" : "سالن"} می‌خواد نوبتت رو جابه‌جا کنه؛ بازش کن و جواب بده.
                       </p>
                     ) : null}
                     {!proposal && booking.proposal_lapsed_at ? (

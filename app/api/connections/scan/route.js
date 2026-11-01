@@ -27,7 +27,7 @@ async function _POST(request) {
 
   if (!result.alreadyConnected) {
     notifyConnection(result.client.id, {
-      title: "وصل شدین",
+      title: "وصل شدی",
       body: `${owner.name || (owner.type === "salon" ? "سالن" : "آرتیست")} رفت توی «سالن و آرتیست‌هات»؛ از همون‌جا نوبت بگیر.`
     });
   }

@@ -35,17 +35,17 @@ function profileAction(viewerType, profile, relation, joinCode) {
   if (viewerType === "salon") {
     if (relation === "member") return { note: "توی تیمته." };
     if (relation === "invited") return { note: "دعوتش کردی؛ منتظر جواب آرتیسته." };
-    return { note: "آرتیست دعوت رو که ببینه، تأیید می‌کنه.", label: "دعوتش کن به تیم", kind: "invite" };
+    return { note: "اگه دعوتت رو قبول کنه، میاد توی تیمت.", label: "دعوتش کن به تیم", kind: "invite" };
   }
   if (relation === "member") return { note: "توی تیم همین سالنی." };
   // A plain salon profile code proves nothing about who showed it -- only the
   // salon's own dedicated QR/link (with a secret) can join the team instantly.
   // Without it, the artist can send a collaboration proposal from the salon's page (owner's decision 2026-10-25).
   if (!joinCode) {
-    return { note: "این کد صفحهٔ سالنه؛ برای اومدن به تیم، پیشنهاد همکاری بفرست تا سالن جواب بده.", label: "پیشنهاد همکاری", kind: "propose" };
+    return { note: "این کد صفحهٔ سالنه؛ برای اومدن به تیمش، پیشنهاد همکاری بفرست.", label: "پیشنهاد همکاری", kind: "propose" };
   }
   return {
-    note: profile.rules ? "با رفتن به تیم، قوانین سالن رو قبول داری." : "می‌ری توی پرسنل این سالن.",
+    note: profile.rules ? "با رفتن به تیم، قوانین سالن رو قبول داری." : "می‌ری توی تیم این سالن.",
     label: profile.rules ? "قبول دارم، برم توی تیم" : "برم توی تیم",
     kind: "join"
   };

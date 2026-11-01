@@ -322,7 +322,7 @@ function Element({ el, tap, icons }) {
           <span {...at(`${el.id}.1`)} className={cx("lsNavMe", tap === `${el.id}.1` && "is-target", el.on === 1 && "is-on")} />
           <span {...at(`${el.id}.2`)} className={cx(tap === `${el.id}.2` && "is-target", el.on === 2 && "is-on")}>
             {el.biz ? <Users aria-hidden="true" /> : <CalendarPlus aria-hidden="true" />}
-            {el.biz ? "مشتریان" : "رزرو"}
+            {el.biz ? "مشتری‌هام" : "رزرو"}
           </span>
         </div>
       );

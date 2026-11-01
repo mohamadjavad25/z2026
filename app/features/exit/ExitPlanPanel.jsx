@@ -130,7 +130,7 @@ export function ExitPlanPanel({ plan, scope, params = {}, message = "", confirmL
     <section className="pxPanel" aria-live="polite">
       {message ? <p className="pxAlert">{message}</p> : null}
       {error ? <p className="pxAlert is-error">{error}</p> : null}
-      {nothing ? <p className="pxMuted">دیگه نوبتی جلوی این کار رو نگرفته.</p> : null}
+      {nothing ? <p className="pxMuted">دیگه نوبتی سر راه نیست؛ می‌تونی ادامه بدی.</p> : null}
       {near.length ? (
         <>
           <h4>تا ۲۴ ساعت دیگه</h4>

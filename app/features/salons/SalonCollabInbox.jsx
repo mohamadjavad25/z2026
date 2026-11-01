@@ -50,7 +50,7 @@ export function SalonCollabInbox({ requests = [], busyId = "", onApprove, onDecl
                 </span>
                 <div>
                   <strong>{request.artistName}</strong>
-                  <small>{request.artistService || request.artistArea || "آرتیست frfro"}</small>
+                  <small>{request.artistService || request.artistArea || "آرتیست فرفرو"}</small>
                 </div>
               </div>
               <div className="salonCollabDeal">

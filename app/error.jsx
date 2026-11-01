@@ -20,10 +20,10 @@ export default function ErrorBoundary({ error, reset }) {
       <div className="errorPage__inner">
         <p className="errorPage__code">خطا</p>
         <h1 className="errorPage__title">یه مشکلی پیش اومد</h1>
-        <p className="errorPage__desc">این صفحه با خطا مواجه شد. می‌تونی دوباره امتحان کنی یا برگردی به صفحه‌ی اصلی.</p>
+        <p className="errorPage__desc">این صفحه درست باز نشد. دوباره امتحان کن، یا برگرد به صفحهٔ اول.</p>
         <div className="errorPage__actions">
-          <button type="button" className="errorPage__retry" onClick={reset}>تلاش دوباره</button>
-          <a href="/" className="errorPage__back">بازگشت به frfro</a>
+          <button type="button" className="errorPage__retry" onClick={reset}>دوباره امتحان کن</button>
+          <a href="/" className="errorPage__back">برگرد به فرفرو</a>
         </div>
       </div>
     </main>

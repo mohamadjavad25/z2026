@@ -114,8 +114,8 @@ export function noticeClientPlaceMoved(clientUserId, { artistName, salonName, sa
   const artist = artistName || "آرتیست";
   const salon = salonName || "سالن";
   const body = salonGone
-    ? `${salon} دیگه توی فرفرو نیست. نوبتت با ${artist} (${booking.service || "نوبت"}) جای خود ${artist} برگزار می‌شه. اگه نمی‌خوای، لغوش کن.`
-    : `${artist} دیگه توی ${salon} نیست. نوبتت (${booking.service || "نوبت"}) جای خود ${artist} برگزار می‌شه. اگه نمی‌خوای، لغوش کن.`;
+    ? `${salon} دیگه توی فرفرو نیست؛ نوبتت (${booking.service || "نوبت"}) می‌ره جای خود ${artist}. اگه نمی‌خوای، لغوش کن.`
+    : `${artist} دیگه توی ${salon} نیست؛ نوبتت (${booking.service || "نوبت"}) می‌ره جای خود ${artist}. اگه نمی‌خوای، لغوش کن.`;
   void quiet(sendPushToUser(Number(clientUserId), { title: "جای نوبتت عوض شد", body, url: "/" }));
 }
 
@@ -125,7 +125,7 @@ export function noticeClientPlaceChanged(clientUserId, { artistName, toSalonName
   const artist = artistName || "آرتیست";
   const what = `${booking.service || "نوبت"}، ${bookingWhen(booking.booking_date, booking.time)}`;
   const body = toSalonName
-    ? `${artist} جای نوبتت (${what}) رو عوض کرد. حالا توی ${toSalonName} برگزار می‌شه. ساعتش همونه.`
-    : `${artist} جای نوبتت (${what}) رو عوض کرد. حالا جای خود ${artist} برگزار می‌شه. ساعتش همونه.`;
+    ? `${artist} نوبتت (${what}) رو برد ${toSalonName}؛ ساعتش همونه.`
+    : `${artist} نوبتت (${what}) رو برد جای خودش؛ ساعتش همونه.`;
   void quiet(sendPushToUser(Number(clientUserId), { title: "جای نوبتت عوض شد", body, url: "/" }));
 }

@@ -193,7 +193,7 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
               <div className="cnEmpty">
                 <Mascot pose="connect" size={130} />
                 <b>هنوز به سالن یا آرتیستی وصل نشدی</b>
-                <p>اسم یا شماره‌ش رو بالا بزن، یا اگه پیشش هستی QRش رو اسکن کن. وصل که بشی، نوبت گرفتن یه ضربه‌ست.</p>
+                <p>اسم یا شماره‌ش رو بالا بزن، یا QRش رو اسکن کن؛ بعدش نوبت گرفتن یه ضربه‌ست.</p>
               </div>
             ) : null}
             {connections.map((profile) => (

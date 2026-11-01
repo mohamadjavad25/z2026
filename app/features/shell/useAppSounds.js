@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { playSound, unlockSounds } from "../../shared/lib/sounds";
-import { toLatinDigits } from "../../shared/lib/digits";
+import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { notify, onNotify } from "../../shared/notice/noticeStore";
@@ -169,8 +169,8 @@ export function useAppSounds({
           remind?.({
             kind: "ring",
             tone: "info",
-            title: `نوبت «${booking.service || "تو"}» نزدیکه`,
-            text: `${left} دقیقهٔ دیگه`,
+            title: booking.service ? `نوبت «${booking.service}» نزدیکه` : "نوبتت نزدیکه",
+            text: `${toPersianDigits(left)} دقیقهٔ دیگه`,
             big: String(left),
             p: Math.max(4, Math.round((minutes / REMINDER_LEAD_MINUTES) * 100))
           });

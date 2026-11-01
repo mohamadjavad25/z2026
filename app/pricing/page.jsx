@@ -59,7 +59,7 @@ export default function PricingPage() {
         <section className="legalPage__section pricePage__plans">
           <h2>پیامک مشتری‌ها</h2>
           <p>
-            هر ماه {toPersianDigits(SMS_INCLUDED_PER_MONTH)} پیامک برای مشتری‌هات توی اشتراکت هست و اول هر ماه دوباره پر می‌شه. اگه کم آوردی، بسته‌ی پیامک می‌خری. پیامک‌های بسته تموم نمی‌شن، مگر اینکه مصرفشون کنی.
+            هر ماه {toPersianDigits(SMS_INCLUDED_PER_MONTH)} پیامک برای مشتری‌هات توی اشتراکت هست و اول هر ماه دوباره پر می‌شه. اگه کم آوردی، بسته‌ی پیامک می‌خری که تاریخ انقضا نداره.
           </p>
           <ul className="pricePage__list">
             {SMS_PACKS.map((pack) => (

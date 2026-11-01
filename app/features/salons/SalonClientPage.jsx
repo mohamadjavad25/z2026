@@ -143,7 +143,7 @@ export function SalonClientPage({
       {active && selectedSalon ? (
         <section
           className="salonClientPage salonPublicProfile"
-          aria-label={`صفحه مشتری ${selectedSalon.name}`}
+          aria-label={`صفحهٔ ${selectedSalon.name}`}
         >
           <PublicProfileHeader
             cover={selectedSalon.poster || DEFAULT_COVER}
@@ -276,7 +276,7 @@ export function SalonClientPage({
             services={menuServices}
             focusNames={bookWith ? null : focus?.names}
             focusLabel={focus?.label && !bookWith ? `مناسب «${focus.label}»` : ""}
-            note={bookWith ? `کارهای ${bookWith.member.name}؛ نوبتت با خودش ثبت می‌شه.` : ""}
+            note={bookWith ? `نوبتت با خود ${bookWith.member.name} ثبت می‌شه.` : ""}
             browseOnly={Boolean(selectedSalon.onlineBookingPaused)}
             onConfirm={(picked) => {
               const member = bookWith?.member;
@@ -315,7 +315,7 @@ export function SalonClientPage({
                   <div className="salonPublicAllPortfolio">
                     {portfolioItems.map((item) => (
                       <figure key={item.id || item.title}>
-                        {item.image ? <img src={item.image} alt={item.title || "نمونه کار سالن"} loading="lazy" decoding="async" /> : <span style={getPortfolioCardStyle(item)} />}
+                        {item.image ? <img src={item.image} alt={item.title || "نمونه‌کار سالن"} loading="lazy" decoding="async" /> : <span style={getPortfolioCardStyle(item)} />}
                         <figcaption>{item.title || "نمونه‌کار"}</figcaption>
                       </figure>
                     ))}

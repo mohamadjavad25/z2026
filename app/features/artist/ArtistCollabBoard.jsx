@@ -224,7 +224,7 @@ function SwitchSheet({ target, ask, busy, error, onSave, onClose }) {
   if (ask) {
     return (
       <ProfileSheet open kicker={target.name} title={`مشتری‌هایی که خودشون ازت نوبت می‌گیرن هم بیان ${target.name}؟`} panelClassName="clwSheet" onClose={onClose}>
-        <p className="clwSheetText">اگه آره، آدرس {target.name} روی صفحه‌ت نوشته می‌شه و مشتری‌هات از همین الان میان اونجا. نوبت‌ها به اسم خودت می‌مونن و مشتری‌ها هم مال خودتن. هر وقت خواستی از همین تب عوضش کن.</p>
+        <p className="clwSheetText">اگه آره، آدرس {target.name} روی صفحه‌ت میاد و مشتری‌هات از همین الان میان اونجا؛ نوبت‌ها و مشتری‌ها مال خودت می‌مونن.</p>
         {problemNote}
         <div className="clwSheetActions">
           <button type="button" className="clwBtn is-ghost" disabled={working} onClick={onClose}>نه، بیان جای خودم</button>
@@ -494,7 +494,7 @@ export function ArtistCollabBoard({
                   <p className="clwInviteLead">{card.name} دعوتت کرده توی تیمش کار کنی.</p>
                   <TermsChips days={card.terms.days} from={card.terms.from} to={card.terms.to} share={card.terms.share} capacity={card.terms.capacity} />
                   <SalonRulesNote rules={card.rules} open />
-                  {card.rules ? <p className="salonRulesAgree">قبول کنی، یعنی قوانین سالن رو هم قبول داری.</p> : null}
+                  {card.rules ? <p className="salonRulesAgree">اگه قبول کنی، قوانین سالن رو هم قبول کردی.</p> : null}
                   <div className="clwSheetActions">
                     <button type="button" className="clwBtn is-ghost" disabled={String(inviteRespondBusyId) === String(card.invite.id)} onClick={() => onInviteRespond?.(card.invite.id, "رد شد")}>
                       <X size={15} aria-hidden="true" />

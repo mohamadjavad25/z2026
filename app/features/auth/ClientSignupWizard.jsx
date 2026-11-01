@@ -184,9 +184,7 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
           ) : null}
           <Button type="submit" block loading={busyStep} loadingLabel="دارم می‌فرستم…">{needsCode ? "کد بفرست" : "ادامه"}</Button>
           <p className="suwTerms">
-            با ادامه، <LegalLink doc="terms">قوانین</LegalLink> رو قبول داری
-            {" "}<span aria-hidden="true">·</span>{" "}
-            <LegalLink doc="privacy">حریم خصوصی</LegalLink>
+            با ادامه، <LegalLink doc="terms">قوانین</LegalLink> و <LegalLink doc="privacy">حریم خصوصی</LegalLink> رو قبول داری.
           </p>
         </>
       ) : null}
@@ -247,7 +245,7 @@ export function ClientSignupWizard({ otp, onComplete, busy = false, onLogin = nu
               <div className="suwPassword">
                 <input {...props} name="password" type={showPassword ? "text" : "password"} placeholder="رمز (دست‌کم ۸ حرف)" autoComplete="new-password" autoFocus
                   value={password} onChange={(event) => { setPassword(event.target.value); setError(""); }} />
-                <button type="button" className="suwEye" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "قایم کن رمز رو" : "نشونم بده رمز رو"}>
+                <button type="button" className="suwEye" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "رمز رو قایم کن" : "رمز رو نشونم بده"}>
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>

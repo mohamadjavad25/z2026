@@ -22,7 +22,7 @@ const TOPICS = [
 ];
 const CATEGORY_LABEL = Object.fromEntries(TOPICS.map(([value, label]) => [value, label]));
 const MIN_MESSAGE = 10;
-const REASON_LABEL = { spam: "اسپم یا تبلیغ", inappropriate: "محتوای نامناسب", fake: "جعلی یا گمراه‌کننده", copyright: "کپی از دیگران", other: "سایر" };
+const REASON_LABEL = { spam: "اسپم یا تبلیغ", inappropriate: "محتوای نامناسب", fake: "جعلی یا گمراه‌کننده", copyright: "کپی از کار دیگران", other: "سایر" };
 
 const digits = (value) => String(value).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
 const clock = (value) => digits(new Intl.DateTimeFormat("fa-IR-u-nu-latn", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Tehran" }).format(new Date(value)));
@@ -47,7 +47,7 @@ function stateOf(ticket) {
 }
 
 function titleOf(ticket) {
-  if (ticket.kind === "report") return `گزارش ${ticket.target_type === "user" ? "حساب" : "پست"}${ticket.subject ? `: ${ticket.subject}` : ""}`;
+  if (ticket.kind === "report") return `گزارش ${ticket.target_type === "user" ? "حساب" : "نمونه‌کار"}${ticket.subject ? `: ${ticket.subject}` : ""}`;
   return ticket.subject || (ticket.from_admin ? "پیام از پشتیبانی" : CATEGORY_LABEL[ticket.category] || "پیام به پشتیبانی");
 }
 
@@ -60,7 +60,7 @@ function TicketList({ onOpen, onNew }) {
   const [tickets, setTickets] = useState(null);
   const [failed, setFailed] = useState(false);
   const load = useCallback(async () => {
-    const { ok, payload } = await apiFetch("/api/support/tickets");
+    const { ok, payload } = await apiFetch("/api/support/tickets").catch(() => ({ ok: false }));
     if (ok) {
       setTickets(payload.data.tickets);
       setFailed(false);
@@ -145,7 +145,7 @@ function Thread({ id }) {
   const endRef = useRef(null);
 
   const load = useCallback(async (silent = false) => {
-    const { ok, payload } = await apiFetch(`/api/support/tickets/${id}`);
+    const { ok, payload = {} } = await apiFetch(`/api/support/tickets/${id}`).catch(() => ({ ok: false }));
     if (ok) setData(payload.data);
     else if (!silent) setData({ error: payload.error || "نیومد؛ دوباره بزن." });
     notifySupportRead();

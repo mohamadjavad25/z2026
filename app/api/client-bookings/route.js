@@ -20,7 +20,7 @@ async function _GET(request) {
   const auth = await requireUser(request);
   if (!auth.ok) return auth.response;
   if (auth.user.type !== "client") {
-    return NextResponse.json({ error: "فقط مشتری." }, { status: 403 });
+    return NextResponse.json({ error: "این بخش مال مشتری‌هاست." }, { status: 403 });
   }
   // No scheduler is guaranteed, so a client who is still waiting on a request that ran out of time
   // must not depend on an owner opening their app to see it close.

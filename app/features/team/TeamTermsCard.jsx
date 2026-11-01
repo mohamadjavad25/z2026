@@ -89,7 +89,7 @@ export function TeamTermsCard({ pair, otherName, onChanged }) {
     <section className="ttCard" aria-label="شرایط کار">
       <div className="ttHead"><b>شرایط کار</b>{current.effectiveFrom ? <small>از {keyLabel(current.effectiveFrom)}</small> : null}</div>
       {nothing && !upcoming ? (
-        <p className="ttNone">هنوز شرایطی ثبت نشده. روز، ساعت و درصد رو پیشنهاد بده تا حساب و کتاب بتونه حساب کنه.</p>
+        <p className="ttNone">هنوز شرایطی ثبت نشده؛ روز، ساعت و درصد رو پیشنهاد بده تا حساب درست دربیاد.</p>
       ) : nothing ? null : (
         <div className="ttRows">
           <div><CalendarDays size={15} aria-hidden="true" /><span>روزها</span><b>{current.days || "—"}</b></div>

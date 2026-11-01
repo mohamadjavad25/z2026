@@ -290,7 +290,7 @@ export function useAuthSession({
       Promise.resolve(onAuthenticatedRef.current?.(profile, { source: "register" })).catch(() => {});
     } catch {
       showNotice("حساب ساخته نشد؛ دوباره بزن.");
-      onShellNoticeRef.current?.("پروفایلت ذخیره نشد؛ دوباره بزن.");
+      onShellNoticeRef.current?.("حساب ساخته نشد؛ اینترنتت رو یه نگاه بنداز و دوباره بزن.");
     } finally {
       authBusyRef.current = false;
       setAuthBusy(false);

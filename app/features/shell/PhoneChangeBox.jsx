@@ -90,7 +90,7 @@ export function PhoneChangeBox({ phone = "", onChanged }) {
               placeholder="09123456789"
             />
           </label>
-          <small>کد به شمارهٔ تازه می‌ره. بعد از عوض شدن، بقیهٔ گوشی‌هات از حساب بیرون می‌رن و یه پیامک کوتاه هم به شمارهٔ قبلی می‌ره.</small>
+          <small>کد به شمارهٔ تازه می‌ره؛ بعدش بقیهٔ گوشی‌هات از حساب بیرون می‌رن و به شمارهٔ قبلی هم یه پیامک می‌ره.</small>
           <div className="pePhoneActions">
             <button type="button" className="pePhoneBtn is-main" disabled={busy} onClick={sendCode}>{busy ? "دارم می‌فرستم…" : "دریافت کد"}</button>
             <button type="button" className="pePhoneBtn" disabled={busy} onClick={reset}>نه</button>

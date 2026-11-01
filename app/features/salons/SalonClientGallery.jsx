@@ -80,7 +80,7 @@ export function SalonClientGallery({ salon, items, getFallbackStyle, postActions
               key={key}
               style={item.image ? undefined : getFallbackStyle(item)}
               onClick={() => openItem(item)}
-              aria-label={`مشاهده جزئیات ${item.title || "نمونه‌کار"}`}
+              aria-label={`باز کردن ${item.title || "نمونه‌کار"}`}
             >
               {item.image ? (
                 <img

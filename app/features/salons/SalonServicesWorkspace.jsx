@@ -133,7 +133,7 @@ export function SalonServicesWorkspace({
                           <p className="sasEmpty">هنوز کسی توی تیمت نیست. از «پرسنل» یه آرتیست دعوت کن، یا اگه خودت این کار رو می‌کنی «خودم هم کار می‌کنم» رو بزن.</p>
                         ) : (
                           <>
-                            <p className="sasHint">آرتیست‌هایی که کارشون به این خدمت می‌خوره خودکار وصل می‌شن. هر کدوم رو نخواستی بردار، یا یکی دیگه اضافه کن؛ انتخابت می‌مونه.</p>
+                            <p className="sasHint">آرتیست‌هایی که کارشون به این خدمت می‌خوره خودکار انتخاب می‌شن؛ هر کدوم رو نخواستی بردار، یا یکی دیگه اضافه کن.</p>
                             {staffList.map((person) => {
                               const selected = selectedArtistIds.includes(String(person.id));
                               const avatar = person.avatar || person.staff_avatar || "";

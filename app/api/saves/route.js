@@ -49,7 +49,7 @@ async function _POST(request) {
 
   const target = await getUserLiteById(targetUserId);
   if (!target || (target.type !== "salon" && target.type !== "artist")) {
-    return NextResponse.json({ error: "این پروفایل قابل ذخیره نیست." }, { status: 400 });
+    return NextResponse.json({ error: "این صفحه رو نمی‌شه ذخیره کرد." }, { status: 400 });
   }
 
   const result = await social.toggleSaveProfile(auth.user.id, targetUserId);

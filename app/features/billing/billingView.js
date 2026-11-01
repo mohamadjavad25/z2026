@@ -27,7 +27,7 @@ export function accountView(overview) {
       tone: "trial",
       badge: "دوره‌ی رایگان",
       title: `${formatDaysLeft(account.daysLeft)} از دوره‌ی رایگانت مونده`,
-      sub: isLow ? LOW_SUB : `تا ${until}. هر پلنی بخری از همون روز شروع می‌شه و روزی از دوره‌ی رایگانت نمی‌سوزه.`,
+      sub: isLow ? LOW_SUB : `تا ${until}. هر پلنی بخری بعد از اون شروع می‌شه و روزی از دوره‌ی رایگانت نمی‌سوزه.`,
       note: "",
       low: isLow,
       meter: Math.min(1, Math.max(0, account.daysLeft / (overview.trialDays || TRIAL_DAYS_FALLBACK))),
@@ -159,9 +159,9 @@ export function smsView(overview) {
   const hasPacks = sms.packCredits > 0;
   const included = toPersianDigits(sms.included);
   let sub = `هر ماه ${included} پیامک داخل پلنته و اول ماه دوباره پر می‌شه.`;
-  if (sms.state === "empty") sub = "پیامکت تموم شده. یادآوری نوبت برای مشتری‌هات نمی‌ره، ولی تأیید و لغو نوبت همچنان می‌رسه. یه بسته بخر یا اول ماه دوباره پر می‌شه.";
+  if (sms.state === "empty") sub = "پیامکت تموم شده و یادآوری نوبت نمی‌ره؛ تأیید و لغو نوبت همچنان می‌رسه. یه بسته بخر یا تا اول ماه صبر کن.";
   else if (sms.state === "low") sub = "کم مونده. اگه تموم بشه، یادآوری نوبت برای مشتری‌هات نمی‌ره.";
-  else if (hasPacks) sub = `از ${included} تای این ماه ${toPersianDigits(sms.includedLeft)} تا مونده، به‌علاوه ${toPersianDigits(sms.packCredits)} تا از بسته‌هات که تموم نمی‌شن.`;
+  else if (hasPacks) sub = `از ${included} تای این ماه ${toPersianDigits(sms.includedLeft)} تا مونده، به‌علاوه ${toPersianDigits(sms.packCredits)} تا از بسته‌هات که تاریخ انقضا ندارن.`;
   const ready = Boolean(overview.checkoutReady);
   return {
     state: sms.state,

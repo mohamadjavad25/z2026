@@ -11,7 +11,7 @@ export const FRESH_DAYS = 30;
 
 export async function saveToken(userId, token, platform = "android") {
   const value = String(token || "").trim();
-  if (!userId || !value || value.length > 4096) return { ok: false, error: "توکن نامعتبر است." };
+  if (!userId || !value || value.length > 4096) return { ok: false, error: "اعلان‌ها روشن نشد؛ دوباره بزن." };
   const db = await getDb();
   await run(db, `
     INSERT INTO native_push_tokens (user_id, token, platform)

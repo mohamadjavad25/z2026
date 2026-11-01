@@ -49,7 +49,7 @@ describe("the team on a salon's page (browser)", () => {
 
     const menu = page.locator(".sduPanel");
     await menu.waitFor();
-    expect(await menu.innerText()).toContain(`کارهای ${negar.user.name}؛ نوبتت با خودش ثبت می‌شه.`);
+    expect(await menu.innerText()).toContain(`نوبتت با خود ${negar.user.name} ثبت می‌شه.`);
     await menu.locator(".sduItem").first().click();
     await menu.locator(".sduConfirm").click();
 

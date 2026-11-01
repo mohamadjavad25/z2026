@@ -234,7 +234,7 @@ export function useProfileEditor({
       lockSession();
       writeAuthSession(profile);
       setCreatedProfile(profile);
-      notify(removing ? "پیج اینستاگرامت از صفحه‌ت برداشته شد." : "ذخیره شد. حالا توی صفحه‌ت دیده میشه.");
+      notify(removing ? "پیج اینستاگرامت از صفحه‌ت برداشته شد." : "ذخیره شد. حالا توی صفحه‌ت دیده می‌شه.");
       return { ok: true };
     } catch {
       return { ok: false, error: "ذخیره نشد؛ اینترنتت رو یه نگاه بنداز و دوباره بزن." };

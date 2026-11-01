@@ -64,7 +64,7 @@ export function ProfileProgress({ type, data, hasDefaultAvatar, openDaysCount, o
         </div>
         <div className="spProgCopy">
           <b>پروفایلت هنوز کامل نیست</b>
-          <small>{left.length === 1 ? "فقط یه کار مونده." : type === "client" ? "چند تا کار مونده." : "با اینا مشتری بیشتری پیدات می‌کنه."}</small>
+          <small>{left.length === 1 ? "فقط یه کار مونده." : type === "client" ? "چند تا کار مونده." : "با اینا مشتری‌های بیشتری پیدات می‌کنن."}</small>
         </div>
       </div>
       <div className="spProgList">

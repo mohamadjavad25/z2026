@@ -51,7 +51,7 @@ export function SalonTeamPostsPanel({ onNotify }) {
       {requests.length ? (
         <div className="teamPostsBlock">
           <h3>درخواست‌های تیم <span>{toPersianDigits(String(requests.length))}</span></h3>
-          <p>آرتیست‌های تیمت اینا رو فرستادن که توی صفحه‌ت بیاد. اگه خواستی اضافه‌شون کن.</p>
+          <p>آرتیست‌های تیمت اینا رو برای صفحه‌ت فرستادن.</p>
           <ul className="teamPostsList">
             {requests.map((post) => (
               <li key={post.postId} className="teamPostsReq">

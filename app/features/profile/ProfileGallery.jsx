@@ -89,7 +89,7 @@ export function ProfileGallery({
           <Plus size={18} strokeWidth={2.6} />
         </span>
         <b>{addLabel}</b>
-        <small>نمونه‌کار تازه‌ات رو بذار</small>
+        <small>نمونه‌کار تازه‌ت رو بذار</small>
       </button>
     );
   }

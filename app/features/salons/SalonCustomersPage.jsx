@@ -110,7 +110,7 @@ function CustomerSheet({ customer, invite, onBook, onRemove, onClose }) {
           </div>
           {customer.accountDeleted ? (
             <p className="cuNotice">
-              {customer.name} حسابش رو از فرفرو پاک کرده. دیگه نمی‌تونی بهش زنگ بزنی یا براش نوبت بذاری. نوبت‌های قبلیش توی تقویمت می‌مونه.
+              {customer.name} حسابش رو پاک کرده؛ دیگه نمی‌تونی بهش زنگ بزنی یا براش نوبت بذاری. نوبت‌های قبلیش توی تقویمت می‌مونه.
             </p>
           ) : null}
           {customer.isFollower && customer.noBookingYet ? (
@@ -300,7 +300,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
 
   async function chooseContact() {
     if (contactPickerNeedsAppUpdate()) {
-      askForAppUpdate("انتخاب از مخاطب‌های گوشی توی نسخهٔ تازه‌ست. به‌روزش کن؛ یه دقیقه طول می‌کشه.");
+      askForAppUpdate("انتخاب از مخاطب‌های گوشی توی نسخهٔ تازه‌ست؛ برنامه رو به‌روز کن.");
       return;
     }
     let contact = null;
@@ -351,7 +351,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
             <div>
               <b>تازه وصل شدن</b>
               <small>
-                {toPersianDigits(freshFollowers.length)} نفر تازه بهت وصل شدن.
+                {toPersianDigits(freshFollowers.length)} نفر بهت وصل شدن.
               </small>
             </div>
           </header>
@@ -392,7 +392,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
           </ul>
           {freshFollowers.some((customer) => customer.noBookingYet) ? (
             <p className="cuFreshHint">
-              اونایی که هنوز نوبت نگرفتن، آماده‌ترین مشتری‌هاتن؛ با یه زنگ یا پیامک اولین نوبتشون رو بساز.
+              به اونایی که هنوز نوبت نگرفتن یه زنگ یا پیامک بزن؛ اولین نوبتشون رو بساز.
             </p>
           ) : null}
         </section>
@@ -400,7 +400,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
 
       {customers.length ? (
         <>
-          <div className="cuTiles" aria-label="خلاصه مشتریان">
+          <div className="cuTiles" aria-label="خلاصهٔ مشتری‌ها">
             <span><Users size={16} /><b>{toPersianDigits(customers.length)}</b>مشتری</span>
             <span><Repeat2 size={16} /><b>{toPersianDigits(repeatCount)}</b>تکراری</span>
             <span><CalendarCheck size={16} /><b>{toPersianDigits(upcomingCount)}</b>نوبت پیش‌رو</span>
@@ -412,11 +412,11 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="اسم یا شماره…"
-              aria-label="جستجوی مشتریان"
+              aria-label="جستجوی مشتری"
             />
           </label>
           <div className="cuToolbar">
-            <div className="cuChips" role="tablist" aria-label="فیلتر مشتریان">
+            <div className="cuChips" role="tablist" aria-label="فیلتر مشتری‌ها">
               {FILTERS.map((item) => (
                 <button
                   type="button"
@@ -447,7 +447,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
           <div className="emptySalonDirectory is-lively">
             <PageIcon name="customers" size={64} />
             <b>هنوز مشتری‌ای نداری</b>
-            <p>مشتری‌هایی که همین الان داری رو دعوت کن: کد صفحه‌ت رو اسکن کنن یا لینکش رو براشون بفرست. هر کی وصل بشه یا نوبت بگیره، اینجا میاد.</p>
+            <p>مشتری‌هات رو دعوت کن؛ هر کی وصل بشه یا نوبت بگیره، اینجا میاد.</p>
             {invite ? (
               <button type="button" className="cuInviteBtn" onClick={() => setInviteOpen(true)}>
                 <UserPlus size={17} aria-hidden="true" />
@@ -497,7 +497,7 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
         ))}
       </div>
       {contactNotice ? (
-        <ProfileSheet open kicker="مخاطبین" title="مخاطب‌ها باز نشد" onClose={() => setContactNotice("")}>
+        <ProfileSheet open kicker="مخاطب‌ها" title="مخاطب‌ها باز نشد" onClose={() => setContactNotice("")}>
           <div className="cuSheetBody">
             <p className="cuNotice">مخاطب‌های گوشی باز نشد؛ دوباره بزن.</p>
           </div>

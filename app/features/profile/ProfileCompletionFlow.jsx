@@ -18,7 +18,7 @@ const STEP_COPY = {
   }),
   area: () => ({
     title: "کجا کار می‌کنی؟",
-    lead: "جات رو روی نقشه پیدا می‌کنیم؛ اگه درست نبود، پین رو جابه‌جا کن. مشتری‌های همون دور و بر پیدات می‌کنن."
+    lead: "این‌طوری مشتری‌های نزدیکت پیدات می‌کنن؛ اگه پین درست نیست، جابه‌جاش کن."
   }),
   specialty: (isSalon) => ({
     title: isSalon ? "کارهای اصلی سالنت چیه؟" : "چه کارهایی می‌کنی؟",
@@ -101,7 +101,7 @@ export function ProfileCompletionFlow({
         <div className="pcfStep pcfFinale" key="finale">
           <span className="pcfFinaleBadge" aria-hidden="true"><Check size={40} /></span>
           <h3>صفحه‌ت آماده‌ست!</h3>
-          <p>حالا مشتری‌ها راحت‌تر پیدات می‌کنن و با خیال راحت نوبت می‌گیرن.</p>
+          <p>حالا مشتری‌ها راحت‌تر پیدات می‌کنن و نوبت می‌گیرن.</p>
           <div className="pcfFooter">
             <Button block onClick={onClose}>ببینمش</Button>
           </div>

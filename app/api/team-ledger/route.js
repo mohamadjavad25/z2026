@@ -16,7 +16,7 @@ const REFUSALS = {
   FORBIDDEN: [403, "این تصفیه رو خودت شروع کردی؛ جوابش با طرف مقابله."],
   WAITING: [409, "یه تصفیه منتظر جواب طرف مقابله؛ اول اون تموم شه."],
   EMPTY: [409, "هنوز کاری نیست که تصفیه بشه."],
-  NO_SHARE: [409, "برای چند کار درصد مشخص نیست. اول توی شرایط کار درصد رو بذارین."]
+  NO_SHARE: [409, "برای چند تا کار درصد مشخص نیست؛ اول توی شرایط همکاری درصد رو بذار."]
 };
 const refuse = (code) => {
   const [status, message] = REFUSALS[code] || REFUSALS.NOT_FOUND;
@@ -43,7 +43,7 @@ async function _PATCH(request) {
   if (pair.side !== "salon") return json({ error: "قیمت یه کار رو فقط سالن عوض می‌کنه." }, { status: 403 });
   const result = await setLineAmount({ salonUserId: pair.salonUserId, artistUserId: pair.artistUserId, id: Number(body.line), amount: body.amount });
   if (!result.ok) return refuse(result.code);
-  notifyConnection(pair.artistUserId, { title: "سالن قیمت یه کار رو عوض کرد", body: `${pair.user.name || "سالن"} قیمت «${result.line.service}» رو شد ${money(result.line.amount)}. توی حساب ببین.`, url: "/" });
+  notifyConnection(pair.artistUserId, { title: "سالن قیمت یه کار رو عوض کرد", body: `${pair.user.name || "سالن"} قیمت «${result.line.service}» رو کرد ${money(result.line.amount)}. توی حساب ببین.`, url: "/" });
   return json({ data: { side: pair.side, ...(await ledger(pair.salonUserId, pair.artistUserId)) } });
 }
 

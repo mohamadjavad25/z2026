@@ -26,8 +26,8 @@ export function ScanToOpen() {
         {qr ? <img src={qr} alt="کد QR برای باز کردن فرفرو روی گوشی" width="320" height="320" /> : null}
       </div>
       <div className="appLanding__scanText">
-        <strong>فرفرو را با گوشی باز کن</strong>
-        <span>فرفرو برای گوشی ساخته شده. دوربین گوشی‌ات را روی این کد بگیر تا همین صفحه روی گوشی باز شود.</span>
+        <strong>فرفرو رو با گوشی باز کن</strong>
+        <span>فرفرو برای گوشی ساخته شده؛ دوربین گوشیت رو روی این کد بگیر تا همین صفحه اونجا باز بشه.</span>
       </div>
     </section>
   );

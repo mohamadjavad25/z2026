@@ -135,7 +135,7 @@ export function PublicArtistBookingPanel({
         timeOptions={freeSlots}
         timeValue={bookingSlot}
         onTimeChange={onSlotChange}
-        emptyTimeMessage="این روز ساعت خالی‌ای به این اندازه نیست."
+        emptyTimeMessage="این روز برای این کار جای خالی نداره."
       />
 
       <p className="artistPublicBookingNote">
