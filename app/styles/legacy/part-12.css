@@ -1196,7 +1196,7 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
   background: linear-gradient(180deg, rgb(12 13 18 / 0.42) 0%, rgb(var(--ink-rgb) / 0.18) 38%, rgb(12 13 18 / 0.78) 100%);
 }
 
-.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist > :not(.artistHeroPoster, .profileHeroActions) {
+.profilePanel.page-profile:has(.createdProfile.is-artist) .profileHero.is-artist > :not(.artistHeroPoster, .profileHeroActions, .appUpdSpot) {
   position: relative !important;
   z-index: 1 !important;
 }

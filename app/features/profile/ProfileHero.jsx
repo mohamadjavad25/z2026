@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileHeroActions } from "./ProfileHeroActions";
+import { AppUpdatePill } from "../appUpdate/AppUpdatePill";
 import { SupportButton } from "../support";
 import { ProfileQrCodeSheet } from "../../components/ProfileQrCodeSheet";
 
@@ -123,6 +124,7 @@ export function ProfileHero({
           notificationCount={notificationCount}
           showShare={showShare}
         />
+        <AppUpdatePill />
         <button
           type="button"
           className="salonHeroQrBtn"
@@ -228,6 +230,7 @@ export function ProfileHero({
         onShowQr={type === "artist" && artistPublicUrl ? () => setQrSheetOpen(true) : undefined}
         notificationCount={notificationCount}
       />
+      {type === "artist" ? <AppUpdatePill /> : null}
       {type === "artist" ? (
         <ProfileQrCodeSheet
           open={qrSheetOpen}

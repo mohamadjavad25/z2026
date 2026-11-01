@@ -1,6 +1,5 @@
 import { Bell, QrCode, Share2 } from "lucide-react";
 import { SupportButton } from "../support";
-import { AppUpdatePill } from "../appUpdate/AppUpdatePill";
 
 // The gear/settings icon that used to live here was removed: "تنظیمات" is
 // now its own bottom-nav tab (see SettingsPage), so a second entry point
@@ -31,7 +30,6 @@ export function ProfileHeroActions({
           </button>
           <SupportButton />
         </span>
-        <AppUpdatePill />
       </div>
     );
   }
@@ -58,7 +56,6 @@ export function ProfileHeroActions({
             <SupportButton />
           </span>
         )}
-        <AppUpdatePill />
         {showShare ? (
           <button type="button" aria-label="اشتراک‌گذاری" onClick={onShare}>
             <Share2 size={17} />
