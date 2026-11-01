@@ -22,7 +22,7 @@ import { normalizeBookingTimeLabel, parseBookingTime } from "../../../shared/lib
 import { clientBookingMatch, clientVisibleStatus } from "../clientMatch.js";
 import { isProfileSaved } from "./social.js";
 import { normalizeServiceEmoji, resolveBookingServiceEmoji } from "./serviceEmoji.js";
-import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
+import { getSettings, DEFAULT_SETTINGS, hidesPrices, shownServices } from "./userSettings.js";
 import { publicLocation } from "../../location.js";
 import { listArtistHoursPublic } from "./artists/hours.js";
 import { workplaceSchedule } from "./artistPlace.js";
@@ -1148,7 +1148,8 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     isFollowing: isFollowingViewer,
     isSaved,
     posts,
-    services,
+    // «نمایش قیمت‌ها» off: only the artist themself sees the prices (userSettings.js hidesPrices).
+    services: shownServices(services, hidesPrices(settings) && Number(viewerUserId || 0) !== Number(userId)),
     bookedSlots,
     breakTime,
     hours,

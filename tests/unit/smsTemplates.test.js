@@ -26,11 +26,11 @@ describe("pattern SMS for subscriptions", () => {
     const made = SMS_TEMPLATES.booking_made_for_you;
     expect(made.env).toBe("BOOKING_MADE");
     expect(made.kavenegar({ who: "سالن رز", day: "فردا", time: "۱۴:۳۰" })).toEqual({ token: "۱۴:۳۰", token10: "فردا", token20: "سالن رز" });
-    expect(made.preview({ who: "سالن رز", day: "فردا", time: "۱۴:۳۰" })).toBe("فرفرو: سالن رز برایت نوبت فردا ساعت ۱۴:۳۰ ثبت کرد. در فرفرو ببین.");
+    expect(made.preview({ who: "سالن رز", day: "فردا", time: "۱۴:۳۰" })).toBe("فرفرو: سالن رز برات نوبت فردا ساعت ۱۴:۳۰ گذاشت. توی فرفرو ببینش.");
     const gone = SMS_TEMPLATES.team_salon_gone;
     expect(gone.env).toBe("TEAM_SALON_GONE");
     expect(gone.kavenegar({ who: "سالن رز" })).toEqual({ token10: "سالن رز" });
-    expect(gone.preview({ who: "سالن رز" })).toContain("حسابش را حذف کرد");
+    expect(gone.preview({ who: "سالن رز" })).toContain("حسابش رو پاک کرد");
   });
 
   it("is off until a provider and the template's own pattern are set", async () => {

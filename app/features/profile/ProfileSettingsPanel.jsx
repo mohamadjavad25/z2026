@@ -265,17 +265,16 @@ export function ProfileVisibilitySettings({ profileType, profileSettings, onTogg
         onLabel="عمومی"
         offLabel="خصوصی"
       />
-      {profileType === "artist" ? (
-        <SettingsToggle
-          icon={Tag}
-          label="نمایش قیمت‌ها"
-          description="قیمت‌ها توی صفحه‌ت دیده بشن"
-          checked={Boolean(profileSettings.showPrices)}
-          onChange={() => onToggle("showPrices")}
-          onLabel="نمایش"
-          offLabel="مخفی"
-        />
-      ) : null}
+      {/* Artists and salons alike (owner's decision 2026-11-01); off = clients see no price (userSettings.js hidesPrices). */}
+      <SettingsToggle
+        icon={Tag}
+        label="نمایش قیمت‌ها"
+        description="قیمت‌ها توی صفحه‌ت دیده بشن"
+        checked={profileSettings.showPrices !== false}
+        onChange={() => onToggle("showPrices")}
+        onLabel="نمایش"
+        offLabel="مخفی"
+      />
     </SettingsGroup>
   );
 }

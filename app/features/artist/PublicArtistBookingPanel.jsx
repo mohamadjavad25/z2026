@@ -118,7 +118,9 @@ export function PublicArtistBookingPanel({
             <Timer size={12} /> {activeService?.duration || `${toPersianDigits(durationMinutes)} دقیقه`}
           </small>
         </div>
-        <b>{activeService?.price ? `${formatTomanNumber(parseTomanAmount(activeService.price))} تومان` : "—"}</b>
+        {activeService?.priceHidden ? null : (
+          <b>{parseTomanAmount(activeService?.price) ? `${formatTomanNumber(parseTomanAmount(activeService.price))} تومان` : "—"}</b>
+        )}
       </div>
 
       <PlaceLine artist={artist} day={bookingDay} />

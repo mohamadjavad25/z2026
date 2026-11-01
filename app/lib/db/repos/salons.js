@@ -1,7 +1,7 @@
 import { getDb, all, get, run } from "../connection.js";
 import { countFollowers, countFollowCountsMany } from "./users.js";
 import { isProfileSaved, insertFollow, notifyNewFollower } from "./social.js";
-import { getSettings, DEFAULT_SETTINGS } from "./userSettings.js";
+import { getSettings, DEFAULT_SETTINGS, hidesPrices, idsHidingPrices, shownServices } from "./userSettings.js";
 import { countFollowing, defaultHours } from "./salons/common.js";
 import { listSalonHours } from "./salons/hours.js";
 import { bumpJoinTermsVersion } from "./salons/joinTerms.js";
@@ -156,6 +156,8 @@ export async function listSalons({ cursor, limit, maxLimit = 50 } = {}) {
     if (settings.publicPortfolio === false) return null;
     const followerCount = followerByUser.get(row.user_id) || 0;
     const followingCount = followingByUser.get(row.user_id) || 0;
+    // «نمایش قیمت‌ها» off: the directory is the same for everyone (cached), so it never carries the prices.
+    const hide = hidesPrices(settings);
     return {
       id: row.user_id,
       user_id: row.user_id,
@@ -163,7 +165,7 @@ export async function listSalons({ cursor, limit, maxLimit = 50 } = {}) {
       name: row.name,
       area: row.area,
       tag: row.tag,
-      price: row.price,
+      price: hide ? "" : row.price,
       open: row.open,
       match: row.match_score,
       // Deliberately NOT including phone/email here: row.phone/row.email are
@@ -184,7 +186,7 @@ export async function listSalons({ cursor, limit, maxLimit = 50 } = {}) {
       post_count: row.post_count,
       follower_count: followerCount,
       following_count: followingCount,
-      services: servicesByUser.get(row.user_id) || [],
+      services: shownServices(servicesByUser.get(row.user_id) || [], hide),
       hours: hoursByUser.get(row.user_id) || [],
       portfolio: [],
       staff: []
@@ -214,7 +216,10 @@ export async function listSavedSalonsForUser(userId) {
     WHERE sp.user_id = $1
     ORDER BY sp.created_at DESC
   `, [userId]);
-  const counts = await countFollowCountsMany(rows.map((row) => row.user_id), db);
+  const [counts, hiding] = await Promise.all([
+    countFollowCountsMany(rows.map((row) => row.user_id), db),
+    idsHidingPrices(rows.map((row) => row.user_id), db)
+  ]);
   const result = rows.map((row) => {
     const followerCount = counts.followers.get(Number(row.user_id)) || 0;
     const followingCount = counts.following.get(Number(row.user_id)) || 0;
@@ -225,7 +230,7 @@ export async function listSavedSalonsForUser(userId) {
       name: row.name,
       area: row.area,
       tag: row.tag,
-      price: row.price,
+      price: hiding.has(Number(row.user_id)) && Number(row.user_id) !== Number(userId) ? "" : row.price,
       open: row.open,
       match: row.match_score,
       avatar: row.avatar ? `/api/media/avatar/${row.user_id}` : "",
@@ -273,6 +278,8 @@ export async function getSalon(userId, viewerUserId = null, { withTeam = false }
     onlineBookingBlock(row.user_id, "salon")
   ]);
   const team = withTeam ? await listPublicTeam(staff, userId, db) : undefined;
+  // «نمایش قیمت‌ها» off: only the salon itself sees its prices (a team artist on the page follows the salon's switch).
+  const hidePrices = hidesPrices(settings) && Number(viewerUserId || 0) !== Number(userId);
   return {
     id: row.user_id,
     user_id: row.user_id,
@@ -282,7 +289,7 @@ export async function getSalon(userId, viewerUserId = null, { withTeam = false }
     location: publicLocation(row),
     instagram: row.instagram || "",
     tag: row.tag,
-    price: row.price,
+    price: hidePrices ? "" : row.price,
     open: row.open,
     match: row.match_score,
     // phone: still included below -- SalonClientPage's contact block
@@ -316,7 +323,7 @@ export async function getSalon(userId, viewerUserId = null, { withTeam = false }
     // between getArtist()'s isPublic field and the route-level check.
     isPublic: settings.publicPortfolio !== false,
     isSaved,
-    services,
+    services: shownServices(services, hidePrices),
     portfolio,
     staff,
     // The team cards and the team's posts on the public page (salons/team.js), when asked for.

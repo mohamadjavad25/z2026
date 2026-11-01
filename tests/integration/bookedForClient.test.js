@@ -23,7 +23,7 @@ describe("a booking a salon or artist enters by hand tells the client", () => {
     const texts = await smsEventually(phone, "booking_made_for_you", 1);
     expect(texts).toHaveLength(1);
     expect(texts[0].body).toContain(salon.user.name);
-    expect(texts[0].body).toContain("برایت نوبت");
+    expect(texts[0].body).toContain("برات نوبت");
     expect(await smsSettled(phone, ["booking_made_for_you"])).toBe(1);
   });
 
@@ -96,7 +96,7 @@ describe("a salon deleting its account tells every artist on its team", () => {
       const texts = await smsEventually(artist.phone, "team_salon_gone", 1);
       expect(texts).toHaveLength(1);
       expect(texts[0].body).toContain(salonName);
-      expect(texts[0].body).toContain("حسابش را حذف کرد");
+      expect(texts[0].body).toContain("حسابش رو پاک کرد");
       const cards = await q("SELECT kind, from_name, from_user_id FROM team_notices WHERE user_id = $1", [artist.id]);
       expect(cards).toEqual([{ kind: "gone", from_name: salonName, from_user_id: null }]);
       // the card is what the artist's app shows
