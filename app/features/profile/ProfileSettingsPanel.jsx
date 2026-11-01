@@ -226,8 +226,8 @@ export function NotificationSettings({ profileType, profileSettings, onToggle, b
       {profileType === "client" && (
         <SettingsToggle
           icon={profileSettings.dueReminders !== false ? CalendarClock : BellOff}
-          label="یادآوری وقتش شده"
-          description="چند هفته بعد از هر کار، یادت میندازه وقتشه"
+          label="یادآوری نوبت بعدی"
+          description="چند هفته بعد از هر کار، یادت میندازه وقت نوبت بعدیه"
           checked={profileSettings.dueReminders !== false}
           onChange={() => onToggle("dueReminders")}
         />

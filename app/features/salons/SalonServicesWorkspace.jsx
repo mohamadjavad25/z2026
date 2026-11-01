@@ -8,6 +8,7 @@ import { ServiceGroups } from "../../components/ServiceGroups";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 import { Mascot } from "../../components/Mascot";
 import { ProfileSheet } from "../profile/ProfileSheet";
+import { DueRemindersButton, DueServiceChip } from "../dueReminders/DueReminders";
 
 /**
  * Salon owner — services manager (workspace key "hours" / label خدمات).
@@ -28,13 +29,10 @@ export function SalonServicesWorkspace({
   return (
     <>
       <div className="svcToolbar">
-        <div>
-          <span>خدمات</span>
-          <b>منوی خدمات ({toPersianDigits(services.length)} خدمت)</b>
-        </div>
+        <DueRemindersButton />
         <button type="button" className="svcAddBtn" onClick={onCreate}>
           <Plus size={16} />
-          افزودن
+          خدمت تازه
         </button>
       </div>
       <div className="svcList salonServiceManagerList">
@@ -84,6 +82,7 @@ export function SalonServicesWorkspace({
                   <div className="svcCardMeta">
                     <span className="svcChip is-price">{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "قیمت بذار"}</span>
                     <span className="svcChip">{service.duration || "مدت بذار"}</span>
+                    <DueServiceChip name={service.name} />
                   </div>
                   <div className="serviceArtistPick">
                     <button
