@@ -14,4 +14,4 @@
 .appUpdMain:focus-visible, .appUpdLater:focus-visible, .appUpdPill:focus-visible { outline: 3px solid var(--brand-pink); outline-offset: 2px; }
 
 /* The pill beside the bell on the profile cover. */
-.appUpdPill { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 0; border-radius: var(--radius-pill); background: var(--violet-deep); color: var(--n-0); font: inherit; font-size: var(--text-sm); font-weight: 800; white-space: nowrap; cursor: pointer; box-shadow: 0 6px 18px rgb(var(--shadow-rgb) / 0.25); }
+.appUpdPill { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 0; border-radius: var(--radius-pill); flex: none; background: var(--violet-deep); color: var(--brand-white); font: inherit; font-size: var(--text-sm); font-weight: 800; white-space: nowrap; cursor: pointer; user-select: none; box-shadow: 0 6px 18px rgb(var(--shadow-rgb) / 0.25); }
