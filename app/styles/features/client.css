@@ -919,3 +919,52 @@
 .erPlace small { color: var(--n-600); font-size: 0.72rem; font-weight: 700; }
 .erEmpty { display: grid; gap: 12px; }
 .erEmpty p { margin: 0; padding: 12px; border-radius: 14px; background: var(--n-50); color: var(--n-700); font-size: 0.8rem; font-weight: 800; text-align: center; line-height: 1.7; }
+
+/* ═══ «میای؟» (owner's decision 2026-10-27): the day-before question right on the visit card ═══ */
+.cvAttend {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  border-top: 1px solid var(--n-100);
+  background: linear-gradient(135deg, rgb(var(--brand-pink-rgb) / 0.13), rgb(var(--brand-violet-rgb) / 0.11));
+  cursor: default;
+  animation: cvAttendIn 0.35s ease-out;
+}
+.cvAttend p { display: flex; align-items: center; gap: 7px; margin: 0; color: var(--n-800); font-size: 0.8rem; font-weight: 800; line-height: 1.7; }
+.cvAttend p b { font-size: 0.92rem; font-weight: 950; color: var(--n-900); }
+.cvAttend p svg { flex: none; color: var(--accent); }
+.cvAttendActions { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+.cvAttendActions button {
+  min-height: 44px; padding: 0 12px; border: 1px solid var(--n-150); border-radius: 14px;
+  background: var(--n-0); color: var(--n-800); font: inherit; font-size: 0.84rem; font-weight: 900; cursor: pointer;
+}
+.cvAttendActions button.is-yes { border-color: transparent; background: var(--n-900); color: var(--n-0); box-shadow: 0 6px 16px rgb(var(--shadow-rgb) / 0.12); }
+.cvAttendActions button.is-no { border-color: transparent; background: var(--danger); color: var(--n-0); }
+.cvAttendActions button:active { transform: scale(0.98); }
+.cvAttendActions button:disabled { opacity: 0.6; cursor: default; }
+.cvAttendActions button:focus-visible { outline: 3px solid rgb(var(--ink-rgb) / 0.25); outline-offset: 2px; }
+.cvAttend.is-yes { display: flex; align-items: center; gap: 7px; color: var(--success); font-size: 0.8rem; font-weight: 900; background: var(--success-bg); animation: cvAttendPop 0.45s ease-out; }
+.cvAttend.is-yes svg { flex: none; }
+.cvAttend.is-sure { background: var(--n-50); }
+.cvAttend.is-compact { grid-column: auto; border: 0; border-radius: 16px; }
+@keyframes cvAttendIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes cvAttendPop { 0% { transform: scale(0.96); } 60% { transform: scale(1.02); } 100% { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .cvAttend, .cvAttend.is-yes { animation: none; } }
+
+/* The client's own record and their «خبرم کن» list, under «نوبت‌هام». */
+.cbpRecord { display: flex; align-items: flex-start; gap: 7px; margin: 10px 0 0; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, rgb(var(--brand-pink-rgb) / 0.1), rgb(var(--brand-violet-rgb) / 0.1)); color: var(--n-800); font-size: 0.76rem; font-weight: 800; line-height: 1.7; }
+.cbpRecord svg { flex: none; margin-top: 3px; color: var(--accent); }
+.cbpRecord.is-mixed { background: var(--n-50); }
+.cbpWait { margin-top: 10px; padding: 10px 12px; border: 1px dashed var(--n-200); border-radius: 16px; }
+.cbpWaitTitle { display: flex; align-items: center; gap: 6px; color: var(--n-800); font-size: 0.8rem; font-weight: 950; }
+.cbpWaitTitle svg { color: var(--accent); }
+.cbpWait ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.cbpWait li { display: flex; align-items: center; gap: 6px; }
+.cbpWaitMain { flex: 1; min-width: 0; display: grid; gap: 1px; padding: 8px 10px; border: 0; border-radius: 12px; background: rgb(var(--ink-rgb) / 0.045); color: var(--n-800); font: inherit; text-align: start; cursor: pointer; }
+.cbpWaitMain span { font-size: 0.8rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cbpWaitMain small { color: var(--n-600); font-size: 0.7rem; font-weight: 800; }
+.cbpWait li.is-open .cbpWaitMain { background: linear-gradient(135deg, rgb(var(--brand-pink-rgb) / 0.18), rgb(var(--brand-violet-rgb) / 0.16)); }
+.cbpWait li.is-open .cbpWaitMain small { color: var(--accent); }
+.cbpWaitDrop { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--n-500); cursor: pointer; }
+.cbpWaitMain:focus-visible, .cbpWaitDrop:focus-visible { outline: 3px solid rgb(var(--ink-rgb) / 0.25); outline-offset: 2px; }

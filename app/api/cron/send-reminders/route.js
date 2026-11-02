@@ -3,6 +3,7 @@ import { verifyCronSecret } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import { sweepBookingReminders } from "../../../lib/bookingReminders.js";
 import { sweepDueReminders } from "../../../lib/dueReminderSweep.js";
+import { sweepWaitlist } from "../../../lib/waitlist.js";
 import { withErrorHandling } from "../../../lib/http.js";
 
 export const runtime = "nodejs";
@@ -26,7 +27,9 @@ async function _POST(request) {
   // «وقتش شده» rides on the same job (owner's decisions of 2026-10-25).
   const reminders = await sweepBookingReminders(now);
   const due = await sweepDueReminders(now).catch(() => ({ candidates: 0, sent: 0, failed: true }));
-  return NextResponse.json({ data: { ...reminders, due } });
+  // «خبرم کن» too: catches what no cancel announced (new working hours, a team artist added).
+  const waitlist = await sweepWaitlist(now).catch(() => ({ days: 0, told: 0, failed: true }));
+  return NextResponse.json({ data: { ...reminders, due, waitlist } });
 }
 
 export const POST = withErrorHandling(_POST);

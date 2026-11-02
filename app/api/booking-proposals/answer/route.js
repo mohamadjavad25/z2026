@@ -1,4 +1,5 @@
 import { error, json, parseId, readObjectBody, requireUserRole, withErrorHandling } from "../../../lib/http.js";
+import { checkWaitlistSoon } from "../../../lib/waitlist.js";
 import * as salons from "../../../lib/db/repos/salons.js";
 import * as artists from "../../../lib/db/repos/artists.js";
 import * as proposals from "../../../lib/db/repos/bookingProposals.js";
@@ -39,6 +40,7 @@ async function _POST(request) {
     }
     const providerId = Number(kind === "artist" ? result.artistUserId : result.salonUserId || 0);
     noticeProviderProposalAnswer(providerId, { accepted: false, booking: result.booking, clientName: result.booking.client || result.booking.client_name || auth.user.name });
+    checkWaitlistSoon(kind, providerId, result.booking.booking_date);
     return json({ data: { booking: result.booking, cancelled: true } });
   }
 

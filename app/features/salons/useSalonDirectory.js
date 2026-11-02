@@ -11,6 +11,7 @@ import {
   toggleSalonFollow
 } from "../../shared/api/salons";
 import { getClientBookings } from "../../shared/api/artists";
+import { WAITLIST_EVENT } from "../../shared/api/waitlist";
 import { toggleSave } from "../../shared/api/saves";
 import { apiFetch } from "../../shared/api/client";
 import { answerProposal } from "../../shared/api/providerExit";
@@ -78,6 +79,17 @@ export function useSalonDirectory({
   const [salonClientTab, setSalonClientTab] = useState("services");
   const [salonClientBooking, setSalonClientBooking] = useState(initialBooking);
   const [clientBookingList, setClientBookingList] = useState([]);
+  // The client's own came / «نیومد» record and their «خبرم کن» list, from the same request as their bookings.
+  const [clientRecord, setClientRecord] = useState(null);
+  const [clientWaitlist, setClientWaitlist] = useState([]);
+  // A «خبرم کن» made in a booking form shows on the client's home at once, not at the next refresh.
+  useEffect(() => {
+    const onWaitlist = (event) => {
+      if (Array.isArray(event.detail)) setClientWaitlist(event.detail);
+    };
+    window.addEventListener(WAITLIST_EVENT, onWaitlist);
+    return () => window.removeEventListener(WAITLIST_EVENT, onWaitlist);
+  }, []);
   const savedSalonList = useMemo(() => {
     const source = [...salonDirectory];
     if (selectedSalon) {
@@ -123,6 +135,8 @@ export function useSalonDirectory({
       if (result.ok) {
         salonBookings = result.data?.salonBookings || [];
         artistBookings = result.data?.artistBookings || [];
+        setClientRecord(result.data?.reliability || null);
+        if (Array.isArray(result.data?.waitlist)) setClientWaitlist(result.data.waitlist);
       }
     } catch {
       // keep the current list
@@ -159,6 +173,48 @@ export function useSalonDirectory({
       return true;
     } catch {
       notify("نوبت لغو نشد؛ دوباره بزن.");
+      return false;
+    }
+  }, [notify]);
+
+  /** «آره، میام»: the client says they are coming to a visit that starts within a day. */
+  const confirmClientAttendance = useCallback(async (booking) => {
+    if (!booking?.id) return false;
+    const isArtist = booking.bookingSource === "artist";
+    try {
+      const { ok, payload } = await apiFetch("/api/booking-attend", {
+        method: "POST",
+        body: JSON.stringify({ kind: isArtist ? "artist" : "salon", id: booking.id })
+      });
+      if (!ok) {
+        notify(payload?.error || "جوابت نرسید؛ دوباره بزن.");
+        return false;
+      }
+      const confirmedAt = payload?.data?.confirmedAt || new Date().toISOString();
+      setClientBookingList((list) => list.map((item) => (
+        item.id === booking.id && (item.bookingSource === "artist") === isArtist ? { ...item, client_confirmed_at: confirmedAt } : item
+      )));
+      notify("عالیه! بهشون گفتیم میای.");
+      return true;
+    } catch {
+      notify("جوابت نرسید؛ دوباره بزن.");
+      return false;
+    }
+  }, [notify]);
+
+  /** Takes one «خبرم کن» away. */
+  const leaveClientWaitlist = useCallback(async (entry) => {
+    if (!entry?.id) return false;
+    try {
+      const { ok, payload } = await apiFetch(`/api/waitlist?id=${Number(entry.id)}`, { method: "DELETE" });
+      if (!ok) {
+        notify(payload?.error || "برداشته نشد؛ دوباره بزن.");
+        return false;
+      }
+      setClientWaitlist(payload?.data?.entries || []);
+      return true;
+    } catch {
+      notify("برداشته نشد؛ دوباره بزن.");
       return false;
     }
   }, [notify]);
@@ -509,6 +565,11 @@ export function useSalonDirectory({
     cancelClientBooking,
     answerClientTimeOffer,
     answerClientProposal,
+    confirmClientAttendance,
+    clientRecord,
+    clientWaitlist,
+    setClientWaitlist,
+    leaveClientWaitlist,
     resetSalonClient,
     toggleFollowSalon,
     toggleSaveSalon,

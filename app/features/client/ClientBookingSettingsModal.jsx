@@ -16,6 +16,7 @@ import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar"
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { ACCEPT_LABEL, CALL_PLACE_LABEL, CLIENT_CANCEL_LABEL, ARTIST_GONE_TEXT, NO_SHOW_WRONG_LABEL, SALON_GONE_TEXT, cancelledByProviderText, handoverProposalText, noShowClientText, proposalLapsedLine, shortClock, timeProposalText } from "../../shared/lib/providerRules";
 import { openSupport } from "../support/supportEvents";
+import { AttendStrip } from "./AttendStrip";
 
 const BOOKING_STATUS_ICONS = {
   pending: Clock3,
@@ -221,7 +222,8 @@ export function ClientBookingSettingsModal({
   onNotice,
   onCancelBooking,
   onAnswerOffer,
-  onAnswerProposal
+  onAnswerProposal,
+  onAttend
 }) {
   const [confirming, setConfirming] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -296,6 +298,20 @@ export function ClientBookingSettingsModal({
               </span>
             ) : null}
           </div>
+          <AttendStrip
+            booking={booking}
+            onAttend={async (target) => {
+              const ok = await onAttend?.(target);
+              if (ok) onClose?.();
+              return ok;
+            }}
+            onCancel={onCancelBooking ? async (target) => {
+              const ok = await onCancelBooking(target);
+              if (ok) onClose?.();
+              return ok;
+            } : undefined}
+            compact
+          />
           {placeName && (placeArea || booking.placeLocation) ? (
             <LocationCard name={placeName} area={placeArea} location={booking.placeLocation || null} />
           ) : null}

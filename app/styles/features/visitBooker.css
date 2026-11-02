@@ -186,3 +186,36 @@ button.vbWho2[aria-expanded="true"] svg { transform: rotate(180deg); }
 .vbDayRail { display: flex; gap: 8px; margin-inline: -16px; padding: 2px 16px 6px; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: 16px; scrollbar-width: none; -webkit-mask-image: linear-gradient(to left, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%); mask-image: linear-gradient(to left, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%); }
 .vbDayRail::-webkit-scrollbar { display: none; }
 .vbDayRail .vbDay { min-height: 44px; padding: 0 14px; border-radius: 14px; white-space: nowrap; scroll-snap-align: center; transition: background 0.2s ease, color 0.2s ease; }
+
+/* «خبرم کن» (owner's decision 2026-10-27): a full day can still be waited for. */
+.vbWait {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 12px;
+  margin-top: 10px; padding: 12px 14px; border-radius: 18px;
+  background: linear-gradient(135deg, rgb(var(--brand-pink-rgb) / 0.14), rgb(var(--brand-violet-rgb) / 0.13));
+  color: var(--n-800);
+}
+.vbWait > span { display: grid; gap: 2px; min-width: 0; }
+.vbWait b { font-size: 0.9rem; font-weight: 950; color: var(--n-900); }
+.vbWait small { font-size: 0.72rem; font-weight: 750; line-height: 1.7; color: var(--n-600); }
+.vbWaitBtn {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px;
+  border: 0; border-radius: 14px; background: var(--n-900); color: var(--n-0);
+  font: inherit; font-size: 0.84rem; font-weight: 900; cursor: pointer; white-space: nowrap;
+}
+.vbWaitBtn:disabled { opacity: 0.6; cursor: default; }
+.vbWaitBtn:active { transform: scale(0.98); }
+.vbWaitBtn:focus-visible { outline: 3px solid rgb(var(--ink-rgb) / 0.25); outline-offset: 2px; }
+.vbWaitError { grid-column: 1 / -1; color: var(--danger) !important; }
+.vbWait.is-done { display: flex; align-items: flex-start; gap: 8px; font-size: 0.8rem; font-weight: 850; line-height: 1.75; background: var(--success-bg); color: var(--success); }
+.vbWait.is-done svg { flex: none; margin-top: 3px; }
+
+/* The artist page offers its full days for «خبرم کن» under the day strip. */
+.plWaitDays { display: grid; gap: 8px; margin-top: 12px; }
+.plWaitDays > p { margin: 0; color: var(--n-600); font-size: 0.76rem; font-weight: 800; }
+.plWaitDayRow { display: flex; flex-wrap: wrap; gap: 6px; }
+.plWaitDayRow button {
+  min-height: 36px; padding: 0 12px; border: 1px dashed var(--n-300); border-radius: 12px;
+  background: transparent; color: var(--n-700); font: inherit; font-size: 0.76rem; font-weight: 850; cursor: pointer;
+}
+.plWaitDayRow button.is-on { border-style: solid; border-color: var(--accent); color: var(--n-900); background: var(--accent-soft); }
+.plWaitDays .vbWait { margin-top: 0; }

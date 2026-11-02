@@ -10,7 +10,7 @@ import { isBookingAhead } from "./bookingStatus";
  * (user's choice 2026-10-23). With nothing ahead the card comes first; otherwise the bookings do.
  * The places the client is connected to live on the «رزرو» tab (ClientBookTabs).
  */
-export function ClientHome({ bookings = [], highlightKey = "", clientName = "", clientAvatar = "", onOpenBooking, onRebook, onOpenPlace, onFindPlaces, onNotify }) {
+export function ClientHome({ bookings = [], highlightKey = "", clientName = "", clientAvatar = "", onOpenBooking, onRebook, onOpenPlace, onFindPlaces, onNotify, record = null, waitlist = [], onLeaveWaitlist, onAttend, onCancelBooking }) {
   const hasAhead = bookings.some((booking) => isBookingAhead(booking));
   const find = (
     <ConnectPage
@@ -33,6 +33,11 @@ export function ClientHome({ bookings = [], highlightKey = "", clientName = "", 
         onNotify={onNotify}
         onFindPlaces={onFindPlaces}
         onOpenPlace={onOpenPlace}
+        record={record}
+        waitlist={waitlist}
+        onLeaveWaitlist={onLeaveWaitlist}
+        onAttend={onAttend}
+        onCancelBooking={onCancelBooking}
       />
       {hasAhead ? find : null}
     </div>

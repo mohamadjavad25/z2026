@@ -1,6 +1,7 @@
 import { sendPushToUser } from "./push.js";
 import { bookingWhen, smsClientCancelled } from "./bookingSms.js";
 import { notifyStaff } from "./staffNotify.js";
+import { checkWaitlistSoon } from "./waitlist.js";
 
 /**
  * Tells the salon (and the team artists on that booking) or the artist that the client cancelled: a push, and the SMS
@@ -24,4 +25,6 @@ export function noticeProviderClientCancelled(kind, result, { accountDeleted = f
     smsClientCancelled(providerUserId, { client, bookingDate: booking.booking_date, time: booking.time }, push);
   }
   if (kind === "salon" && booking.id) notifyStaff({ salonBookingId: booking.id }, message);
+  // The time is free again: anyone waiting for that day («خبرم کن») hears about it.
+  checkWaitlistSoon(kind, providerUserId, booking.booking_date);
 }

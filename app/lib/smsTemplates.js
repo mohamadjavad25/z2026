@@ -74,6 +74,13 @@ export const SMS_TEMPLATES = {
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
     preview: (v) => `فرفرو: ${v.who} برات نوبت ${v.day} ساعت ${v.time} گذاشت. توی فرفرو ببینش.`
   },
+  waitlist_open: {
+    label: "«خبرم کن»: جا خالی شد (به مشتری بدون اعلان)",
+    env: "WAITLIST_OPEN",
+    kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
+    faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
+    preview: (v) => `فرفرو: ${v.who}، ${v.day} ساعت ${v.time} جا خالی شد. زود توی فرفرو بگیرش.`
+  },
   billing_receipt: {
     label: "رسید پرداخت اشتراک",
     env: "BILLING_RECEIPT",

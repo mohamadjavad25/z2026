@@ -1,0 +1,207 @@
+<title>نیاز بازار فرفرو</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: one narrow reading column, ink and light bands alternating like the frfro site; funnels drawn as bars to scale. */
+:root {
+  --bg: #ffffff;
+  --fg: #0c0d12;
+  --muted: #5d5f6e;
+  --line: #e6e4ee;
+  --soft: #f5f3fb;
+  --pink: #ff86b8;
+  --violet: #8b6cff;
+  --ink: #0c0d12;
+  --on-ink: #ffffff;
+  --ink-muted: #b7b5c6;
+  --blend: linear-gradient(90deg, #ff86b8, #8b6cff);
+  --font: "Vazirmatn", Tahoma, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101118; --fg: #f1f0f6; --muted: #a3a2b4; --line: #2a2b38; --soft: #181923;
+    --ink: #1b1c27; --on-ink: #ffffff; --ink-muted: #b7b5c6; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101118; --fg: #f1f0f6; --muted: #a3a2b4; --line: #2a2b38; --soft: #181923;
+  --ink: #1b1c27; --on-ink: #ffffff; --ink-muted: #b7b5c6; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.9; direction: rtl; }
+.band { padding-block: 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.band.ink { background: var(--ink); color: var(--on-ink); }
+.band.ink .muted { color: var(--ink-muted); }
+.wrap { max-width: 720px; margin: 0 auto; display: grid; gap: 20px; }
+h1 { font-size: clamp(28px, 6vw, 40px); font-weight: 900; line-height: 1.35; margin: 0; text-wrap: balance; }
+h2 { font-size: 24px; font-weight: 900; margin: 0; text-wrap: balance; }
+h3 { font-size: 18px; font-weight: 700; margin: 0; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.em { background: var(--blend); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .02em; color: var(--violet); }
+.ink .eyebrow { color: var(--pink); }
+.big3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.big3 > div { border: 1px solid rgba(255,255,255,.14); border-radius: 16px; padding: 16px; display: grid; gap: 4px; align-content: start; }
+.big3 b { font-size: clamp(30px, 8vw, 44px); font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.big3 span { font-size: 14px; }
+@media (max-width: 520px) { .big3 { grid-template-columns: 1fr; } }
+.funnel { display: grid; gap: 10px; }
+.row { display: grid; gap: 4px; }
+.row .lbl { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.row .lbl b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.track { height: 22px; background: var(--soft); border-radius: 6px; overflow: hidden; }
+.bar { height: 100%; border-radius: 6px; background: var(--fg); opacity: .18; }
+.bar.need { background: var(--blend); opacity: 1; }
+.bar.mid { background: var(--violet); opacity: .55; }
+.bar.base { background: var(--fg); opacity: .25; }
+.note { font-size: 14px; color: var(--muted); border-right: 3px solid var(--pink); padding-right: 12px; }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 600px) { .cols { grid-template-columns: 1fr; } }
+.box { border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.box ul { margin: 0; padding-right: 18px; display: grid; gap: 6px; }
+.tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 99px; background: var(--soft); }
+.tag.up { color: #1d8a55; }
+.tag.down { color: #c4385e; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 460px; }
+th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 700; color: var(--muted); }
+td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+a { color: var(--violet); }
+.src { font-size: 13px; display: grid; gap: 4px; }
+</style>
+
+<section class="band ink">
+  <div class="wrap">
+    <p class="eyebrow">آنالیز بازار فرفرو · آبان ۱۴۰۵</p>
+    <h1>چند درصد از جامعهٔ هدف <span class="em">واقعاً به فرفرو نیاز دارن؟</span></h1>
+    <p class="muted">جامعهٔ هدف مشتری: خانم‌های ۱۵ تا ۶۴ سالهٔ شهری که گوشی هوشمند دارن. عددها برآوردن، نه نظرسنجی. آمار رسمی تازه‌ای از آرایشگاه‌ها و مشتری‌هاشون در ایران منتشر نشده، پس هر عدد یه بازه داره و پایین صفحه نوشتم از کجا اومده.</p>
+    <div class="big3">
+      <div><b>۴۰ تا ۵۵٪</b><span>به کارشون میاد</span><span class="muted">اگه سالنشون توی فرفرو باشه، ازش استفاده می‌کنن</span></div>
+      <div><b>۲۰ تا ۲۵٪</b><span>نیاز واقعی دارن</span><span class="muted">الان از نوبت گرفتن اذیت می‌شن و دنبال راه بهترن</span></div>
+      <div><b>۵ تا ۸٪</b><span>سال اول می‌آن</span><span class="muted">حاضرن همین حالا عادتشون رو عوض کنن</span></div>
+    </div>
+    <p class="muted">این درصدها از خانم‌هایی حساب شده که مرتب آرایشگاه می‌رن و گوشی هوشمند دارن، یعنی حدود ده میلیون نفر.</p>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">سمت مشتری</p>
+    <h2>از کل خانم‌ها تا کسایی که الان نیاز دارن</h2>
+    <div class="funnel" aria-label="قیف مشتری">
+      <div class="row"><div class="lbl"><span>همهٔ خانم‌های ایران</span><b>حدود ۴۶ میلیون</b></div><div class="track"><div class="bar base" style="width:100%"></div></div></div>
+      <div class="row"><div class="lbl"><span>۱۵ تا ۶۴ ساله و شهری</span><b>حدود ۲۴ میلیون</b></div><div class="track"><div class="bar base" style="width:52%"></div></div></div>
+      <div class="row"><div class="lbl"><span>دست‌کم هر دو ماه یه بار آرایشگاه می‌رن</span><b>حدود ۱۲ میلیون</b></div><div class="track"><div class="bar base" style="width:26%"></div></div></div>
+      <div class="row"><div class="lbl"><span>گوشی هوشمند و اینترنت دارن (جامعهٔ هدف)</span><b>حدود ۱۰ میلیون</b></div><div class="track"><div class="bar mid" style="width:21.7%"></div></div></div>
+      <div class="row"><div class="lbl"><span>به کارشون میاد</span><b>۴ تا ۵.۵ میلیون</b></div><div class="track"><div class="bar mid" style="width:10.3%"></div></div></div>
+      <div class="row"><div class="lbl"><span>نیاز واقعی دارن</span><b>۲ تا ۲.۵ میلیون</b></div><div class="track"><div class="bar need" style="width:4.9%"></div></div></div>
+      <div class="row"><div class="lbl"><span>سال اول می‌آن، اگه فرفرو به‌شون برسه</span><b>۵۰۰ تا ۸۰۰ هزار</b></div><div class="track"><div class="bar need" style="width:1.4%"></div></div></div>
+    </div>
+    <p class="note">میله‌ها با یه مقیاس کشیده شدن، پس فاصلهٔ واقعی رو نشون می‌دن. نکتهٔ اصلی اینه که جامعهٔ هدف بزرگه، ولی کسی که امروز درد داره حدود یک‌چهارمشه.</p>
+
+    <div class="cols">
+      <div class="box">
+        <h3>کیا نیاز واقعی دارن</h3>
+        <ul>
+          <li>کسی که برای نوبت ساعت‌ها منتظر جواب دایرکت یا تلفن سالن می‌مونه.</li>
+          <li>کسی که قبل از رفتن نمی‌دونه قیمت چقدره و نمونه‌کار واقعی ندیده.</li>
+          <li>کسی که تازه به یه شهر یا محله اومده و سالن قابل اعتماد نمی‌شناسه.</li>
+          <li>عروس‌ها و کسایی که برای مراسم آرتیست میکاپ یا ناخن می‌خوان.</li>
+          <li>خانم‌های شاغل که فقط شب وقت دارن نوبت بگیرن، وقتی سالن جواب نمی‌ده.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>کیا فعلاً نیاز ندارن</h3>
+        <ul>
+          <li>کسی که سال‌هاست پیش یه آرایشگر آشنا می‌ره و با یه پیام نوبت می‌گیره.</li>
+          <li>کسی که فقط سرزده می‌ره، مثلاً برای اصلاح ساده.</li>
+          <li>کسی که توی شهر کوچیکه و همه سالن‌ها رو می‌شناسه.</li>
+          <li>این گروه‌ها فقط وقتی می‌آن که خود سالنشون دعوتشون کنه.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band ink">
+  <div class="wrap">
+    <p class="eyebrow">سمت سالن و آرتیست</p>
+    <h2>اونی که پول می‌ده، سالن و آرتیسته</h2>
+    <p class="muted">مشتری رایگانه، پس درآمد فرفرو از اشتراک سالن (ماهی ۵۰۰ هزار تومن) و آرتیست (ماهی ۳۰۰ هزار تومن) میاد. برای همین نیاز این طرف از نیاز مشتری مهم‌تره.</p>
+    <div class="big3">
+      <div><b>۵۵ تا ۶۵٪</b><span>به کارشون میاد</span><span class="muted">نوبت می‌دن و تقویم شلوغی دارن</span></div>
+      <div><b>۳۰ تا ۳۵٪</b><span>درد واقعی دارن</span><span class="muted">جواب دادن دایرکت، دفتر نوبت، نیومدن مشتری</span></div>
+      <div><b>۸ تا ۱۲٪</b><span>حاضرن پول بدن</span><span class="muted">با قیمت فعلی، بعد از ۳۰ روز رایگان</span></div>
+    </div>
+    <p class="muted">تعداد کل سالن‌ها و آرتیست‌های زن در ایران آمار رسمی نداره. فقط در تهران، اتحادیه سال ۱۳۹۶ گفت حدود ۱۵ هزار آرایشگاه بی‌مجوز و حدود ۱۴۰۰ با مجوز هست. با این حساب کل کشور، با آرتیست‌هایی که در خونه یا از اینستاگرام کار می‌کنن، احتمالاً بین ۱۵۰ تا ۲۵۰ هزار نفره. ده درصدشون یعنی ۱۵ تا ۲۵ هزار مشتری پولی ممکن.</p>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">چی این درصد رو بالا یا پایین می‌بره</p>
+    <h2>نیاز هست، ولی عادت قوی‌تره</h2>
+    <div class="cols">
+      <div class="box">
+        <span class="tag up">به نفع فرفرو</span>
+        <ul>
+          <li>اینستاگرام فیلتره و نوبت گرفتن از دایرکت کند و نامطمئنه.</li>
+          <li>دیدن قیمت و نمونه‌کار واقعی قبل از رفتن، چیزیه که مشتری دنبالشه.</li>
+          <li>یادآوری نوبت، نیومدن مشتری رو کم می‌کنه و این برای سالن پوله.</li>
+          <li>«دعوت مشتری» باعث می‌شه سالن، مشتری‌های خودش رو بیاره.</li>
+          <li>در اروپا تقریباً نصف مشتری‌های سالن ترجیح می‌دن آنلاین نوبت بگیرن؛ ایران چند سال عقب‌تره، ولی همون مسیره.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <span class="tag down">به ضرر فرفرو</span>
+        <ul>
+          <li>عادت به نوبت تلفنی و دایرکت خیلی قویه.</li>
+          <li>خیلی از سالن‌ها بی‌مجوزن و نمی‌خوان قیمت یا نشونی‌شون جایی ثبت بشه.</li>
+          <li>رقیب هست: وقت قبلی، رژتایم، آرایشگاهچی، آرایش‌تو، سشوار و ایران‌دخت.</li>
+          <li>مشتری فقط وقتی میاد که سالن خودش اونجا باشه؛ شهر خالی یعنی برنامهٔ خالی.</li>
+          <li>شرایط اقتصادی، پرداخت ماهانه رو برای سالن‌های کوچیک سخت می‌کنه.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" style="background: var(--soft);">
+  <div class="wrap">
+    <p class="eyebrow">چطور این عددها رو واقعی کنیم</p>
+    <h2>سه آزمایش ارزون، قبل از هر تبلیغی</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>آزمایش</th><th>چی رو جواب می‌ده</th><th>عدد خوب</th></tr></thead>
+        <tbody>
+          <tr><td>نظرسنجی کوتاه ده‌سؤالی از ۲۰۰ خانم در دو شهر</td><td>درصد کسایی که از نوبت گرفتن اذیت می‌شن</td><td class="n">بیشتر از ۲۰٪</td></tr>
+          <tr><td>گفتگو با ۳۰ سالن و آرتیست و دادن ۳۰ روز رایگان</td><td>چند تا بعد از یه ماه پول می‌دن</td><td class="n">بیشتر از ۱۰٪</td></tr>
+          <tr><td>شمردن مشتری‌هایی که با «دعوت مشتری» ثبت‌نام می‌کنن</td><td>مشتری واقعاً از سالن پیروی می‌کنه یا نه</td><td class="n">بیشتر از ۳۰٪</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">عددها از کجا اومده</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>عدد</th><th>منبع یا فرض</th></tr></thead>
+        <tbody>
+          <tr><td>جمعیت حدود ۹۲ میلیون، اینترنت ۸۰٪</td><td><a href="https://datareportal.com/reports/digital-2026-iran">DataReportal، گزارش دیجیتال ۲۰۲۶ ایران</a>؛ بین شهری‌های بزرگسال حدود ۸۵٪ فرض شد</td></tr>
+          <tr><td>۷۷٪ شهری، ۶۸٪ در سن ۱۵ تا ۶۴</td><td>ساختار جمعیتی رایج ایران (برآورد)</td></tr>
+          <tr><td>نصف خانم‌های شهری هر دو ماه آرایشگاه می‌رن</td><td>فرض؛ آمار منتشرشده‌ای پیدا نشد</td></tr>
+          <tr><td>۴۵٪ مشتری‌ها نوبت آنلاین رو ترجیح می‌دن</td><td><a href="https://hji.co.uk/phorest-consumer-survey-results-2025-future-salon-success">نظرسنجی Phorest، ۲۰۲۵، بریتانیا و ایرلند</a>؛ برای ایران پایین‌تر گرفته شد</td></tr>
+          <tr><td>آرایشگاه‌های زنانهٔ تهران</td><td><a href="https://www.forsatnet.ir/778-6.html">فرصت امروز</a> و <a href="https://www.asriran.com/fa/news/421748">عصر ایران</a>، از اتحادیه و تعزیرات، آمار قدیمی</td></tr>
+          <tr><td>رقبا</td><td>صفحه‌های کافه‌بازار: <a href="https://cafebazaar.ir/app/com.vaghteghabli">وقت قبلی</a>، <a href="https://cafebazaar.ir/app/ir.rojetime.app">رژتایم</a>، <a href="https://cafebazaar.ir/app/com.arayeshto.www.twa">آرایش‌تو</a>، <a href="https://cafebazaar.ir/app/ir.websoftgroup.seshvar">سشوار</a>، <a href="https://cafebazaar.ir/app/com.eadverx.irandokht5">ایران‌دخت</a></td></tr>
+          <tr><td>قیمت اشتراک</td><td>خود فرفرو: سالن ۵۰۰ و آرتیست ۳۰۰ هزار تومن در ماه</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">درصدهای «نیاز واقعی» و «سال اول می‌آن» قضاوت من از روی این منابع و نمونه‌های خارجیه، نه اندازه‌گیری. با سه آزمایش بالا می‌شه ظرف یه ماه جاشون عدد واقعی گذاشت.</p>
+  </div>
+</section>

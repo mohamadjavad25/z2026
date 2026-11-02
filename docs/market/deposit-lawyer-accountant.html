@@ -1,0 +1,193 @@
+<title>بیعانه از نگاه وکیل و حسابدار</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: verdict, the legal model (diagram), risks by colour, the three money buckets, decisions with a recommendation, papers to gather, questions for the real lawyer, accountant and gateway. */
+:root {
+  --bg: #ffffff; --fg: #0c0d12; --muted: #5d5f6e; --line: #e6e4ee; --soft: #f5f3fb;
+  --pink: #ff86b8; --violet: #8b6cff; --ink: #0c0d12; --on-ink: #ffffff; --ink-muted: #b7b5c6;
+  --good: #1d8a55; --bad: #c4385e; --star: #f2a516;
+  --phone: #ffffff; --phone-line: #ecebf2; --chip: #f1eff8;
+  --blend: linear-gradient(90deg, #ff86b8, #8b6cff);
+  --font: "Vazirmatn", Tahoma, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #101118; --fg: #f1f0f6; --muted: #a3a2b4; --line: #2a2b38; --soft: #181923; --ink: #1b1c27; --good: #4fc98a; --bad: #ff7d9f; --phone: #16171f; --phone-line: #262734; --chip: #22232e; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #101118; --fg: #f1f0f6; --muted: #a3a2b4; --line: #2a2b38; --soft: #181923; --ink: #1b1c27; --good: #4fc98a; --bad: #ff7d9f; --phone: #16171f; --phone-line: #262734; --chip: #22232e; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.9; direction: rtl; }
+.band { padding-block: 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.band.ink { background: var(--ink); color: var(--on-ink); }
+.band.ink .muted { color: var(--ink-muted); }
+.band.soft { background: var(--soft); }
+.wrap { max-width: 820px; margin: 0 auto; display: grid; gap: 22px; }
+h1 { font-size: clamp(28px, 6vw, 40px); font-weight: 900; line-height: 1.35; margin: 0; text-wrap: balance; }
+h2 { font-size: 25px; font-weight: 900; margin: 0; text-wrap: balance; }
+h3 { font-size: 17px; font-weight: 700; margin: 0; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.em { background: var(--blend); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.eyebrow { font-size: 13px; font-weight: 700; color: var(--violet); }
+.ink .eyebrow { color: var(--pink); }
+.order { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.order > div { border: 1px solid rgba(255,255,255,.14); border-radius: 16px; padding: 16px; display: grid; gap: 4px; align-content: start; }
+.order b { font-size: 34px; font-weight: 900; line-height: 1.1; }
+.order small { font-size: 13px; }
+@media (max-width: 560px) { .order { grid-template-columns: 1fr; } }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 640px) { .cols { grid-template-columns: 1fr; } }
+.box { border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; background: var(--bg); }
+.box ul { margin: 0; padding-right: 18px; display: grid; gap: 6px; }
+.phones { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; }
+.ph { width: 250px; max-width: 100%; background: var(--phone); border: 1px solid var(--phone-line); border-radius: 30px; padding: 16px 12px 14px; box-shadow: 0 10px 30px rgba(20, 10, 50, .08); display: grid; gap: 10px; align-content: start; font-size: 13px; line-height: 1.7; }
+.ph .cap { text-align: center; font-size: 12px; color: var(--muted); font-weight: 700; }
+.ph .ttl { font-weight: 900; font-size: 15px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips span { background: var(--chip); border-radius: 99px; padding: 1px 10px; font-size: 12px; }
+.chips span.on { background: var(--fg); color: var(--bg); }
+.card { border: 1px solid var(--phone-line); border-radius: 14px; padding: 9px; display: grid; gap: 6px; }
+.card .top { display: flex; gap: 8px; align-items: center; }
+.logo { width: 34px; height: 34px; border-radius: 50%; background: var(--blend); color: #fff; display: grid; place-items: center; font-weight: 900; flex: none; }
+.card .nm { font-weight: 700; }
+.card .meta { color: var(--muted); font-size: 12px; }
+.thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.thumbs i { aspect-ratio: 4 / 5; border-radius: 8px; background: linear-gradient(160deg, rgba(255,134,184,.35), rgba(139,108,255,.35)); }
+.btn { display: block; text-align: center; border-radius: 12px; padding: 6px; font-weight: 700; background: var(--fg); color: var(--bg); }
+.btn.pink { background: var(--pink); color: #0c0d12; }
+.btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--phone-line); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.stars { color: var(--star); letter-spacing: 2px; font-size: 18px; }
+.stars.big { font-size: 26px; text-align: center; }
+.field { border: 1px solid var(--phone-line); border-radius: 10px; padding: 6px 8px; color: var(--muted); min-height: 46px; }
+.tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 0 8px; border-radius: 99px; background: var(--chip); }
+.tag.new { color: var(--violet); }
+.tag.wait { color: var(--star); }
+.tag.ok { color: var(--good); }
+.mono { font-variant-numeric: tabular-nums; letter-spacing: 1px; direction: ltr; text-align: left; }
+.states { display: grid; gap: 8px; }
+.st { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: start; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.st:last-child { border-bottom: 0; }
+.st b { font-size: 13px; }
+.st b.e { color: var(--bad); } .st b.o { color: var(--good); } .st b.m { color: var(--muted); }
+q { quotes: "«" "»"; font-weight: 500; }
+.qs { display: grid; gap: 10px; counter-reset: q; }
+.q { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: grid; gap: 4px; background: var(--bg); }
+.q .a { color: var(--violet); font-weight: 700; font-size: 14px; }
+.note { font-size: 14px; color: var(--muted); border-right: 3px solid var(--pink); padding-right: 12px; }
+</style>
+svg text { font-family: var(--font); }
+.dia { width: 100%; height: auto; display: block; }
+.dia .bx { fill: var(--bg); stroke: var(--line); stroke-width: 1.5; }
+.dia .hl { fill: var(--soft); stroke: var(--violet); stroke-width: 2; }
+.dia .t { fill: var(--fg); font-size: 15px; font-weight: 700; text-anchor: middle; }
+.dia .s { fill: var(--muted); font-size: 12px; text-anchor: middle; }
+.dia .ar { stroke: var(--violet); stroke-width: 2; fill: none; marker-end: url(#h); }
+.dia .ct { stroke: var(--pink); stroke-width: 2; fill: none; stroke-dasharray: 5 4; }
+.dia .lb { fill: var(--violet); font-size: 12px; font-weight: 700; text-anchor: middle; }
+.dia .lp { fill: var(--pink); font-size: 12px; font-weight: 700; text-anchor: middle; }
+.risk { display: grid; gap: 10px; }
+.rk { border: 1px solid var(--line); border-right: 5px solid var(--good); border-radius: 12px; padding: 10px 14px; display: grid; gap: 2px; background: var(--bg); }
+.rk.r { border-right-color: var(--bad); } .rk.a { border-right-color: var(--star); }
+.rk .fix { color: var(--good); font-size: 14px; }
+.buckets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .buckets { grid-template-columns: 1fr; } }
+.bk { border-radius: 16px; padding: 16px; display: grid; gap: 4px; align-content: start; border: 1px solid var(--line); background: var(--bg); }
+.bk b { font-size: 18px; }
+.bk.p { border-top: 5px solid var(--pink); } .bk.v { border-top: 5px solid var(--violet); } .bk.g { border-top: 5px solid var(--muted); }
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 720px) { .three { grid-template-columns: 1fr; } }
+.three ul { margin: 0; padding-right: 18px; display: grid; gap: 6px; font-size: 14px; }
+</style>
+
+<section class="band ink">
+  <div class="wrap">
+    <span class="eyebrow">آمادگی قبل از وکیل و حسابدار واقعی</span>
+    <h1>شدنیه، با <span class="em">یه شرط بزرگ</span></h1>
+    <p class="muted">شرط اینه که درگاه کتبی قبول کنه فرفرو پول رو به نمایندگی از سالن‌ها می‌گیره و بعد واریز می‌کنه. بقیه‌ش با قرارداد درست و حساب‌داری درست حل می‌شه.</p>
+    <div class="order">
+      <div><b>۱</b><small class="muted">خطر قرمز</small></div>
+      <div><b>۶</b><small class="muted">تصمیم که الان باید گرفت</small></div>
+      <div><b>۳</b><small class="muted">دسته پول که نباید قاطی بشه</small></div>
+    </div>
+    <p class="muted" style="font-size:13px">این بررسی من‌ئه، نه نظر وکیل یا حسابدار دارای پروانه. برای اینه که با دست پر بری پیششون.</p>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <span class="eyebrow">مدل حقوقی</span>
+    <h2>فرفرو «نمایندهٔ وصول» سالنه، نه فروشنده</h2>
+    <svg class="dia" viewBox="0 0 760 250" role="img" aria-label="قرارداد خدمت بین مشتری و سالن؛ فرفرو پول را به نمایندگی از سالن می‌گیرد و واریز می‌کند">
+      <defs><marker id="h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#8b6cff"/></marker></defs>
+      <rect class="bx" x="590" y="150" width="160" height="70" rx="16"/><text class="t" x="670" y="182">مشتری</text><text class="s" x="670" y="204">قوانین فرفرو رو قبول کرده</text>
+      <rect class="hl" x="300" y="150" width="160" height="70" rx="16"/><text class="t" x="380" y="182">فرفرو</text><text class="s" x="380" y="204">فقط وصول و واریز</text>
+      <rect class="bx" x="10" y="150" width="160" height="70" rx="16"/><text class="t" x="90" y="182">سالن</text><text class="s" x="90" y="204">قرارداد وصول رو قبول کرده</text>
+      <path class="ar" d="M588 185 H462"/><text class="lb" x="525" y="175">بیعانه</text>
+      <path class="ar" d="M298 185 H172"/><text class="lb" x="235" y="175">واریز شبانه</text>
+      <path class="ct" d="M670 148 C670 40 90 40 90 148"/>
+      <text class="lp" x="380" y="60">قرارداد خدمت: بین مشتری و سالن</text>
+    </svg>
+    <p class="note">یعنی خدمت رو سالن می‌ده و مسئول کیفیتشه. فرفرو فقط پول رو به نمایندگی از سالن می‌گیره و می‌رسونه. توی قانون تجارت به این کار «حق‌العمل‌کاری» می‌گن. فرفرو از بیعانه سهمی برنمی‌داره.</p>
+  </div>
+</section>
+
+<section class="band soft">
+  <div class="wrap">
+    <span class="eyebrow">خطرها</span>
+    <h2>از قرمز تا سبز، با راه حل هر کدوم</h2>
+    <div class="risk">
+      <div class="rk r"><b>جمع کردن پول دیگران با درگاه خودت</b><span class="muted">شاپرک این رو «تجمیع» می‌دونه. اگه درگاه بی‌خبر باشه، می‌تونه درگاه رو ببنده.</span><span class="fix">راه حل: قبل از قرارداد مدل رو کتبی به زرین‌پال بگو و جواب کتبی بگیر. بدون این، شروع نکن.</span></div>
+      <div class="rk a"><b>کل بیعانه درآمد فرفرو حساب بشه</b><span class="muted">اون‌وقت مالیات کل پول سالن‌ها می‌افته گردن فرفرو.</span><span class="fix">راه حل: توی دفترها «پول امانی سالن‌ها» ثبت بشه، نه فروش. قرارداد وصول و گزارش واریزها هم مدرکشه.</span></div>
+      <div class="rk a"><b>لغو و برگشت پول</b><span class="muted">قانون تجارت الکترونیکی برای خرید از راه دور یه حق انصراف هفت‌روزه داره. اینکه برای نوبتِ روز مشخص هم هست یا نه رو وکیل بگه.</span><span class="fix">راه حل: قانون لغو قبل از پرداخت جلوی چشم مشتری باشه و تیکش رو بزنه.</span></div>
+      <div class="rk a"><b>شبای اشتباه یا به اسم یکی دیگه</b><span class="muted">پول بره به حساب کسی که صاحب سالن نیست.</span><span class="fix">راه حل: اسم صاحب شبا از بانک بیاد و سالن تأییدش کنه. بعد از عوض کردن شبا، دو روز واریز نشه.</span></div>
+      <div class="rk"><b>سوءاستفاده برای جابه‌جایی پول</b><span class="muted">کسی بیعانهٔ الکی بزنه که پول رو رد کنه.</span><span class="fix">راه حل: سقف بیعانه، حداکثر نصف قیمت خدمت، و فقط برای نوبت واقعی.</span></div>
+      <div class="rk"><b>اطلاعات بانکی</b><span class="muted">شبا هم اطلاعات شخصیه.</span><span class="fix">راه حل: یه بند به حریم خصوصی، و نگه داشتنش به شکل رمزشده.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <span class="eyebrow">نگاه حسابدار</span>
+    <h2>سه دسته پول، هیچ‌وقت قاطی نشن</h2>
+    <div class="buckets">
+      <div class="bk p"><b>پول سالن‌ها</b><span class="muted">بیعانه‌ها. مال فرفرو نیست، بدهی فرفرو به سالن‌هاست تا شب.</span></div>
+      <div class="bk v"><b>درآمد فرفرو</b><span class="muted">فقط اشتراک ماهانهٔ سالن‌ها و آرتیست‌ها. برای این فاکتور الکترونیکی صادر می‌شه.</span></div>
+      <div class="bk g"><b>کارمزد بانک</b><span class="muted">از سهم سالن کم می‌شه و توی گزارش واریزش جدا نوشته می‌شه.</span></div>
+    </div>
+    <p class="note">هر شب باید جور دربیاد: پولی که از درگاه اومده، مساوی واریز به سالن‌ها، به‌اضافهٔ پول برگشتی، به‌اضافهٔ کارمزد. این گزارش رو اپ خودش می‌سازه.</p>
+    <div class="three">
+      <div class="box"><b>هر ماه</b><ul><li>فاکتور الکترونیکی اشتراک‌ها توی سامانهٔ مودیان</li><li>جور کردن حساب‌ها</li></ul></div>
+      <div class="box"><b>هر سه ماه</b><ul><li>اظهارنامهٔ ارزش افزوده</li></ul></div>
+      <div class="box"><b>هر سال</b><ul><li>اظهارنامهٔ عملکرد شرکت</li><li>صورت‌های مالی</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section class="band soft">
+  <div class="wrap">
+    <span class="eyebrow">تصمیم‌ها</span>
+    <h2>شش تا، با پیشنهاد من</h2>
+    <div class="qs">
+      <div class="q"><span>چه شرکتی؟</span><span class="a">با مسئولیت محدود، دو نفر. ساده‌تر و ارزون‌تر از سهامی خاص.</span></div>
+      <div class="q"><span>فرفرو از بیعانه سهم برداره؟</span><span class="a">نه. اینطوری فرفرو واقعاً فقط نماینده‌ست و مالیاتش ساده‌تره.</span></div>
+      <div class="q"><span>کارمزد بانک با کی؟</span><span class="a">با سالن، از سهمش کم بشه. مشتری همون عددی رو می‌ده که می‌بینه.</span></div>
+      <div class="q"><span>کی واریز بشه؟</span><span class="a">هر شب، برای نوبت‌هایی که اون روز بیعانه گرفتن.</span></div>
+      <div class="q"><span>سقف بیعانه؟</span><span class="a">حداکثر نصف قیمت خدمت.</span></div>
+      <div class="q"><span>برگشت پول بعد از واریز؟</span><span class="a">از واریز بعدی همون سالن کم بشه. این توی قرارداد سالن باشه.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <span class="eyebrow">آماده کن</span>
+    <h2>مدارک، و سؤال‌هایی که باید بپرسی</h2>
+    <div class="three">
+      <div class="box"><b>مدارک</b><ul><li>کارت ملی و شناسنامهٔ تو و شریکت</li><li>سیم‌کارت به اسم خودتون</li><li>آدرس با سند یا اجاره‌نامه و کد پستی</li><li>یه تلفن ثابت</li><li>اسم شرکت، سه چهار گزینه</li></ul></div>
+      <div class="box"><b>از وکیل</b><ul><li>مدل «نمایندهٔ وصول» درسته؟</li><li>حق انصراف هفت‌روزه برای نوبت هست؟</li><li>مجوز کسب‌وکار مجازی لازمه؟</li><li>قرارداد سالن و قوانین مشتری رو ببینه</li></ul></div>
+      <div class="box"><b>از حسابدار و زرین‌پال</b><ul><li>بیعانه رو امانی ثبت کنیم قبوله؟</li><li>ارزش افزوده فقط روی اشتراکه؟</li><li>زرین‌پال: این مدل رو کتبی قبول می‌کنی؟</li><li>وندار یا جیبیت: روزی چند هزار واریز، کارمزدش؟</li></ul></div>
+    </div>
+  </div>
+</section>

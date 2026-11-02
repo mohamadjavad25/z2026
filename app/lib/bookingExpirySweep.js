@@ -1,4 +1,5 @@
 import { getDb, all, run } from "./db/connection.js";
+import { checkWaitlistSoon } from "./waitlist.js";
 import * as salons from "./db/repos/salons.js";
 import { sendPushToUser } from "./push.js";
 import { bookingWhen, smsBookingAnswer, smsNewBookingRequest } from "./bookingSms.js";
@@ -239,6 +240,7 @@ export async function sweepExpiredBookingRequestsOnce() {
     }, { allowPast: true });
     if (result.ok) {
       salonExpired += 1;
+      checkWaitlistSoon("salon", row.salon_user_id, row.booking_date);
       // The client gave this salon an hour and named a backup: the same request goes there now
       // (only for a window that ran out, never for an appointment that already started).
       let moved = null;
@@ -281,6 +283,7 @@ export async function sweepExpiredBookingRequestsOnce() {
     `, [BOOKING_REQUEST_EXPIRED_STATUS, row.id]);
     if (updated.rowCount > 0) {
       artistExpired += 1;
+      checkWaitlistSoon("artist", row.artist_user_id, row.booking_date);
       // Same as the salon case: the hour ran out and the client named a backup artist.
       let moved = null;
       const triedBackup = Boolean(row.timed_out && row.fallback_artist_user_id);

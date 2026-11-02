@@ -1,0 +1,301 @@
+<title>پر کردن سه جای خالی</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: one band per gap; each = idea, phone mock-ups of the real screens, exact texts and states, then questions with a recommended answer. */
+:root {
+  --bg: #ffffff; --fg: #0c0d12; --muted: #5d5f6e; --line: #e6e4ee; --soft: #f5f3fb;
+  --pink: #ff86b8; --violet: #8b6cff; --ink: #0c0d12; --on-ink: #ffffff; --ink-muted: #b7b5c6;
+  --good: #1d8a55; --bad: #c4385e; --star: #f2a516;
+  --phone: #ffffff; --phone-line: #ecebf2; --chip: #f1eff8;
+  --blend: linear-gradient(90deg, #ff86b8, #8b6cff);
+  --font: "Vazirmatn", Tahoma, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #101118; --fg: #f1f0f6; --muted: #a3a2b4; --line: #2a2b38; --soft: #181923; --ink: #1b1c27; --good: #4fc98a; --bad: #ff7d9f; --phone: #16171f; --phone-line: #262734; --chip: #22232e; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #101118; --fg: #f1f0f6; --muted: #a3a2b4; --line: #2a2b38; --soft: #181923; --ink: #1b1c27; --good: #4fc98a; --bad: #ff7d9f; --phone: #16171f; --phone-line: #262734; --chip: #22232e; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.9; direction: rtl; }
+.band { padding-block: 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.band.ink { background: var(--ink); color: var(--on-ink); }
+.band.ink .muted { color: var(--ink-muted); }
+.band.soft { background: var(--soft); }
+.wrap { max-width: 820px; margin: 0 auto; display: grid; gap: 22px; }
+h1 { font-size: clamp(28px, 6vw, 40px); font-weight: 900; line-height: 1.35; margin: 0; text-wrap: balance; }
+h2 { font-size: 25px; font-weight: 900; margin: 0; text-wrap: balance; }
+h3 { font-size: 17px; font-weight: 700; margin: 0; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.em { background: var(--blend); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.eyebrow { font-size: 13px; font-weight: 700; color: var(--violet); }
+.ink .eyebrow { color: var(--pink); }
+.order { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.order > div { border: 1px solid rgba(255,255,255,.14); border-radius: 16px; padding: 16px; display: grid; gap: 4px; align-content: start; }
+.order b { font-size: 34px; font-weight: 900; line-height: 1.1; }
+.order small { font-size: 13px; }
+@media (max-width: 560px) { .order { grid-template-columns: 1fr; } }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 640px) { .cols { grid-template-columns: 1fr; } }
+.box { border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; background: var(--bg); }
+.box ul { margin: 0; padding-right: 18px; display: grid; gap: 6px; }
+.phones { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; }
+.ph { width: 250px; max-width: 100%; background: var(--phone); border: 1px solid var(--phone-line); border-radius: 30px; padding: 16px 12px 14px; box-shadow: 0 10px 30px rgba(20, 10, 50, .08); display: grid; gap: 10px; align-content: start; font-size: 13px; line-height: 1.7; }
+.ph .cap { text-align: center; font-size: 12px; color: var(--muted); font-weight: 700; }
+.ph .ttl { font-weight: 900; font-size: 15px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips span { background: var(--chip); border-radius: 99px; padding: 1px 10px; font-size: 12px; }
+.chips span.on { background: var(--fg); color: var(--bg); }
+.card { border: 1px solid var(--phone-line); border-radius: 14px; padding: 9px; display: grid; gap: 6px; }
+.card .top { display: flex; gap: 8px; align-items: center; }
+.logo { width: 34px; height: 34px; border-radius: 50%; background: var(--blend); color: #fff; display: grid; place-items: center; font-weight: 900; flex: none; }
+.card .nm { font-weight: 700; }
+.card .meta { color: var(--muted); font-size: 12px; }
+.thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.thumbs i { aspect-ratio: 4 / 5; border-radius: 8px; background: linear-gradient(160deg, rgba(255,134,184,.35), rgba(139,108,255,.35)); }
+.btn { display: block; text-align: center; border-radius: 12px; padding: 6px; font-weight: 700; background: var(--fg); color: var(--bg); }
+.btn.pink { background: var(--pink); color: #0c0d12; }
+.btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--phone-line); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.stars { color: var(--star); letter-spacing: 2px; font-size: 18px; }
+.stars.big { font-size: 26px; text-align: center; }
+.field { border: 1px solid var(--phone-line); border-radius: 10px; padding: 6px 8px; color: var(--muted); min-height: 46px; }
+.tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 0 8px; border-radius: 99px; background: var(--chip); }
+.tag.new { color: var(--violet); }
+.tag.wait { color: var(--star); }
+.tag.ok { color: var(--good); }
+.mono { font-variant-numeric: tabular-nums; letter-spacing: 1px; direction: ltr; text-align: left; }
+.states { display: grid; gap: 8px; }
+.st { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: start; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.st:last-child { border-bottom: 0; }
+.st b { font-size: 13px; }
+.st b.e { color: var(--bad); } .st b.o { color: var(--good); } .st b.m { color: var(--muted); }
+q { quotes: "«" "»"; font-weight: 500; }
+.qs { display: grid; gap: 10px; counter-reset: q; }
+.q { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: grid; gap: 4px; background: var(--bg); }
+.q .a { color: var(--violet); font-weight: 700; font-size: 14px; }
+.note { font-size: 14px; color: var(--muted); border-right: 3px solid var(--pink); padding-right: 12px; }
+</style>
+
+<section class="band ink">
+  <div class="wrap">
+    <p class="eyebrow">پیشنهاد · ۵ آبان ۱۴۰۵ · هنوز چیزی ساخته نشده</p>
+    <h1>سه جای خالی فرفرو رو <span class="em">چطور پر کنیم</span></h1>
+    <p class="muted">پیدا کردن سالن تازه، نظر مشتری‌ها، و بیعانه. برای هر کدوم شکل صفحه، متن دقیق، حالت‌های خالی و خطا، و چند سؤال با جواب پیشنهادی من رو آوردم. قبل از ساختن، جواب سؤال‌ها رو از تو می‌خوام.</p>
+    <div class="order">
+      <div><small>اول</small><b>نزدیک تو</b><small class="muted">پیدا کردن سالن تازه. بیشترِ کارش آماده‌ست و خطری نداره. خودش شهربه‌شهر روشن می‌شه.</small></div>
+      <div><small>دوم</small><b>نظرها</b><small class="muted">روی برنامهٔ «آمد یا نیامد» که شروع شده سوار می‌شه، پس نظر الکی نمیاد.</small></div>
+      <div><small>سوم</small><b>بیعانه</b><small class="muted">قبلاً گفتی «فعلاً نه». یه نسخهٔ ساده بدون درگاه پیشنهاد می‌دم که هر وقت خواستی بسازیم.</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- 1. Discovery -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">جای خالی ۱</p>
+    <h2>«نزدیک تو»: مشتری سالن تازه پیدا کنه</h2>
+    <p>الان توی تب رزرو، بخش «پیدا کردن»، یه کارت «به‌زودی» هست. پیشنهادم اینه که جاش فهرست سالن‌ها و آرتیست‌های نزدیک بیاد. ولی فقط اونایی که صفحه‌شون کامله، تا مشتری صفحهٔ خالی نبینه. فهرست سالن‌ها پشت صحنه از قبل وجود داره، پس بیشترش کار ظاهره.</p>
+    <div class="phones">
+      <div class="ph">
+        <div class="cap">مشتری · رزرو ← پیدا کردن</div>
+        <div class="ttl">نزدیک تو</div>
+        <div class="chips"><span class="on">همه</span><span>ناخن</span><span>مو</span><span>ابرو و مژه</span><span>میکاپ</span></div>
+        <div class="card">
+          <div class="top"><div class="logo">ر</div><div><div class="nm">سالن رز</div><div class="meta">۱.۲ کیلومتر · گلستان</div></div></div>
+          <div class="thumbs"><i></i><i></i><i></i></div>
+          <div class="meta">از ۲۵۰ هزار تومن · ۴۲ نوبت انجام‌شده</div>
+          <span class="btn ghost">ببین</span>
+        </div>
+        <div class="card">
+          <div class="top"><div class="logo">ن</div><div><div class="nm">نگار کاشی <span class="tag new">تازه</span></div><div class="meta">آرتیست ناخن · ۲ کیلومتر</div></div></div>
+          <div class="thumbs"><i></i><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="ph">
+        <div class="cap">سالن · خانه، کارت آماده بودن صفحه</div>
+        <div class="card">
+          <div class="nm">صفحه‌ت ۷۵٪ آماده‌ست</div>
+          <div class="meta">وقتی ۱۰۰٪ بشه، مشتری‌های نزدیکت توی «نزدیک تو» پیدات می‌کنن.</div>
+          <div class="meta">مونده: ۲ نمونه‌کار دیگه</div>
+          <span class="btn pink">بریم</span>
+        </div>
+        <div class="card">
+          <div class="nm">توی «نزدیک تو» نشونم بده</div>
+          <div class="meta">تنظیمات ← نمایش برای مشتری‌ها · روشن</div>
+        </div>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="box">
+        <h3>کی توی فهرست میاد</h3>
+        <ul>
+          <li>سالن یا آرتیستی که لوگو، دست‌کم سه خدمت با قیمت، سه نمونه‌کار و پین روی نقشه داره.</li>
+          <li>نوبت آنلاینش بازه و اشتراکش تموم نشده.</li>
+          <li>ترتیب: اول نزدیک‌ترها، بعد اونایی که نوبت انجام‌شدهٔ بیشتری دارن. فعلاً هیچ‌کس با پول بالا نمیاد.</li>
+          <li>هر شهر وقتی روشن می‌شه که دست‌کم پنج جای کامل داشته باشه.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>متن‌ها و حالت‌ها</h3>
+        <div class="states">
+          <div class="st"><b class="m">جا رو نمی‌دونیم</b><span><q>جات رو روی نقشه بگو تا نزدیک‌ترین‌ها رو ببینی.</q> دکمه: <q>جام رو بگو</q></span></div>
+          <div class="st"><b class="m">شهر هنوز خالیه</b><span><q>هنوز سالنی نزدیکت توی فرفرو نیست. اگه سالن خودت رو می‌شناسی، شماره یا کدش رو بزن.</q></span></div>
+          <div class="st"><b class="m">این دسته خالیه</b><span><q>نزدیکت کسی ناخن نداره؛ «همه» رو ببین.</q></span></div>
+          <div class="st"><b class="e">خطا</b><span><q>فهرست باز نشد. اینترنتت رو ببین و دوباره بزن.</q> دکمه: <q>دوباره</q></span></div>
+          <div class="st"><b class="o">موفق</b><span>زدن روی کارت، صفحهٔ همون سالن رو باز می‌کنه با <q>وصل شو</q> و <q>رزرو</q> مثل امروز.</span></div>
+        </div>
+      </div>
+    </div>
+    <h3>سؤال‌ها</h3>
+    <div class="qs">
+      <div class="q"><span>از کی باز بشه؟</span><span class="a">پیشنهادم: هر شهر جدا، وقتی پنج جای کامل داشت. تا اون موقع همون «به‌زودی» بمونه.</span></div>
+      <div class="q"><span>کیا توی فهرست بیان؟</span><span class="a">پیشنهادم: فقط صفحه‌های کامل، با نوبت آنلاین باز و اشتراک فعال.</span></div>
+      <div class="q"><span>ترتیب فهرست چی باشه؟</span><span class="a">پیشنهادم: نزدیکی، بعد تعداد نوبت انجام‌شده. فعلاً جای پولی یا تبلیغاتی نداشته باشه.</span></div>
+      <div class="q"><span>سالن بتونه نخواد دیده بشه؟</span><span class="a">پیشنهادم: آره، یه کلید توی تنظیمات که از اول روشنه.</span></div>
+      <div class="q"><span>مهمون بدون ثبت‌نام فهرست رو ببینه؟</span><span class="a">پیشنهادم: آره. ثبت‌نام فقط موقع زدن «رزرو» بیاد، مثل لینک سالن‌ها که الان کار می‌کنه.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Reviews -->
+<section class="band soft">
+  <div class="wrap">
+    <p class="eyebrow">جای خالی ۲</p>
+    <h2>نظر مشتری‌ها، فقط از کسایی که واقعاً اومدن</h2>
+    <p>برنامهٔ «آمد یا نیامد» از قبل تصویب شده: مشتری «رسیدم» می‌زنه یا کد روی میز رو اسکن می‌کنه و سالن تأیید می‌کنه. پیام شبی «چطور بود؟» هم توی همون برنامه هست. پیشنهادم اینه که همون پیام شب، ستاره و یه جمله هم بگیره. پس فقط کسی نظر می‌ده که آمدنش قطعی شده، و نظر الکی یا نظری که خود سالن برای خودش بنویسه جایی نداره.</p>
+    <div class="phones">
+      <div class="ph">
+        <div class="cap">مشتری · شب همون روز</div>
+        <div class="ttl">لاک ژل پیش سالن رز چطور بود؟</div>
+        <div class="stars big">★★★★★</div>
+        <div class="field">یه جمله بنویس (اگه خواستی)</div>
+        <span class="btn pink">بفرست</span>
+        <span class="btn ghost">دوباره رزرو کن</span>
+      </div>
+      <div class="ph">
+        <div class="cap">صفحهٔ عمومی سالن</div>
+        <div class="card">
+          <div class="top"><div class="logo">ر</div><div><div class="nm">سالن رز</div><div class="meta"><span class="stars" style="font-size:13px">★</span> ۴.۸ از ۵ · ۳۲ نظر · ۱۲۰ نوبت انجام‌شده</div></div></div>
+        </div>
+        <div class="card">
+          <div class="nm">مریم ر. <span class="meta">· لاک ژل · مهر</span></div>
+          <div class="stars" style="font-size:13px">★★★★★</div>
+          <div>خیلی تمیز و سر وقت بود.</div>
+          <div class="meta">جواب سالن: ممنون مریم جان، منتظرت هستیم.</div>
+        </div>
+      </div>
+      <div class="ph">
+        <div class="cap">سالن · اعلان و کارت نظر</div>
+        <div class="card"><div class="nm">یه نظر تازه گرفتی: ۵ از ۵</div><div class="meta">مریم ر. · لاک ژل</div></div>
+        <div class="row2"><span class="btn ghost">جواب بده</span><span class="btn ghost">گزارش به پشتیبانی</span></div>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="box">
+        <h3>قانون‌ها</h3>
+        <ul>
+          <li>هر نوبت قطعی، یه نظر. تا هفت روز بعد می‌شه نوشت یا عوضش کرد.</li>
+          <li>اسم مشتری کوتاه نشون داده می‌شه: اسم کوچیک و حرف اول فامیل.</li>
+          <li>سالن نمی‌تونه نظر رو پاک کنه. یه بار جواب عمومی می‌ده یا گزارش می‌کنه؛ پشتیبانی فقط نظر توهین‌آمیز رو برمی‌داره.</li>
+          <li>نظرِ نوبت آرتیستِ تیم، هم پای آرتیست حساب می‌شه هم پای سالن.</li>
+          <li>میانگین ستاره‌ها از سه نظر به بالا نشون داده می‌شه، تا یه نظر بد اول کار، سالن رو خراب نکنه.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>متن‌ها و حالت‌ها</h3>
+        <div class="states">
+          <div class="st"><b class="m">هنوز نظری نیست</b><span><q>هنوز نظری نیومده. نظرها فقط از کسایی‌ه که واقعاً اومدن.</q></span></div>
+          <div class="st"><b class="m">کمتر از سه نظر</b><span>ستاره نشون داده نمی‌شه، فقط خود نظرها.</span></div>
+          <div class="st"><b class="e">خطا</b><span><q>نظرت نرسید. دوباره بزن.</q></span></div>
+          <div class="st"><b class="o">موفق</b><span><q>ممنون! نظرت روی صفحهٔ سالن رز رفت.</q></span></div>
+          <div class="st"><b class="m">بعد از هفت روز</b><span><q>وقت نظر دادن برای این نوبت تموم شده.</q></span></div>
+        </div>
+      </div>
+    </div>
+    <h3>سؤال‌ها</h3>
+    <div class="qs">
+      <div class="q"><span>کی می‌تونه نظر بده؟</span><span class="a">پیشنهادم: فقط نوبتی که آمدنش قطعی شده، تا هفت روز بعد.</span></div>
+      <div class="q"><span>نظر چی داشته باشه؟</span><span class="a">پیشنهادم: ستاره و یه جملهٔ اختیاری. عکس فعلاً نه.</span></div>
+      <div class="q"><span>سالن با نظر بد چی کار کنه؟</span><span class="a">پیشنهادم: یه بار جواب عمومی، یا گزارش به پشتیبانی. پاک کردن نه.</span></div>
+      <div class="q"><span>اسم مشتری چطور دیده بشه؟</span><span class="a">پیشنهادم: اسم کوچیک و حرف اول فامیل.</span></div>
+      <div class="q"><span>از کی ستاره نشون داده بشه؟</span><span class="a">پیشنهادم: از سه نظر به بالا.</span></div>
+    </div>
+    <p class="note">این یکی به مرحلهٔ سه و چهارِ برنامهٔ «آمد یا نیامد» بستگی داره، یعنی «رسیدم» و پیام شب. پس بعد از اونا ساخته می‌شه.</p>
+  </div>
+</section>
+
+<!-- 3. Deposit -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">جای خالی ۳</p>
+    <h2>بیعانه، بدون اینکه پول از دست فرفرو رد بشه</h2>
+    <p>خیلی از سالن‌ها همین الان توی دایرکت شماره‌کارت می‌دن و رسید می‌گیرن. پیشنهادم اینه که فرفرو همین کار رو مرتب کنه. سالن بیعانه رو روشن می‌کنه و مبلغ و شماره‌کارت رو می‌نویسه. بعد از تأیید نوبت، مشتری کارت‌به‌کارت می‌کنه و «واریز کردم» رو می‌زنه. سالن هم «رسید» می‌زنه. پول هیچ‌وقت دست فرفرو نمیاد، پس مجوز پرداخت لازم نیست. با این حال قبل از شروع، وکیل یه نگاهی بندازه. مرحلهٔ بعد، اگه خواستی، درگاه خود سالنه که پول خودکار به حساب سالن می‌ره.</p>
+    <div class="phones">
+      <div class="ph">
+        <div class="cap">مشتری · کارت نوبت بعد از تأیید</div>
+        <div class="card">
+          <div class="nm">سالن رز تأیید کرد <span class="tag wait">منتظر بیعانه</span></div>
+          <div class="meta">لاک ژل · شنبه ۹ آبان · ۱۰:۰۰</div>
+          <div>برای قطعی شدن، ۱۰۰ هزار تومن بیعانه بریز.</div>
+          <div class="mono">6037 9975 1234 5678</div>
+          <div class="meta">به نام: مریم رضایی · تا ساعت ۱۸:۳۰ وقت داری</div>
+          <div class="meta">تا ۲۴ ساعت قبل لغو کنی، بیعانه برمی‌گرده.</div>
+          <div class="row2"><span class="btn ghost">کپی شماره</span><span class="btn pink">واریز کردم</span></div>
+        </div>
+      </div>
+      <div class="ph">
+        <div class="cap">سالن · درخواست‌ها</div>
+        <div class="card">
+          <div class="nm">سارا می‌گه بیعانه رو ریخته</div>
+          <div class="meta">۱۰۰ هزار تومن · لاک ژل · شنبه ۱۰:۰۰</div>
+          <div class="row2"><span class="btn">رسید</span><span class="btn ghost">نرسید</span></div>
+        </div>
+        <div class="card">
+          <div class="nm">تنظیمات ← بیعانه</div>
+          <div class="meta">روشن · ۱۰۰ هزار تومن · فقط برای مشتری تازه</div>
+          <div class="meta">قانون لغو: تا ۲۴ ساعت قبل برمی‌گرده</div>
+        </div>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="box">
+        <h3>جریان کار</h3>
+        <ul>
+          <li>سالن تأیید می‌کنه؛ نوبت می‌شه <q>منتظر بیعانه</q> و ساعت تا اون موقع برای کس دیگه‌ای باز نمی‌شه.</li>
+          <li>مشتری «واریز کردم» رو می‌زنه؛ سالن یه اعلان می‌گیره.</li>
+          <li>سالن «رسید» رو می‌زنه؛ نوبت قطعی می‌شه و مشتری خبر می‌گیره.</li>
+          <li>اگه تا آخرین مهلت «واریز کردم» زده نشه، نوبت خودش لغو می‌شه.</li>
+          <li>اگه مشتری بگه ریختم و سالن بگه نرسید، می‌ره پیش پشتیبانی، مثل اختلاف‌های «آمد یا نیامد».</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>متن‌ها و حالت‌ها</h3>
+        <div class="states">
+          <div class="st"><b class="m">منتظر واریز</b><span><q>برای قطعی شدن، ۱۰۰ هزار تومن بیعانه بریز.</q></span></div>
+          <div class="st"><b class="m">منتظر سالن</b><span><q>سالن خبر داره؛ وقتی دید، نوبتت قطعی می‌شه.</q></span></div>
+          <div class="st"><b class="o">موفق</b><span><q>بیعانه رسید؛ نوبتت قطعیه.</q></span></div>
+          <div class="st"><b class="e">وقت تموم شد</b><span><q>بیعانه نرسید و نوبت لغو شد. اگه هنوز می‌خوای، دوباره نوبت بگیر.</q></span></div>
+          <div class="st"><b class="e">سالن گفت نرسید</b><span><q>سالن می‌گه بیعانه نرسیده. اگه ریختی، رسیدش رو برای پشتیبانی بفرست.</q></span></div>
+        </div>
+      </div>
+    </div>
+    <h3>سؤال‌ها</h3>
+    <div class="qs">
+      <div class="q"><span>بیعانه از چه راهی باشه؟</span><span class="a">پیشنهادم: اول کارت‌به‌کارت با «واریز کردم». درگاه خود سالن بعداً.</span></div>
+      <div class="q"><span>مبلغش چقدر باشه؟</span><span class="a">پیشنهادم: سالن یه مبلغ ثابت تعیین کنه، حداکثر نصف قیمت خدمت.</span></div>
+      <div class="q"><span>مشتری چقدر وقت داره بریزه؟</span><span class="a">پیشنهادم: دو ساعت بعد از تأیید. اگه نوبت نزدیک‌تره، تا یه ساعت قبل از نوبت.</span></div>
+      <div class="q"><span>قانون لغو و برگشت پول با کی باشه؟</span><span class="a">پیشنهادم: خود سالن از سه گزینهٔ آماده انتخاب کنه. فرفرو فقط نشونش می‌ده و پول رو جابه‌جا نمی‌کنه.</span></div>
+      <div class="q"><span>بیعانه از همه گرفته بشه؟</span><span class="a">پیشنهادم: سالن انتخاب کنه: همه، فقط مشتری تازه، یا فقط کسی که قبلاً «نیومد» داشته.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="band ink">
+  <div class="wrap">
+    <p class="eyebrow">خلاصه</p>
+    <h2>چی از تو می‌خوام</h2>
+    <p>برای هر کدوم بگو کدوم پیشنهادها رو قبول داری یا چی رو عوض کنیم. هر کدوم که گفتی «شروع کن»، اول روی نسخهٔ آزمایشی ورسل می‌سازمش و لینکش رو بهت می‌دم.</p>
+    <p class="muted">هر سه به نوبت‌ها و فهرست سالن‌ها دست می‌زنن، پس طبق قانون خودت اول روی ورسل تست می‌شن و بعد میان روی سرور اصلی.</p>
+  </div>
+</section>

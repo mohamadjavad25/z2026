@@ -145,6 +145,24 @@ export function smsBookingReminder(clientUserId, { providerName, time, payerUser
   })().catch(() => {});
 }
 
+/**
+ * «خبرم کن»: a time opened on the day a client is waiting for. Texted only when the push did not reach their app, and
+ * at most a few times a day per client, however many places they wait at.
+ */
+export function smsWaitlistOpen(clientUserId, { providerName, bookingDate, time }, push = null) {
+  void (async () => {
+    const phone = await phoneOf(clientUserId, push);
+    if (!phone) return;
+    const limited = await checkRateLimit(`sms-waitlist:${Number(clientUserId)}`, 3, 24 * 60 * 60 * 1000);
+    if (!limited.ok) return;
+    await sendTemplateSms(phone, "waitlist_open", {
+      who: String(providerName || "").trim() || "سالن",
+      day: dayLabel(bookingDate),
+      time: timeLabel(time)
+    });
+  })().catch(() => {});
+}
+
 /** A client cancelled their visit: the salon or artist hears it by SMS when the push did not reach their app. */
 export function smsClientCancelled(providerUserId, { client, bookingDate, time }, push = null) {
   void (async () => {

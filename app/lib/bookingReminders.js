@@ -70,8 +70,9 @@ export function reminderMessage(kind, booking, now) {
   if (kind === "soon") {
     return { title: "نوبتت نزدیکه", body: `${what}${where} ساعت ${time}؛ کمتر از ۲ ساعت دیگه.` };
   }
+  // «میای؟» (owner's decision of 2026-10-27): the day-before reminder asks; the answer buttons are on the booking card.
   const day = formatRelativeBookingDayLabel(booking.booking_date, now);
-  return { title: "یادت نره، نوبت داری", body: `${what}${where} ${day} ساعت ${time}.` };
+  return { title: `${day} ساعت ${time} میای؟`, body: `${what}${where}. بزن و بگو میای یا نه، تا خیالشون راحت باشه.` };
 }
 
 export async function sweepBookingReminders(now = new Date()) {
