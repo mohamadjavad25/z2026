@@ -6,6 +6,7 @@ import { computeSalonFreeTimes as computeTimes } from "../../../lib/salonFreeTim
 import { strictDayKey } from "../../../lib/validation/bookingSlot.js";
 import { onlineBookingBlock } from "../../../lib/billing/access.js";
 import { availabilityKey, cachedAvailability } from "../../../lib/availabilityCache.js";
+import { checkRateLimit, clientIp } from "../../../lib/rateLimit.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,8 +27,14 @@ function noStoreJson(body, init = {}) {
  */
 async function _GET(request) {
   await ensureDb();
+  // A visitor not signed in (from an Instagram story, owner's decision of 2026-11-02) sees the free times a client
+  // would: they pick everything first and sign in only to send. Read-only; limited per address.
   const auth = await requireUser(request);
-  if (!auth.ok) return auth.response;
+  const user = auth.ok ? auth.user : { id: 0, type: "client", guest: true };
+  if (user.guest) {
+    const limited = await checkRateLimit(`availability:ip:${clientIp(request)}`, 120, 60_000);
+    if (!limited.ok) return noStoreJson({ error: "یه کم زیاد زدی؛ چند لحظه صبر کن." }, { status: 429 });
+  }
   const { searchParams } = new URL(request.url);
   const salonUserId = Number(searchParams.get("salonUserId"));
   if (!salonUserId) return noStoreJson({ error: "این سالن رو پیدا نکردیم." }, { status: 400 });
@@ -39,11 +46,11 @@ async function _GET(request) {
     return noStoreJson({ error: "کارها درست نرسید؛ دوباره انتخاب کن." }, { status: 400 });
   }
   // A salon that takes no new requests (suspended, or its subscription closed) offers no free times to anyone but itself.
-  if (auth.user.id !== salonUserId && await onlineBookingBlock(salonUserId, "salon")) {
+  if (user.id !== salonUserId && await onlineBookingBlock(salonUserId, "salon")) {
     return noStoreJson({ data: { times: [], durationMinutes: 0 } });
   }
   const minutes = searchParams.getAll("minutes").map(Number);
-  const isClient = auth.user.type === "client";
+  const isClient = user.type === "client";
   // The same salon, day and services asked within a few seconds share one answer (see availabilityCache.js).
   // It only decides what the page shows: booking itself re-checks under row locks.
   // A group (2 or 3 people at the same time, a client's request only) needs that many artists free together.

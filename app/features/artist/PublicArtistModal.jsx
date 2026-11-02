@@ -252,7 +252,7 @@ export function PublicArtistModal({
                 ) : null}
                 {guest ? (
                   <p className="artistBookingPhoneWarning is-info">
-                    برای نوبت گرفتن اول وارد فرفرو شو؛ بعدش از همین صفحه ادامه بده.
+                    انتخاب‌هات سر جاشه. با «بفرست» یه حساب می‌سازی یا وارد می‌شی و درخواستت همون لحظه می‌ره.
                   </p>
                 ) : !clientPhone ? (
                   <p className="artistBookingPhoneWarning">
@@ -279,7 +279,7 @@ export function PublicArtistModal({
                   }}
                 >
                   <CalendarCheck size={17} />
-                  {bookingBusy ? "یه لحظه…" : bookingSlot ? (guest ? "وارد شو و ادامه بده" : `بفرست برای ${bookingDay}، ${bookingSlot}`) : "یه ساعت انتخاب کن"}
+                  {bookingBusy ? "یه لحظه…" : bookingSlot ? `بفرست برای ${bookingDay}، ${bookingSlot}` : "یه ساعت انتخاب کن"}
                 </button>
           </ProfileSheet>
 

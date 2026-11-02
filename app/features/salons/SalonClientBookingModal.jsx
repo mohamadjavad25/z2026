@@ -17,7 +17,7 @@ import { memberServices } from "./SalonTeam";
  * back to back), the salon's free times and who would do what, both asked of the server. The request
  * goes out through `onSubmit` (useSalonDirectory submitSalonClientVisit).
  */
-export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmit, onEditProfile }) {
+export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmit, onEditProfile, guest = false }) {
   // «رزرو با …» on a team card: only what that person does here, and every request asks for them (`prefer`).
   const withStaff = booking?.withStaff || null;
   const services = useMemo(() => {
@@ -57,6 +57,8 @@ export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmi
     },
     // Followed salons that could take the same visit if this one doesn't answer within the hour.
     loadBackups: async ({ day, time, services: list }) => {
+      // A visitor not signed in follows nobody, so there is no backup to offer.
+      if (guest) return { ok: true, salons: [] };
       const { ok, data } = await getSalonFallbacks(salonUserId, day, time, list);
       return { ok, salons: data?.salons };
     }
@@ -69,9 +71,11 @@ export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmi
       withName={withStaff?.name || ""}
       services={services}
       days={days}
-      initial={{ selected: picked, day: booking.prefill?.day, time: booking.prefill?.time, name: booking.client, phone: booking.phone }}
+      // A visitor not signed in has no number yet: it comes with the account made at «بفرست» (the server always uses
+      // the account's own number for a client), so the form must not ask for it.
+      initial={{ selected: picked, day: booking.prefill?.day, time: booking.prefill?.time, name: booking.client, phone: guest ? "guest" : booking.phone }}
       contactPhone={salon.phone || ""}
-      waitlist={withStaff ? null : { kind: "salon", ownerId: salonUserId, placeLabel: "توی این سالن" }}
+      waitlist={withStaff || guest ? null : { kind: "salon", ownerId: salonUserId, placeLabel: "توی این سالن" }}
       source={source}
       onSubmit={prefer ? (body) => onSubmit({ ...body, preferStaff: prefer }) : onSubmit}
       onDone={() => {}}

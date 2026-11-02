@@ -6,6 +6,7 @@ import { getVisibleSalonServiceItems } from "../../features/salons/useSalonDirec
 import { FollowSheet, useFollowGate } from "../../features/follow";
 import { BusinessVisitorBar, businessVisitorKind } from "../../features/connect/BusinessVisitorBar";
 import { goToAppFor, pickedServiceNames } from "../../shared/lib/appHandoff";
+import { PublicSalonBookingSheets, usePublicSalonBooking } from "../../features/salons/PublicSalonBooking";
 
 // Standalone, unauthenticated rendering of a single salon's public profile.
 // This is the pilot Next.js route for SEO/shareable salon links — it reuses
@@ -16,8 +17,9 @@ import { goToAppFor, pickedServiceNames } from "../../shared/lib/appHandoff";
 // to actually log in and use them. See backend report for the tradeoff note.
 // Follow is the exception: it works right here (sign up or log in in a sheet,
 // follow, thank-you), because a follow is the start of the relationship and a
-// visitor from a QR code must not be sent away to finish it. Booking and saving open the app on this
-// same salon (shared/lib/appHandoff.js), never on an empty home.
+// visitor from a QR code must not be sent away to finish it. Booking works here too (owner's decision of
+// 2026-11-02, for visitors from an Instagram story): the visitor picks everything, and the account comes only at
+// «بفرست» (PublicSalonBooking.jsx). Saving opens the app on this same salon (shared/lib/appHandoff.js).
 function getPortfolioCardStyle(item) {
   return item?.image
     ? { backgroundImage: `linear-gradient(180deg, rgba(12, 14, 16, 0.04) 0%, transparent 46%, rgba(12, 14, 16, 0.68) 100%), url("${item.image}")` }
@@ -37,6 +39,11 @@ export function SalonPublicPageClient({ salon }) {
     staffId: options?.withStaff?.staffId
   });
   const followGate = useFollowGate({ targetId: salon.id, targetName: salon.name, targetType: "salon" });
+  const booking = usePublicSalonBooking(salon, followGate);
+  // Booking right here; the app handoff stays only for a salon with nothing to book yet.
+  const bookHere = (picked = null, options = {}) => {
+    if (!booking.open(picked, options)) openHere(picked, options);
+  };
   // A salon or artist who scanned this page's code: their own bar instead of «رزرو» and «وصل شو» (owner's decision 2026-10-25).
   const visitorTarget = { type: "salon", id: salon.id, name: salon.name, area: salon.area || "" };
   const visitorBar = businessVisitorKind(followGate.viewer, visitorTarget)
@@ -66,9 +73,10 @@ export function SalonPublicPageClient({ salon }) {
       onFollow={followGate.onFollowClick}
       onSave={() => openHere()}
       onShare={handleShare}
-      onOpenBooking={openHere}
+      onOpenBooking={bookHere}
       visitorBar={visitorBar}
     />
+    <PublicSalonBookingSheets salon={salon} flow={booking} guest={!followGate.viewer} />
     <FollowSheet gate={followGate} />
     </>
   );

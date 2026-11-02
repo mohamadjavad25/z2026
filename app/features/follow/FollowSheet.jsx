@@ -26,6 +26,7 @@ function AccountForm({ gate }) {
   const [formError, setFormError] = useState("");
   const [busy, setBusy] = useState(false);
   const isSignup = mode === "signup";
+  const booking = gate.purpose === "book";
 
   function change(name, value) {
     setForm((current) => ({ ...current, [name]: value }));
@@ -84,7 +85,9 @@ function AccountForm({ gate }) {
   return (
     <div className="fsBody">
       <p className="fsLead">
-        وصل که بشی، «{gate.targetName}» میاد توی سالن و آرتیست‌هات و از همون‌جا با چند ضربه نوبت می‌گیری. فقط یه حساب می‌خواد.
+        {booking
+          ? "انتخاب‌هات سر جاشه. یه حساب بساز یا وارد شو تا درخواستت همین الان بره."
+          : `وصل که بشی، «${gate.targetName}» میاد توی سالن و آرتیست‌هات و از همون‌جا با چند ضربه نوبت می‌گیری. فقط یه حساب می‌خواد.`}
       </p>
       <div className="fsModes" role="tablist" aria-label="حساب">
         <button type="button" role="tab" aria-selected={isSignup} className={isSignup ? "is-on" : ""} onClick={() => switchMode("signup")}>حساب تازه</button>
@@ -95,7 +98,7 @@ function AccountForm({ gate }) {
           className="fsForm"
           otp={otp}
           busy={busy}
-          submitLabel="بساز و وصل شو"
+          submitLabel={booking ? "بساز و درخواست رو بفرست" : "بساز و وصل شو"}
           onLogin={(takenPhone) => {
             switchMode("login");
             // With a phone: the number already has an account, so the login opens with it filled in.
@@ -114,7 +117,7 @@ function AccountForm({ gate }) {
           }}
           footer={(
             <p className="fsConsent">
-              وصل که بشی، «{gate.targetName}» اسم و شماره‌ت رو می‌بینه؛ رمزت فقط پیش خودته.
+              {booking ? `«${gate.targetName}»` : `وصل که بشی، «${gate.targetName}»`} اسم و شماره‌ت رو می‌بینه؛ رمزت فقط پیش خودته.
             </p>
           )}
         />
@@ -149,7 +152,7 @@ function AccountForm({ gate }) {
             )}
           </Field>
           {formError ? <p className="fsError" role="alert">{formError}</p> : null}
-          <button type="submit" className="fsSubmit" disabled={busy}>{busy ? "یه لحظه…" : "وارد شو و وصل شو"}</button>
+          <button type="submit" className="fsSubmit" disabled={busy}>{busy ? "یه لحظه…" : booking ? "وارد شو و بفرست" : "وارد شو و وصل شو"}</button>
         </form>
       )}
     </div>
@@ -185,7 +188,7 @@ export function FollowSheet({ gate }) {
     <>
       <ProfileSheet
         open={open}
-        kicker={gate.sheet === "done" ? "انجام شد" : "وصل شدن"}
+        kicker={gate.sheet === "done" ? "انجام شد" : gate.purpose === "book" ? "فرستادن درخواست" : "وصل شدن"}
         title={gate.sheet === "done" ? "خوش اومدی!" : gate.targetName}
         panelClassName="fsSheet"
         onClose={gate.closeSheet}

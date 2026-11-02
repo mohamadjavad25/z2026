@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser, withErrorHandling } from "../../../lib/http.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as salons from "../../../lib/db/repos/salons.js";
-import { checkRateLimit } from "../../../lib/rateLimit.js";
+import { checkRateLimit, clientIp } from "../../../lib/rateLimit.js";
 import { salonVisitParts } from "../../../lib/salonVisitParts.js";
 import { visitSlotProblem } from "../../../lib/visitSlotRules.js";
 import { onlineBookingBlock } from "../../../lib/billing/access.js";
@@ -37,14 +37,16 @@ function noStoreJson(body, init = {}) {
  */
 async function _GET(request) {
   await ensureDb();
+  // A visitor not signed in (from an Instagram story, owner's decision of 2026-11-02) is answered as a client:
+  // they pick everything first and sign in only to send. Read-only; limited per address.
   const auth = await requireUser(request);
-  if (!auth.ok) return auth.response;
+  const user = auth.ok ? auth.user : { id: 0, type: "client", guest: true };
   const { searchParams } = new URL(request.url);
   const salonUserId = Number(searchParams.get("salonUserId"));
   if (!salonUserId) return noStoreJson({ error: "این سالن رو پیدا نکردیم." }, { status: 400 });
-  const owner = auth.user.type === "salon" && auth.user.id === salonUserId;
-  if (!owner && auth.user.type !== "client") return noStoreJson({ error: "این بخش مال مشتری‌ها و خود سالنه." }, { status: 403 });
-  const limited = await checkRateLimit(`visit-preview:${auth.user.id}`, 120, 60_000);
+  const owner = user.type === "salon" && user.id === salonUserId;
+  if (!owner && user.type !== "client") return noStoreJson({ error: "این بخش مال مشتری‌ها و خود سالنه." }, { status: 403 });
+  const limited = await checkRateLimit(user.guest ? `visit-preview:ip:${clientIp(request)}` : `visit-preview:${user.id}`, 120, 60_000);
   if (!limited.ok) return noStoreJson({ error: "یه کم زیاد زدی؛ چند لحظه صبر کن." }, { status: 429 });
 
   const day = String(searchParams.get("day") || "").trim();

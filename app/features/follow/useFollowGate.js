@@ -37,6 +37,10 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
   const [justCreated, setJustCreated] = useState(false);
   const [notice, setNotice] = useState("");
   const busyRef = useRef(false);
+  // Set while the sheet signs a visitor in for something else than following (a booking request from a public page,
+  // owner's decision of 2026-11-02): { onReady(user, info) -> Promise<string>, onCancel() }.
+  const purposeRef = useRef(null);
+  const [purpose, setPurpose] = useState("follow");
 
   useEffect(() => {
     let cancelled = false;
@@ -117,6 +121,13 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
   /** The visitor just made an account or logged in inside the sheet: follow now and say thanks. */
   const onAccountReady = useCallback(async (user, { created = false } = {}) => {
     setViewer(user);
+    if (purposeRef.current) {
+      const job = purposeRef.current;
+      purposeRef.current = null;
+      setSheet("closed");
+      setPurpose("follow");
+      return job.onReady(user, { created });
+    }
     if (Number(user?.id) === Number(targetId)) {
       setSheet("closed");
       setNotice("این صفحهٔ خودته.");
@@ -150,6 +161,19 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
     targetType,
     onFollowClick,
     onAccountReady,
-    closeSheet: () => setSheet("closed")
+    purpose,
+    /** Opens the account sheet for another purpose ("book"); `job.onReady` runs once the visitor is in. */
+    askAccount: (nextPurpose, job) => {
+      purposeRef.current = job;
+      setPurpose(nextPurpose);
+      setSheet("account");
+    },
+    closeSheet: () => {
+      const job = purposeRef.current;
+      purposeRef.current = null;
+      setPurpose("follow");
+      setSheet("closed");
+      job?.onCancel?.();
+    }
   };
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { PublicArtistModal } from "../../features/artist/PublicArtistModal";
 import { getPublicArtistServices, salonClientBookingDays } from "../../features/artist/constants";
@@ -9,6 +10,9 @@ import { parseServiceDurationMinutes } from "../../shared/lib/time";
 import { FollowSheet, useFollowGate } from "../../features/follow";
 import { BusinessVisitorBar, businessVisitorKind } from "../../features/connect/BusinessVisitorBar";
 import { goToAppFor } from "../../shared/lib/appHandoff";
+import { ProfileSheet } from "../../features/profile/ProfileSheet";
+import { createArtistBooking } from "../../shared/api/artists";
+import { toPersianDigits } from "../../shared/lib/digits";
 
 // Standalone, unauthenticated rendering of a single artist's public profile.
 // This is the artist counterpart of app/salons/[id]/SalonPublicPageClient.jsx —
@@ -17,7 +21,8 @@ import { goToAppFor } from "../../shared/lib/appHandoff";
 // message/book) have a logged-in session or the app's socket/booking state to
 // act on. Rather than half-implement those without auth, we send the visitor
 // into the SPA shell to actually log in and use them. Follow works right here
-// (sheet: sign up or log in, follow, thank-you) -- see SalonPublicPageClient. Booking, saving and
+// (sheet: sign up or log in, follow, thank-you) -- see SalonPublicPageClient. Booking works here too (owner,
+// 2026-11-02): pick everything, then the account sheet, then the request goes (confirmBooking). Saving and
 // opening a work open the app on this same artist (shared/lib/appHandoff.js).
 function getPortfolioCardStyle(item) {
   return item?.image
@@ -40,8 +45,71 @@ export function ArtistPublicPageClient({ artist }) {
   const [selectedServiceId, setSelectedServiceId] = useState("");
   const [bookingDay, setBookingDay] = useState(salonClientBookingDays[0]);
   const [bookingSlot, setBookingSlot] = useState("");
+  // Taken times learned while sending, so the picker stops offering them; and the sent request, for the thank-you.
+  const [taken, setTaken] = useState([]);
+  const [sent, setSent] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const shownArtist = useMemo(() => (taken.length ? { ...artist, bookedSlots: [...(artist.bookedSlots || []), ...taken] } : artist), [artist, taken]);
 
   const services = useMemo(() => getPublicArtistServices(artist), [artist]);
+
+  useEffect(() => {
+    if (!message) return undefined;
+    const timer = window.setTimeout(() => setMessage(""), 6000);
+    return () => window.clearTimeout(timer);
+  }, [message]);
+
+  /**
+   * «بفرست» on this page (owner's decision of 2026-11-02, for visitors from an Instagram story): the visitor picked the
+   * service, day and time; without an account the sign-up sheet opens and the request goes the moment they are in.
+   * A time taken meanwhile is dropped from the picker with «این ساعت همین الان پر شد»; the rest of the picks stay.
+   */
+  const confirmBooking = () => {
+    const service = services.find((item) => item.id === selectedServiceId) || services[0];
+    if (!service || !bookingSlot || busy) return;
+    const durationMinutes = parseServiceDurationMinutes(service.duration);
+    const day = bookingDay;
+    const time = bookingSlot;
+    const send = async () => {
+      setBusy(true);
+      try {
+        const { ok, status, payload } = await createArtistBooking({ artistUserId: artist.id, service: service.name, bookingDate: day, time, durationMinutes });
+        if (ok) {
+          setSent({ service: service.name, day, time });
+          return;
+        }
+        if (payload?.code === "SLOT_TAKEN" || status === 409) {
+          setTaken((list) => [...list, { booking_date: day, time, duration_minutes: durationMinutes, status: "تازه" }]);
+          setBookingSlot("");
+          setMessage("این ساعت همین الان پر شد؛ یه ساعت دیگه از همین روز انتخاب کن.");
+          return;
+        }
+        setMessage(payload?.error || "درخواست نرفت؛ دوباره بزن.");
+      } catch {
+        setMessage("وصل نشد؛ دوباره بزن.");
+      } finally {
+        setBusy(false);
+      }
+    };
+    const viewer = followGate.viewer;
+    if (viewer && viewer.type !== "client") {
+      setMessage("با حساب سالن یا آرتیست نمی‌شه نوبت گرفت؛ با حساب مشتری وارد شو.");
+      return;
+    }
+    if (viewer) {
+      void send();
+      return;
+    }
+    followGate.askAccount("book", {
+      onReady: async (user) => {
+        if (user?.type && user.type !== "client") setMessage("با حساب سالن یا آرتیست نمی‌شه نوبت گرفت؛ با حساب مشتری وارد شو.");
+        else await send();
+        return "";
+      },
+      onCancel: () => setMessage("حساب نساختی، برای همین درخواست نرفت. انتخاب‌هات سر جاشه.")
+    });
+  };
 
   const portfolio = useMemo(
     () => (Array.isArray(artist?.posts) ? artist.posts.map(mapSharedPost).filter(Boolean) : []),
@@ -72,7 +140,7 @@ export function ArtistPublicPageClient({ artist }) {
   return (
     <>
     <PublicArtistModal
-      artist={artist}
+      artist={shownArtist}
       view="gallery"
       portfolio={portfolio}
       services={services}
@@ -96,11 +164,26 @@ export function ArtistPublicPageClient({ artist }) {
       onSelectService={setSelectedServiceId}
       onBookingDayChange={setBookingDay}
       onBookingSlotChange={setBookingSlot}
-      onConfirmBooking={openHere}
+      onConfirmBooking={confirmBooking}
+      bookingBusy={busy}
       visitorBar={visitorBar}
       guest
     />
     <FollowSheet gate={followGate} />
+    <ProfileSheet open={Boolean(sent)} kicker="انجام شد" title="درخواستت رفت" panelClassName="fsSheet" onClose={() => setSent(null)}>
+      {sent ? (
+        <div className="fsDone" role="status">
+          <span className="fsDoneMark" aria-hidden="true"><Check size={34} strokeWidth={3} /></span>
+          <h3>{sent.service} · {sent.day} ساعت {toPersianDigits(String(sent.time || "").slice(0, 5))}</h3>
+          <p>«{artist.name}» باید تأییدش کنه. جوابش که اومد، توی فرفرو بهت خبر می‌دیم.</p>
+          <div className="fsDoneActions">
+            <a className="fsSubmit" href="/">برو به فرفرو</a>
+            <button type="button" className="fsGhost" onClick={() => setSent(null)}>صفحه رو ببینم</button>
+          </div>
+        </div>
+      ) : null}
+    </ProfileSheet>
+    {message ? <p className="fsToast" role="status">{message}</p> : null}
     </>
   );
 }
