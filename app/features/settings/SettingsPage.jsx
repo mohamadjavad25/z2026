@@ -2,7 +2,8 @@
 
 import { defaultAvatarFor, isDefaultAvatar } from "../../shared/lib/defaultAvatar";
 import { useRef, useState } from "react";
-import { Bookmark, Camera, ChevronLeft, ImagePlus, Move, Pencil, Plus, Trash2 } from "lucide-react";
+import { Bookmark, Camera, ChevronLeft, GraduationCap, ImagePlus, Move, Pencil, Plus, Trash2 } from "lucide-react";
+import { OPEN_TUTORIAL_EVENT } from "../onboarding/slides";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { ProfileLocationSettings } from "../profile/ProfileLocationSettings";
@@ -384,6 +385,21 @@ export function SettingsPage({
                 <span className="profileLocationRowInfo">
                   <strong>{savedTitle}</strong>
                   <span>{savedDescription}</span>
+                </span>
+                <ChevronLeft size={16} className="profileLocationRowChevron" aria-hidden="true" />
+              </button>
+            </div>
+          </TileSlot>
+
+          <TileSlot id="tutorial">
+            <div className="settingsRowCard">
+              <button type="button" className="profileLocationRow" onClick={() => window.dispatchEvent(new CustomEvent(OPEN_TUTORIAL_EVENT))}>
+                <span className="profileLocationRowIcon" aria-hidden="true">
+                  <GraduationCap size={17} />
+                </span>
+                <span className="profileLocationRowInfo">
+                  <strong>آموزش فرفرو</strong>
+                  <span>یه بار دیگه ببین چطور کار می‌کنه</span>
                 </span>
                 <ChevronLeft size={16} className="profileLocationRowChevron" aria-hidden="true" />
               </button>

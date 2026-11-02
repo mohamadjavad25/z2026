@@ -34,6 +34,12 @@ export async function newPage({ width = 390, cookie = "", entered = true, dueLat
     await context.addCookies([{ name, value, url: TEST_BASE_URL }]);
   }
   const page = await context.newPage();
+  // The welcome and a new account's tutorial (features/onboarding) come up over the screen being tested: close them
+  // the way a user would, with «رد شدن» («شروع کن» on a last slide), whenever they show.
+  await page.addLocatorHandler(page.locator(".onbRoot"), async () => {
+    const skip = page.locator(".onbSkip");
+    await ((await skip.count()) ? skip : page.locator(".onbNext")).click();
+  });
   const problems = [];
   page.on("pageerror", (error) => problems.push(`pageerror: ${error.message}`));
   return { page, context, problems };

@@ -1,0 +1,83 @@
+/* Welcome and tutorial slides (features/onboarding): a calm scene with a real phone in it, the camera moving in on
+   the spot being taught and a finger tapping it; the title, one line and the buttons under it. */
+.onbRoot { position: fixed; inset: 0; z-index: var(--z-viewer); background: var(--surface-solid); color: var(--ink); direction: rtl;
+  display: grid; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px) }
+.onbSlide { display: grid; grid-template-rows: 1fr auto; width: 100%; max-width: 520px; margin: 0 auto; min-height: 0 }
+.onbScene { position: relative; overflow: hidden; min-height: 0;
+  background: radial-gradient(120% 90% at 50% 0%, var(--surface-solid), var(--bg)) }
+.onbScene::before, .onbScene::after { content: ""; position: absolute; border-radius: 50%; filter: blur(48px); pointer-events: none }
+.onbScene::before { width: 260px; height: 260px; background: rgb(var(--brand-pink-rgb) / 0.32); top: 6%; right: -70px }
+.onbScene::after { width: 300px; height: 300px; background: rgb(var(--brand-violet-rgb) / 0.26); bottom: -60px; left: -90px }
+.onbSkip { position: absolute; z-index: 5; top: 14px; left: 16px; font: inherit; font-size: 0.84rem; font-weight: 700; color: var(--muted);
+  background: var(--page-glass); border: 0; border-radius: var(--radius-pill); padding: 5px 14px; cursor: pointer; backdrop-filter: blur(8px) }
+.onbCount { position: absolute; z-index: 5; top: 17px; right: 18px; font-size: 0.8rem; font-weight: 700; color: var(--muted) }
+
+.onbRig { position: absolute; top: 0; left: 0; transform-origin: 0 0; z-index: 2 }
+.onbPhone { position: absolute; border-radius: 34px; padding: 7px; background: var(--brand-ink);
+  box-shadow: 0 24px 50px -18px rgb(var(--shadow-rgb) / 0.4), inset 0 0 0 1.5px rgb(var(--on-photo-rgb) / 0.1) }
+.onbScreen { position: relative; width: 100%; height: 100%; border-radius: 27px; overflow: hidden; background: var(--brand-white) }
+.onbScreen img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none }
+.onbSpot { position: absolute; inset: 0; background: var(--scrim); opacity: 0; z-index: 2; pointer-events: none;
+  -webkit-mask: radial-gradient(circle at var(--sx) var(--sy), transparent var(--sr), #000 calc(var(--sr) + 10px));
+          mask: radial-gradient(circle at var(--sx) var(--sy), transparent var(--sr), #000 calc(var(--sr) + 10px)) }
+.onbHand { position: absolute; z-index: 4; width: 0; height: 0; pointer-events: none }
+.onbRipple { position: absolute; width: 40px; height: 40px; left: -20px; top: -20px; border-radius: 50%; border: 3px solid var(--brand-pink); opacity: 0 }
+.onbHand svg { position: absolute; left: -9px; top: -4px; width: 44px; height: 44px; opacity: 0; filter: drop-shadow(0 6px 8px rgb(var(--shadow-rgb) / 0.35)) }
+.onbHand path { fill: var(--brand-white); stroke: var(--brand-ink); stroke-width: 2.2; stroke-linejoin: round }
+
+.onbScene.is-go .onbRig { animation: onbCam 8s cubic-bezier(.6, .02, .2, 1) infinite }
+.onbScene.is-go .onbSpot { animation: onbSpot 8s ease infinite }
+.onbScene.is-go .onbHand svg { animation: onbHand 8s ease infinite }
+.onbScene.is-go .onbRipple { animation: onbRipple 8s ease-out infinite }
+.onbScene.is-still .onbRig { animation: onbFloat 6s ease-in-out infinite }
+@keyframes onbCam {
+  0%, 12% { transform: translate(0, 0) scale(1) }
+  34%, 82% { transform: translate(var(--cx), var(--cy)) scale(var(--cs)) }
+  96%, 100% { transform: translate(0, 0) scale(1) }
+}
+@keyframes onbSpot { 0%, 34% { opacity: 0 } 44%, 80% { opacity: 1 } 90%, 100% { opacity: 0 } }
+@keyframes onbHand {
+  0%, 36% { opacity: 0; transform: translate(26px, 34px) scale(var(--hs)) }
+  46% { opacity: 1; transform: translate(0, 0) scale(var(--hs)) }
+  51% { opacity: 1; transform: translate(0, 0) scale(calc(var(--hs) * .82)) }
+  56%, 76% { opacity: 1; transform: translate(0, 0) scale(var(--hs)) }
+  86%, 100% { opacity: 0; transform: translate(26px, 34px) scale(var(--hs)) }
+}
+@keyframes onbRipple { 0%, 50% { opacity: 0; transform: scale(calc(var(--hs) * .3)) } 52% { opacity: .9 } 68%, 100% { opacity: 0; transform: scale(calc(var(--hs) * 1.9)) } }
+@keyframes onbFloat { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+
+/* The welcome's first slide: the three roles side by side. */
+.onbTrio { position: absolute; inset: 44px 0 0; z-index: 2 }
+.onbMini { position: absolute; margin: 0; display: grid; justify-items: center; gap: 10px; animation: onbFloat 6s ease-in-out infinite }
+.onbMini .onbPhone { position: relative; border-radius: 24px; padding: 5px }
+.onbMini .onbScreen { border-radius: 19px }
+.onbMini.is-mid { z-index: 3; top: 18px; left: 50%; margin-left: -75px }
+.onbMini.is-mid .onbPhone { width: 150px; height: calc(140px * 1266 / 585 * .9 + 10px) }
+.onbMini.is-r, .onbMini.is-l { top: 54px }
+.onbMini.is-r { right: 22px; animation-name: onbFloatR; animation-delay: -2s }
+.onbMini.is-l { left: 22px; animation-name: onbFloatL; animation-delay: -4s }
+.onbMini.is-r .onbPhone, .onbMini.is-l .onbPhone { width: 118px; height: calc(108px * 1266 / 585 * .86 + 10px) }
+.onbMini figcaption { font-size: 0.8rem; font-weight: 800; color: var(--ink); background: var(--surface-solid); border-radius: var(--radius-pill); padding: 2px 12px;
+  box-shadow: 0 6px 16px -10px rgb(var(--shadow-rgb) / 0.4) }
+@keyframes onbFloatR { 0%, 100% { transform: rotate(6deg) translateY(0) } 50% { transform: rotate(6deg) translateY(-6px) } }
+@keyframes onbFloatL { 0%, 100% { transform: rotate(-6deg) translateY(0) } 50% { transform: rotate(-6deg) translateY(-6px) } }
+
+.onbCopy { display: grid; gap: 14px; padding: 20px 24px 22px; text-align: right; background: var(--surface-solid) }
+.onbCopy h2 { margin: 0; font-size: 1.32rem; font-weight: 900; line-height: 1.45; text-wrap: balance }
+.onbCopy p { margin: 0; color: var(--muted); font-size: 0.97rem; line-height: 1.85; min-height: 3.7em }
+.onbDots { display: flex; gap: 6px; justify-content: center }
+.onbDots i { width: 7px; height: 7px; border-radius: 99px; background: var(--line); transition: width .3s, background .3s }
+.onbDots i.is-on { width: 24px; background: var(--brand-pink) }
+.onbNav { display: grid; grid-template-columns: auto 1fr; gap: 8px }
+.onbNav button { font: inherit; border-radius: 16px; padding: 12px 18px; cursor: pointer }
+.onbPrev { font-weight: 700; border: 1px solid var(--line); background: transparent; color: var(--ink) }
+.onbPrev:disabled { opacity: .35; cursor: default }
+.onbNext { font-weight: 800; border: 0; background: var(--fill-violet); color: var(--on-photo) }
+.onbRoot button:focus-visible { outline: none; box-shadow: var(--focus-ring) }
+
+@media (prefers-reduced-motion: reduce) {
+  .onbScene.is-go .onbRig { animation: none; transform: translate(var(--cx), var(--cy)) scale(var(--cs)) }
+  .onbScene.is-go .onbSpot { animation: none; opacity: 1 }
+  .onbScene.is-go .onbHand svg { animation: none; opacity: 1; transform: scale(var(--hs)) }
+  .onbScene.is-go .onbRipple, .onbScene.is-still .onbRig, .onbMini { animation: none }
+}
