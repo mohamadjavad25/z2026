@@ -7,7 +7,9 @@ import { createArtistMe, deleteArtistMe, getArtistHours, getArtistMe, respondArt
 import { getPosts } from "../../shared/api/posts";
 import { markNoShow, proposeArtistTime, withdrawProposal } from "../../shared/api/providerExit";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { buildClockOptions, getTodayPersianWeekday, timeLabelToMinutes } from "../../shared/lib/time";
+import { getTodayPersianWeekday, timeLabelToMinutes } from "../../shared/lib/time";
+import { persianWeekdayIndex } from "../../shared/lib/persianCalendar";
+import { ALL_BREAK_DAYS } from "../../shared/lib/artistBreak";
 import { mapPortfolioItem } from "../posts/mappers";
 import {
   buildArtistBookingWeekTabs,
@@ -99,7 +101,7 @@ export function useArtistWorkspace({
   const [artistServiceList, setArtistServiceList] = useState([]);
   const [artistBreakTime, setArtistBreakTime] = useState(null);
   const [artistBreakEditorOpen, setArtistBreakEditorOpen] = useState(false);
-  const [artistBreakDraft, setArtistBreakDraft] = useState({ start: "۱۳:۰۰", end: "۱۴:۰۰" });
+  const [artistBreakDraft, setArtistBreakDraft] = useState({ start: "", end: "", days: ALL_BREAK_DAYS });
   const [artistBookingCreateOpen, setArtistBookingCreateOpen] = useState(false);
   const [artistCollabOffers, setArtistCollabOffers] = useState([]);
   const [artistCollabDraft, setArtistCollabDraft] = useState({
@@ -349,12 +351,14 @@ export function useArtistWorkspace({
   }
 
   function openArtistBreakEditor() {
-    const start = artistBreakTime?.start || "۱۳:۰۰";
-    let end = artistBreakTime?.end || "۱۴:۰۰";
-    if (timeLabelToMinutes(end) <= timeLabelToMinutes(start)) {
-      end = buildClockOptions().find((slot) => timeLabelToMinutes(slot) > timeLabelToMinutes(start)) || "۱۴:۰۰";
-    }
-    setArtistBreakDraft({ start, end });
+    // A window already saved opens as it is; a new one starts empty (two taps pick it) on the artist's open days.
+    const openDays = artistHoursList.filter((item) => item?.active).map((item) => persianWeekdayIndex(item.day)).sort((a, b) => a - b);
+    const hasWindow = Boolean(artistBreakTime?.start && artistBreakTime?.end);
+    setArtistBreakDraft({
+      start: hasWindow ? artistBreakTime.start : "",
+      end: hasWindow ? artistBreakTime.end : "",
+      days: hasWindow && Array.isArray(artistBreakTime.days) ? artistBreakTime.days : (openDays.length ? openDays : ALL_BREAK_DAYS)
+    });
     setArtistBreakEditorOpen(true);
   }
 
@@ -373,7 +377,8 @@ export function useArtistWorkspace({
       const { ok, payload } = await createArtistMe({
         kind: "break",
         startTime: artistBreakDraft.start,
-        endTime: artistBreakDraft.end
+        endTime: artistBreakDraft.end,
+        days: artistBreakDraft.days
       });
       if (!ok) {
         notify(payload.error || "استراحت ذخیره نشد؛ دوباره بزن.");
@@ -381,7 +386,9 @@ export function useArtistWorkspace({
       }
       setArtistBreakTime(payload.data?.breakTime || {
         start: artistBreakDraft.start,
-        end: artistBreakDraft.end
+        end: artistBreakDraft.end,
+        days: artistBreakDraft.days,
+        now: artistBreakTime?.now || null
       });
       setArtistBreakEditorOpen(false);
       notify(`تایم استراحت ${artistBreakDraft.start} تا ${artistBreakDraft.end} ذخیره شد.`);
@@ -396,16 +403,38 @@ export function useArtistWorkspace({
     if (artistBreakSaving) return;
     setArtistBreakSaving(true);
     try {
-      const { ok } = await createArtistMe({ kind: "break", clear: true });
+      const { ok, payload } = await createArtistMe({ kind: "break", clear: true });
       if (!ok) {
         notify("استراحت پاک نشد؛ دوباره بزن.");
         return;
       }
-      setArtistBreakTime(null);
+      // A «now» break running today stays.
+      setArtistBreakTime(payload?.data?.breakTime || null);
       setArtistBreakEditorOpen(false);
       notify("استراحت پاک شد.");
     } catch {
       notify("استراحت پاک نشد؛ دوباره بزن.");
+    } finally {
+      setArtistBreakSaving(false);
+    }
+  }
+
+  // «الان استراحت می‌کنم»: 15, 30 or 60 minutes from now, today only; 0 ends it.
+  async function startArtistBreakNow(minutes) {
+    if (artistBreakSaving) return;
+    setArtistBreakSaving(true);
+    try {
+      const { ok, payload } = await createArtistMe({ kind: "break-now", minutes });
+      if (!ok) {
+        notify(payload?.error || "استراحت ثبت نشد؛ دوباره بزن.");
+        return;
+      }
+      const next = payload?.data?.breakTime || null;
+      setArtistBreakTime(next);
+      setArtistBreakEditorOpen(false);
+      notify(minutes ? `استراحتی تا ${next?.now?.end || ""}؛ تا اون موقع کسی ازت نوبت نمی‌گیره.` : "استراحت تموم شد.");
+    } catch {
+      notify("استراحت ثبت نشد؛ دوباره بزن.");
     } finally {
       setArtistBreakSaving(false);
     }
@@ -797,6 +826,7 @@ export function useArtistWorkspace({
     closeArtistBreakEditor,
     saveArtistBreakTime,
     clearArtistBreakTime,
+    startArtistBreakNow,
     deleteArtistService,
     upsertArtistOwnerService,
     addArtistCollabOffer,

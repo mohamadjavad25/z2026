@@ -3402,3 +3402,22 @@
 .appShell.is-auth-gate .artistBookingRail{
   display: none !important;
 }
+
+/* Break sheet (owner's decision 2026-11-02): «now» chips, weekday letters, half-hour buttons (two taps: start, end). */
+.abNow, .abDaily { display: grid; gap: 8px; }
+.abLabel { color: var(--n-700); font-size: 0.76rem; font-weight: 900; }
+.abChips { display: flex; flex-wrap: wrap; gap: 6px; }
+.abChip { min-height: 40px; padding: 0 14px; border: 1px solid var(--n-200); border-radius: 999px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.8rem; font-weight: 900; cursor: pointer; }
+.abChip:disabled { opacity: 0.5; cursor: default; }
+.abNowOn { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 0 6px 0 12px; border-radius: 14px; background: var(--accent-soft); color: var(--accent); font-size: 0.84rem; font-weight: 900; }
+.abNowOn button { min-height: 34px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.76rem; font-weight: 900; cursor: pointer; }
+.abDays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.abDay { min-height: 40px; border: 1px solid var(--n-200); border-radius: 12px; background: var(--n-0); color: var(--n-500); font: inherit; font-size: 0.86rem; font-weight: 900; text-decoration: line-through; cursor: pointer; }
+.abDay.is-on { border-color: var(--fill-strong); background: var(--fill-strong); color: var(--n-0); text-decoration: none; }
+.abHours { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.abHour { min-height: 40px; border: 1px solid var(--n-200); border-radius: 12px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.82rem; font-weight: 800; font-variant-numeric: tabular-nums; cursor: pointer; }
+.abHour.is-mid { border-color: var(--accent-soft); background: var(--accent-soft); color: var(--accent); }
+.abHour.is-on { border-color: var(--fill-strong); background: var(--fill-strong); color: var(--n-0); }
+.abSum { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--n-50); color: var(--n-700); font-size: 0.8rem; font-weight: 800; }
+.abSum.is-ready { background: var(--accent-soft); color: var(--accent); font-weight: 900; }
+.abWarn { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--pink-soft, var(--n-50)); color: var(--n-900); font-size: 0.76rem; font-weight: 700; line-height: 1.8; }

@@ -78,14 +78,22 @@ async function _POST(request) {
   }
   if (body.kind === "break") {
     if (body.clear) {
-      await artists.clearArtistBreak(auth.user.id);
-      return json({ data: { breakTime: null } });
+      // The daily window goes; a «now» break running today stays.
+      const cleared = await artists.clearArtistBreak(auth.user.id);
+      return json({ data: { breakTime: cleared.break } });
     }
-    const result = await artists.setArtistBreak(auth.user.id, body.startTime, body.endTime);
+    // `days`: the weekdays the window holds on (0 = شنبه); an older app that sends none keeps every day.
+    const result = await artists.setArtistBreak(auth.user.id, body.startTime, body.endTime, Array.isArray(body.days) ? body.days : undefined);
     if (result && result.ok === false) {
       return error(result.error, 400);
     }
-    return json({ data: { breakTime: result?.break || await artists.getArtistBreak(auth.user.id) } });
+    return json({ data: { breakTime: result?.break ?? await artists.getArtistBreak(auth.user.id) } });
+  }
+  if (body.kind === "break-now") {
+    // «الان استراحت می‌کنم»: 15, 30 or 60 minutes from now, today only; 0 ends it.
+    const result = await artists.setArtistBreakNow(auth.user.id, body.minutes);
+    if (!result.ok) return error(result.error, 400);
+    return json({ data: { breakTime: result.break } });
   }
   if (body.kind === "collab") {
     const limited = await checkRateLimit(`artist-collab:${auth.user.id}`, 10, 60_000);

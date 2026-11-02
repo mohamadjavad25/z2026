@@ -13,6 +13,8 @@ import { ScheduleRow } from "../profile/ScheduleRow";
 import { buildSharedPhoneLookup } from "../salons/customers";
 import { PendingOtherDays } from "./PendingOtherDays";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
+import { activeNowBreak, breakDaysText, hasDailyBreak } from "../../shared/lib/artistBreak";
+import { formatPersianDateKey } from "../../shared/lib/persianCalendar";
 import { LeaveLines, LeaveSheet, useArtistLeaves } from "../team/LeaveSheet";
 
 /**
@@ -107,11 +109,19 @@ export function ArtistScheduleBoard({
             </button>
           ) : null}
         </div>
-        {breakTime ? (
+        {/* Today's «now» break first, then the daily window with its days (shared/lib/artistBreak.js). */}
+        {activeNowBreak(breakTime, formatPersianDateKey(new Date())) ? (
+          <div className="artistBreakBanner">
+            <Coffee size={15} />
+            <span>الان استراحتی تا <b>{breakTime.now.end}</b></span>
+            <button type="button" onClick={onOpenBreakEditor}>ویرایش</button>
+          </div>
+        ) : null}
+        {hasDailyBreak(breakTime) ? (
           <div className="artistBreakBanner">
             <Coffee size={15} />
             <span>
-              استراحت روزانه: <b>از {breakTime.start}</b> تا <b>{breakTime.end}</b>
+              استراحت {breakDaysText(breakTime.days)}: <b>از {breakTime.start}</b> تا <b>{breakTime.end}</b>
             </span>
             <button type="button" onClick={onOpenBreakEditor}>ویرایش</button>
           </div>

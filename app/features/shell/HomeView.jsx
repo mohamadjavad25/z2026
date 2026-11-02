@@ -118,6 +118,9 @@ export function HomeView() {
     setArtistBreakDraft,
     saveArtistBreakTime,
     clearArtistBreakTime,
+    startArtistBreakNow,
+    artistHoursList,
+    artistBookingList,
     closeArtistBreakEditor,
     artistServiceCreateOpen,
     artistServiceCreateMode,
@@ -371,11 +374,15 @@ export function HomeView() {
         <ArtistBreakEditorModal
           open={artistBreakEditorOpen}
           draft={artistBreakDraft}
-          hasBreak={Boolean(artistBreakTime)}
+          breakTime={artistBreakTime}
+          hoursList={artistHoursList}
+          bookings={artistBookingList}
+          hasBreak={Boolean(artistBreakTime?.start && artistBreakTime?.end)}
           saving={artistBreakSaving}
           onDraftChange={setArtistBreakDraft}
           onSave={saveArtistBreakTime}
           onClear={clearArtistBreakTime}
+          onBreakNow={startArtistBreakNow}
           onClose={closeArtistBreakEditor}
         />
         <ServiceComposerModal

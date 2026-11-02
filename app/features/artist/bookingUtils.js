@@ -17,6 +17,7 @@ import {
 } from "../../shared/lib/time";
 import { artistBookingDays, artistBookingHistoryRank } from "./constants";
 import { bookingWaitMinutes } from "../../shared/lib/bookingWindow";
+import { breakRangesOn } from "../../shared/lib/artistBreak";
 
 const DAY_MS = 86400000;
 
@@ -28,16 +29,11 @@ export function isPublicArtistSlotBlocked(artist, day, slot, durationMinutes) {
   const start = timeLabelToMinutes(slot);
   const end = start + Math.max(15, Number(durationMinutes) || 60);
 
-  const breakTime = artist?.breakTime;
-  if (breakTime?.start && breakTime?.end) {
-    const breakStart = timeLabelToMinutes(breakTime.start);
-    const breakEnd = timeLabelToMinutes(breakTime.end);
-    if (breakEnd > breakStart && rangesOverlap(start, end, breakStart, breakEnd)) {
-      return true;
-    }
-  }
-
   const dayKey = resolveRollingPersianDateKey(day);
+  // The daily window on its weekdays and today's «now» break, the same ranges the server checks (artistBreak.js).
+  if (breakRangesOn(artist?.breakTime, dayKey).some((range) => rangesOverlap(start, end, range.start, range.end))) {
+    return true;
+  }
   for (const leave of artist?.leaves || []) {
     if (dayKey < leave.from || dayKey > leave.to) continue;
     const leaveStart = leave.start ? timeLabelToMinutes(leave.start) : 0;

@@ -27,7 +27,7 @@ describe("salon staff calendars", () => {
     expect(res.ok).toBe(true);
     const staff = (await salonClient.get("/api/salon-staff")).payload.data.staff;
     const calendar = res.payload.data.calendars.find((item) => item.staff === staff[0].name);
-    expect(calendar.breakTime).toEqual({ start: "۱۳:۰۰", end: "۱۴:۰۰" });
+    expect(calendar.breakTime).toEqual({ start: "۱۳:۰۰", end: "۱۴:۰۰", days: [0, 1, 2, 3, 4, 5, 6], now: null });
     expect(calendar.bookedSlots.some((slot) => slot.booking_date === day && timeLabelToMinutes(slot.time) === 15 * 60)).toBe(true);
     // Only when/how long, never who.
     expect(JSON.stringify(res.payload)).not.toContain("Private Customer");

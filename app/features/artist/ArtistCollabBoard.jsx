@@ -9,6 +9,7 @@ import { SalonRulesNote } from "../salons/SalonRulesNote";
 import { TermsChips } from "../collab/TermsEditor";
 import { NEGOTIABLE } from "../collab/collabPresets";
 import { ScanFlow } from "../connect/ScanFlow";
+import { PasteJoinLink } from "./PasteJoinLink";
 import { ArtistSalonDetails, ArtistSelfSheet } from "./ArtistSalonDetails";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { getArtistPlace, previewArtistPlace, saveArtistPlace } from "../../shared/api/artists";
@@ -562,6 +563,7 @@ export function ArtistCollabBoard({
           <span><b>کد من</b><small>کدت رو به سالن نشون بده</small></span>
         </button>
       </div>
+      <PasteJoinLink />
       {!cards.length ? <Mascot pose="team" size={190} className="clConnMascot" /> : null}
 
       <ArtistSelfSheet open={Boolean(selfFor)} team={selfFor} artistName={artistName} onClose={() => setSelfFor(null)} onChanged={() => onChanged?.()} />
