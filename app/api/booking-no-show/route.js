@@ -42,7 +42,11 @@ async function _POST(request) {
   // The mark now counts against the client (owner's decision of 2026-11-02), so they hear it once, with the way to
   // say it is wrong (the «اشتباه شده؟» button on the booking). Nothing goes when the mark is taken back.
   const clientId = Number(result.booking?.client_user_id) || 0;
-  if (result.changed && body.noShow !== false && clientId) {
+  // Once per booking: marking, taking back and marking again does not tell the client twice.
+  const firstTime = result.changed && body.noShow !== false && clientId
+    ? (await checkRateLimit(`no-show-push:${kind}:${id}`, 1, 7 * 24 * 60 * 60 * 1000)).ok
+    : false;
+  if (firstTime) {
     const who = String(auth.user.name || "").trim() || (kind === "artist" ? "آرتیست" : "سالن");
     const day = formatRelativeBookingDayLabel(result.booking.booking_date);
     void sendPushToUser(clientId, {

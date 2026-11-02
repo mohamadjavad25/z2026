@@ -93,6 +93,10 @@ export function ArtistPublicPageClient({ artist }) {
       }
     };
     const viewer = followGate.viewer;
+    if (viewer === undefined) {
+      setMessage("یه لحظه صبر کن و دوباره «بفرست» رو بزن.");
+      return;
+    }
     if (viewer && viewer.type !== "client") {
       setMessage("با حساب سالن یا آرتیست نمی‌شه نوبت گرفت؛ با حساب مشتری وارد شو.");
       return;

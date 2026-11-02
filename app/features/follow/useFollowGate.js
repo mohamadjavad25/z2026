@@ -164,6 +164,8 @@ export function useFollowGate({ targetId, targetName, targetType = "salon" }) {
     purpose,
     /** Opens the account sheet for another purpose ("book"); `job.onReady` runs once the visitor is in. */
     askAccount: (nextPurpose, job) => {
+      // A second ask replaces the first, which is told it was cancelled so nothing waits forever.
+      purposeRef.current?.onCancel?.();
       purposeRef.current = job;
       setPurpose(nextPurpose);
       setSheet("account");

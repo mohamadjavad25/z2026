@@ -6,7 +6,7 @@ import { computeSalonFreeTimes as computeTimes } from "../../../lib/salonFreeTim
 import { strictDayKey } from "../../../lib/validation/bookingSlot.js";
 import { onlineBookingBlock } from "../../../lib/billing/access.js";
 import { availabilityKey, cachedAvailability } from "../../../lib/availabilityCache.js";
-import { checkRateLimit, clientIp } from "../../../lib/rateLimit.js";
+import { checkIpRateLimit } from "../../../lib/rateLimit.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,7 +32,8 @@ async function _GET(request) {
   const auth = await requireUser(request);
   const user = auth.ok ? auth.user : { id: 0, type: "client", guest: true };
   if (user.guest) {
-    const limited = await checkRateLimit(`availability:ip:${clientIp(request)}`, 120, 60_000);
+    // Generous: many visitors from one story can share a mobile operator's address.
+    const limited = await checkIpRateLimit(request, "availability-guest", 300, 60_000);
     if (!limited.ok) return noStoreJson({ error: "یه کم زیاد زدی؛ چند لحظه صبر کن." }, { status: 429 });
   }
   const { searchParams } = new URL(request.url);

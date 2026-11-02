@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser, withErrorHandling } from "../../../lib/http.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as salons from "../../../lib/db/repos/salons.js";
-import { checkRateLimit, clientIp } from "../../../lib/rateLimit.js";
+import { checkIpRateLimit, checkRateLimit } from "../../../lib/rateLimit.js";
 import { salonVisitParts } from "../../../lib/salonVisitParts.js";
 import { visitSlotProblem } from "../../../lib/visitSlotRules.js";
 import { onlineBookingBlock } from "../../../lib/billing/access.js";
@@ -46,7 +46,8 @@ async function _GET(request) {
   if (!salonUserId) return noStoreJson({ error: "این سالن رو پیدا نکردیم." }, { status: 400 });
   const owner = user.type === "salon" && user.id === salonUserId;
   if (!owner && user.type !== "client") return noStoreJson({ error: "این بخش مال مشتری‌ها و خود سالنه." }, { status: 403 });
-  const limited = await checkRateLimit(user.guest ? `visit-preview:ip:${clientIp(request)}` : `visit-preview:${user.id}`, 120, 60_000);
+  // A guest is limited per address, generously: many visitors from one story can share a mobile operator's address.
+  const limited = user.guest ? await checkIpRateLimit(request, "visit-preview-guest", 300, 60_000) : await checkRateLimit(`visit-preview:${user.id}`, 120, 60_000);
   if (!limited.ok) return noStoreJson({ error: "یه کم زیاد زدی؛ چند لحظه صبر کن." }, { status: 429 });
 
   const day = String(searchParams.get("day") || "").trim();

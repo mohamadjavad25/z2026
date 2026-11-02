@@ -52,6 +52,8 @@ export function usePublicSalonBooking(salon, gate) {
 
   const onSubmit = (body) => {
     const viewer = gate.viewer;
+    // Still checking whether they are signed in (a slow network): never ask a signed-in client to sign up again.
+    if (viewer === undefined) return Promise.resolve({ ok: false, status: 0, payload: { error: "یه لحظه صبر کن و دوباره «بفرست» رو بزن." } });
     if (viewer && viewer.type !== "client") return Promise.resolve({ ok: false, status: 403, payload: { error: NOT_A_CLIENT } });
     if (viewer) return send(body);
     return new Promise((resolve) => {
