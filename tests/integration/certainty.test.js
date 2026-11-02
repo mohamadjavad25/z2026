@@ -93,10 +93,33 @@ describe("the client's record", () => {
     // A new request at salon A: A sees the record built at B too.
     const next = await requestSalon(a, who, { day: futureBookingDay(4), time: "16:00" });
     const row = await salonRow(a, next.payload.data.booking.id);
-    expect(row.reliability).toEqual({ came: 1, noShow: 2, recentNoShow: 2 });
+    expect(row.reliability).toEqual({ came: 1, noShow: 2, recentNoShow: 2, cameSinceNoShow: 0 });
 
     const own = (await who.api.get("/api/client-bookings")).payload.data.reliability;
-    expect(own).toEqual({ came: 1, noShow: 2, recentNoShow: 2 });
+    expect(own).toEqual({ came: 1, noShow: 2, recentNoShow: 2, cameSinceNoShow: 0 });
+    await db.end();
+  });
+
+  it("asks «میای؟» only after a «نیومد», and stops after three visits since (owner's decision of 2026-11-02)", async () => {
+    const db = openDb();
+    const ctx = await newSalon("Ask Only");
+    const who = await newClient("Ask Only Client");
+    const marks = async () => (await who.api.get("/api/client-bookings")).payload.data.salonBookings.map((b) => b.attend_ask);
+    const ahead = await confirmedVisit(ctx, who, { day: futureBookingDay(5), time: "10:00" });
+    expect(await marks()).toEqual([false]);
+
+    const missed = await confirmedVisit(ctx, who, { day: futureBookingDay(6), time: "10:00" });
+    await moveToDaysAgo(db, "salon_bookings", missed, 20);
+    await db.query("UPDATE salon_bookings SET no_show_at = NOW() - INTERVAL '20 days' WHERE id = $1", [missed]);
+    expect((await marks()).every(Boolean)).toBe(true);
+
+    for (const [index, ago] of [15, 10, 5].entries()) {
+      const came = await confirmedVisit(ctx, who, { day: futureBookingDay(7 + index), time: "10:00" });
+      await moveToDaysAgo(db, "salon_bookings", came, ago);
+    }
+    const own = (await who.api.get("/api/client-bookings")).payload.data;
+    expect(own.reliability.cameSinceNoShow).toBe(3);
+    expect(own.salonBookings.find((b) => b.id === ahead).attend_ask).toBe(false);
     await db.end();
   });
 });

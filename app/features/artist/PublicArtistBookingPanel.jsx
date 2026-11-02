@@ -1,5 +1,6 @@
 "use client";
 
+import { ATTEND_NOTICE } from "../../shared/lib/attendance";
 import { useEffect, useRef, useState } from "react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { MapPin, Store, Timer } from "lucide-react";
@@ -158,6 +159,7 @@ export function PublicArtistBookingPanel({
       <p className="artistPublicBookingNote">
         تا کار تموم نشه، ساعت دیگه‌ای گرفته نمی‌شه.
       </p>
+      <p className="artistPublicBookingNote">{ATTEND_NOTICE}</p>
     </section>
   );
 }

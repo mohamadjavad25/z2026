@@ -1,5 +1,6 @@
 "use client";
 
+import { ATTEND_NOTICE } from "../../shared/lib/attendance";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { CalendarCheck, Check, ChevronRight, Plus, Scissors } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
@@ -398,6 +399,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
           </div>
         ) : null}
         {hint ? <p className="vbHint" role="alert">{hint}</p> : null}
+        {role === "client" ? <p className="vbNotice">{ATTEND_NOTICE}</p> : null}
         <button
           type="submit"
           className={`vbSubmit${readiness.ok ? "" : " is-incomplete"}`}

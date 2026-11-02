@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { attendanceState, ownerAttendanceState, reliabilityView, ownReliabilityLine } from "../../app/shared/lib/attendance.js";
+import { attendanceState, ownerAttendanceState, reliabilityView, ownReliabilityLine, needsAttendQuestion } from "../../app/shared/lib/attendance.js";
 import { bookingStartMs } from "../../app/shared/lib/reminderTiming.js";
 import { formatPersianDateKey } from "../../app/shared/lib/persianCalendar.js";
 
@@ -33,11 +33,11 @@ describe("«میای؟»", () => {
   });
 
   it("shows the salon or artist the answer for client accounts only", () => {
-    expect(ownerAttendanceState(at(5, { client_user_id: 3 }), now)).toBe("waiting");
+    expect(ownerAttendanceState(at(5, { client_user_id: 3, attend_ask: true }), now)).toBe("waiting");
     expect(ownerAttendanceState(at(5, { client_user_id: 3, client_confirmed_at: "x" }), now)).toBe("yes");
     expect(ownerAttendanceState(at(5), now)).toBe(null);
     // A salon's own «تازه» is settled; an artist's «تازه» is still a request.
-    expect(ownerAttendanceState(at(5, { client_user_id: 3, status: "تازه" }), now, "salon")).toBe("waiting");
+    expect(ownerAttendanceState(at(5, { client_user_id: 3, attend_ask: true, status: "تازه" }), now, "salon")).toBe("waiting");
     expect(ownerAttendanceState(at(5, { client_user_id: 3, status: "تازه" }), now, "artist")).toBe(null);
   });
 });
@@ -58,5 +58,28 @@ describe("the client's record", () => {
     expect(ownReliabilityLine({ came: 0, noShow: 0 })).toBe("");
     expect(ownReliabilityLine({ came: 12, noShow: 0 })).toContain("۱۲ بار");
     expect(ownReliabilityLine({ came: 3, noShow: 2, recentNoShow: 2 })).toContain("زودتر لغو کن");
+  });
+});
+
+describe("who is asked «میای؟» (owner's decision of 2026-11-02)", () => {
+  it("asks only after a recent «نیومد», until three visits in a row since", () => {
+    expect(needsAttendQuestion(null)).toBe(false);
+    expect(needsAttendQuestion({ came: 12, noShow: 0, recentNoShow: 0, cameSinceNoShow: 0 })).toBe(false);
+    expect(needsAttendQuestion({ came: 5, noShow: 1, recentNoShow: 0, cameSinceNoShow: 0 })).toBe(false); // an old «نیومد» only
+    expect(needsAttendQuestion({ came: 2, noShow: 1, recentNoShow: 1, cameSinceNoShow: 0 })).toBe(true);
+    expect(needsAttendQuestion({ came: 4, noShow: 1, recentNoShow: 1, cameSinceNoShow: 2 })).toBe(true);
+    expect(needsAttendQuestion({ came: 5, noShow: 1, recentNoShow: 1, cameSinceNoShow: 3 })).toBe(false);
+  });
+
+  it("never shows the question to a client who is not asked, but keeps a yes already given", () => {
+    expect(attendanceState(at(5, { attend_ask: false }), now)).toBe(null);
+    expect(attendanceState(at(5, { attend_ask: true }), now)).toBe("ask");
+    expect(attendanceState(at(5, { attend_ask: false, client_confirmed_at: now }), now)).toBe("yes");
+  });
+
+  it("the salon sees «هنوز نگفته» only for a client who is asked", () => {
+    const row = (record) => at(5, { client_user_id: 7, reliability: record });
+    expect(ownerAttendanceState(row({ came: 9, noShow: 0, recentNoShow: 0, cameSinceNoShow: 0 }), now)).toBe(null);
+    expect(ownerAttendanceState(row({ came: 1, noShow: 1, recentNoShow: 1, cameSinceNoShow: 0 }), now)).toBe("waiting");
   });
 });

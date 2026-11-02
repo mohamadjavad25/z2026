@@ -5,6 +5,8 @@ import { setNoShow } from "../../lib/db/repos/noShow.js";
 import { checkRateLimit } from "../../lib/rateLimit.js";
 import { NO_SHOW_HOURS } from "../../shared/lib/providerRules.js";
 import { toPersianDigits } from "../../shared/lib/digits.js";
+import { sendPushToUser } from "../../lib/push.js";
+import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,6 +38,18 @@ async function _POST(request) {
   if (!result.ok) {
     const [message, status] = MESSAGES[result.error] || ["نشد؛ دوباره بزن.", 409];
     return error(message, status);
+  }
+  // The mark now counts against the client (owner's decision of 2026-11-02), so they hear it once, with the way to
+  // say it is wrong (the «اشتباه شده؟» button on the booking). Nothing goes when the mark is taken back.
+  const clientId = Number(result.booking?.client_user_id) || 0;
+  if (result.changed && body.noShow !== false && clientId) {
+    const who = String(auth.user.name || "").trim() || (kind === "artist" ? "آرتیست" : "سالن");
+    const day = formatRelativeBookingDayLabel(result.booking.booking_date);
+    void sendPushToUser(clientId, {
+      title: `${who} زده نیومدی`,
+      body: `نوبت ${day} ساعت ${toPersianDigits(String(result.booking.time || "").slice(0, 5))}. اگه اشتباهه، توی همون نوبت «اشتباهه؟» رو بزن.`,
+      url: "/"
+    }).catch(() => {});
   }
   return json({
     data: {

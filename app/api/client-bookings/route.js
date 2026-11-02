@@ -5,6 +5,7 @@ import * as salons from "../../lib/db/repos/salons.js";
 import * as artists from "../../lib/db/repos/artists.js";
 import { sweepExpiredBookingRequestsIfDue } from "../../lib/bookingExpirySweep.js";
 import { clientReliability } from "../../lib/db/repos/reliability.js";
+import { needsAttendQuestion } from "../../shared/lib/attendance.js";
 import { listClientWaitlist } from "../../lib/db/repos/waitlist.js";
 
 export const runtime = "nodejs";
@@ -35,8 +36,12 @@ async function _GET(request) {
     clientReliability([auth.user.id]),
     listClientWaitlist(auth.user.id).catch(() => [])
   ]);
+  const reliability = records.get(Number(auth.user.id)) || null;
+  // «میای؟» is asked only of a client with a recent «نیومد» (owner's decision of 2026-11-02).
+  const attendAsk = needsAttendQuestion(reliability);
+  const mark = (rows) => rows.map((row) => ({ ...row, attend_ask: attendAsk }));
   return NextResponse.json(
-    { data: { salonBookings, artistBookings, reliability: records.get(Number(auth.user.id)) || null, waitlist } },
+    { data: { salonBookings: mark(salonBookings), artistBookings: mark(artistBookings), reliability, waitlist } },
     { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
   );
 }

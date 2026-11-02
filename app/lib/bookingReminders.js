@@ -5,6 +5,8 @@ import { bookingStartMs, dueReminderKind } from "../shared/lib/reminderTiming.js
 import { formatPersianDateKey } from "../shared/lib/persianCalendar.js";
 import { formatRelativeBookingDayLabel } from "../shared/lib/persianCalendar.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
+import { clientReliability } from "./db/repos/reliability.js";
+import { needsAttendQuestion } from "../shared/lib/attendance.js";
 
 /**
  * Appointment reminders for CLIENTS: one push about a day before and one about two hours before
@@ -70,9 +72,13 @@ export function reminderMessage(kind, booking, now) {
   if (kind === "soon") {
     return { title: "نوبتت نزدیکه", body: `${what}${where} ساعت ${time}؛ کمتر از ۲ ساعت دیگه.` };
   }
-  // «میای؟» (owner's decision of 2026-10-27): the day-before reminder asks; the answer buttons are on the booking card.
   const day = formatRelativeBookingDayLabel(booking.booking_date, now);
-  return { title: `${day} ساعت ${time} میای؟`, body: `${what}${where}. بزن و بگو میای یا نه، تا خیالشون راحت باشه.` };
+  // «میای؟» (owner's decisions of 2026-10-27 and 2026-11-02): only a client who is asked gets the question in the
+  // day-before reminder; the answer buttons are on the booking card. Everyone else gets the plain reminder.
+  if (booking.attend_ask) {
+    return { title: `${day} ساعت ${time} میای؟`, body: `${what}${where}. بزن و بگو میای یا نه، تا خیالشون راحت باشه.` };
+  }
+  return { title: "یادت نره، نوبت داری", body: `${what}${where} ${day} ساعت ${time}.` };
 }
 
 export async function sweepBookingReminders(now = new Date()) {
@@ -99,6 +105,10 @@ export async function sweepBookingReminders(now = new Date()) {
     `, [booking.source, booking.id, reminderClaimKind(kind, booking), kind]);
     if (!claim) return;
     result.claimed += 1;
+    if (kind === "day") {
+      const records = await clientReliability([booking.client_user_id], db).catch(() => new Map());
+      booking.attend_ask = needsAttendQuestion(records.get(Number(booking.client_user_id)));
+    }
     const message = reminderMessage(kind, booking, now);
     const ttl = (bookingStartMs(booking.booking_date, booking.time, now) - now.getTime()) / 1000;
     const push = await sendPushToUser(booking.client_user_id, { ...message, url: "/", ttl }).catch(() => ({ sent: 0 }));

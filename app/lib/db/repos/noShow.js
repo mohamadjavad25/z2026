@@ -5,9 +5,10 @@ import { noShowPhase } from "../../../shared/lib/providerRules.js";
  * «نیومد» (owner's decision of 2026-10-25, roadmap ۱۴ stage 1): the salon (its own booking) or an independent artist
  * (a direct booking) marks that the client did not come, or takes the mark back, from the booking's start until 24
  * hours after it. The status stays confirmed; no_show_at carries the mark. A salon booking's artist calendar copies
- * carry the same mark. No text or push goes to the client: the line on their booking card is the only sign.
+ * carry the same mark. Since 2026-11-02 the mark counts against the client (whatever they answered to «میای؟»), so the
+ * route sends them one push; their booking card has «اشتباه شده؟» to support.
  *
- * Returns { ok: true, changed } or { ok: false, error: "missing" | "not_confirmed" | "not_started" | "closed" }.
+ * Returns { ok: true, changed, booking } or { ok: false, error: "missing" | "not_confirmed" | "not_started" | "closed" }.
  */
 export async function setNoShow({ kind, id, ownerUserId, noShow }) {
   return withTransaction(null, async (db) => {
@@ -21,7 +22,7 @@ export async function setNoShow({ kind, id, ownerUserId, noShow }) {
     const phase = noShowPhase(row.booking_date, row.time);
     if (phase === "ahead" || phase === null) return { ok: false, error: "not_started" };
     if (phase === "closed") return { ok: false, error: "closed" };
-    if (Boolean(row.no_show_at) === noShow) return { ok: true, changed: false };
+    if (Boolean(row.no_show_at) === noShow) return { ok: true, changed: false, booking: row };
     const value = noShow ? new Date() : null;
     if (kind === "artist") {
       await run(db, "UPDATE artist_bookings SET no_show_at = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $1", [id, value]);
@@ -35,6 +36,6 @@ export async function setNoShow({ kind, id, ownerUserId, noShow }) {
             AND service = $6 AND booking_date = $7 AND time = $8)
       `, [id, value, ownerUserId, row.client || "", row.phone || "", row.service || "", row.booking_date, row.time]);
     }
-    return { ok: true, changed: true };
+    return { ok: true, changed: true, booking: row };
   });
 }

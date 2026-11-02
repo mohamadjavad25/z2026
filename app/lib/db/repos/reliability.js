@@ -7,32 +7,40 @@ import { RELIABILITY_MONTHS } from "../../../shared/lib/attendance.js";
  * and that nobody marked «نیومد» count as came; a «نیومد» counts at once. A salon booking's artist calendar copy is
  * not counted again. Only rows tied to a client account count (a walk-in typed in by name is nobody's record).
  *
- * Returns Map(clientUserId -> { came, noShow, recentNoShow }), with every asked id present.
+ * Returns Map(clientUserId -> { came, noShow, recentNoShow, cameSinceNoShow }), with every asked id present.
  */
 export async function clientReliability(clientUserIds, runner = null, now = new Date()) {
   const ids = [...new Set((clientUserIds || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
-  const result = new Map(ids.map((id) => [id, { came: 0, noShow: 0, recentNoShow: 0 }]));
+  const result = new Map(ids.map((id) => [id, { came: 0, noShow: 0, recentNoShow: 0, cameSinceNoShow: 0 }]));
   if (!ids.length) return result;
   const db = runner || await getDb();
   const today = formatPersianDateKey(now);
+  // came_since_no_show: visits they came to after the day of their last recent «نیومد» (who is asked «میای؟»).
   const rows = await all(db, `
     SELECT client_user_id,
       COUNT(*) FILTER (WHERE no_show_at IS NULL)::int AS came,
       COUNT(*) FILTER (WHERE no_show_at IS NOT NULL)::int AS no_show,
-      COUNT(*) FILTER (WHERE no_show_at > NOW() - make_interval(months => $3))::int AS recent_no_show
+      COUNT(*) FILTER (WHERE no_show_at > NOW() - make_interval(months => $3))::int AS recent_no_show,
+      COUNT(*) FILTER (WHERE no_show_at IS NULL AND booking_date > last_no_show_day)::int AS came_since_no_show
     FROM (
-      SELECT client_user_id, no_show_at FROM salon_bookings
-      WHERE client_user_id = ANY($1::int[]) AND status IN ('تایید شده', 'تازه')
-        AND (booking_date < $2 OR no_show_at IS NOT NULL)
-      UNION ALL
-      SELECT client_user_id, no_show_at FROM artist_bookings
-      WHERE client_user_id = ANY($1::int[]) AND source_salon_user_id IS NULL AND status IN ('تایید', 'تایید شده')
-        AND (booking_date < $2 OR no_show_at IS NOT NULL)
+      SELECT client_user_id, no_show_at, booking_date,
+        MAX(booking_date) FILTER (WHERE no_show_at > NOW() - make_interval(months => $3)) OVER (PARTITION BY client_user_id) AS last_no_show_day
+      FROM (
+        SELECT client_user_id, no_show_at, booking_date FROM salon_bookings
+        WHERE client_user_id = ANY($1::int[]) AND status IN ('تایید شده', 'تازه')
+          AND (booking_date < $2 OR no_show_at IS NOT NULL)
+        UNION ALL
+        SELECT client_user_id, no_show_at, booking_date FROM artist_bookings
+        WHERE client_user_id = ANY($1::int[]) AND source_salon_user_id IS NULL AND status IN ('تایید', 'تایید شده')
+          AND (booking_date < $2 OR no_show_at IS NOT NULL)
+      ) raw
     ) visits
     GROUP BY client_user_id
   `, [ids, today, RELIABILITY_MONTHS]);
   for (const row of rows) {
-    result.set(Number(row.client_user_id), { came: row.came, noShow: row.no_show, recentNoShow: row.recent_no_show });
+    result.set(Number(row.client_user_id), {
+      came: row.came, noShow: row.no_show, recentNoShow: row.recent_no_show, cameSinceNoShow: row.came_since_no_show
+    });
   }
   return result;
 }
