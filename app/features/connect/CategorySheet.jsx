@@ -45,7 +45,8 @@ export function CategorySheet({ category, matches = [], hasConnections = false, 
 
   async function chooseContact() {
     try {
-      const picked = await pickContact();
+      // After a restart of the app the category sheet is gone, so the connect page finishes it.
+      const picked = await pickContact("connect");
       if (picked) setContact(picked);
     } catch {
       onNotify?.("به مخاطب‌هات دسترسی نداریم؛ شماره رو خودت بزن.");

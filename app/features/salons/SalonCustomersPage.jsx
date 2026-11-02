@@ -10,7 +10,7 @@ import { bookingStatusLabel, bookingStatusTone, isBookingActive, isBookingInPast
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { buildBookingCustomers, customerMatchesQuery, describeFollowTime, pickFreshFollowers, phoneKey } from "./customers";
-import { contactPickerNeedsAppUpdate, contactPickerSupported, localPhoneOf, pickContact } from "../../shared/lib/contactPicker";
+import { contactPickerNeedsAppUpdate, contactPickerSupported, localPhoneOf, pickContact, useRestoredContact } from "../../shared/lib/contactPicker";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { buildClientInviteText, buildInviteSmsHref } from "../../shared/lib/inviteSms";
 import { InviteClientsSheet } from "../connect/InviteClientsSheet";
@@ -305,11 +305,18 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
     }
     let contact = null;
     try {
-      contact = await pickContact();
+      contact = await pickContact("customers");
     } catch {
       setContactNotice("failed");
       return;
     }
+    openPickedContact(contact);
+  }
+
+  // A pick that came back after Android closed and restarted the app is finished the same way.
+  useRestoredContact("customers", (contact) => openPickedContact(contact));
+
+  function openPickedContact(contact) {
     if (!contact) return;
     const keys = new Set(contact.phones.map(phoneKey).filter((key) => key.length >= 10));
     const known = customers.find((item) => keys.has(phoneKey(item.phone)));

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ContactRound, ScanLine, Search } from "lucide-react";
-import { contactPickerSupported, pickContact } from "../../shared/lib/contactPicker";
+import { contactPickerSupported, pickContact, useRestoredContact } from "../../shared/lib/contactPicker";
 import { ConnectSheet } from "../connect/ConnectSheet";
 import { ContactLookup } from "../connect/ContactLookup";
 import { ScanFlow } from "../connect/ScanFlow";
@@ -34,12 +34,15 @@ export function AddPlaceActions({ clientName = "", onConnected, onOpenPlace, onF
   // The system's own picker asks for access and hands over only the chosen contact.
   async function chooseContact() {
     try {
-      const picked = await pickContact();
+      const picked = await pickContact("add-place");
       if (picked) setContact(picked);
     } catch {
       onNotify?.("به مخاطب‌هات دسترسی نداریم؛ از «جستجو» پیداش کن.");
     }
   }
+
+  // A pick that came back after Android closed and restarted the app.
+  useRestoredContact("add-place", setContact);
 
   async function connectAndSync(profile, options) {
     const connected = await connect(profile, options);

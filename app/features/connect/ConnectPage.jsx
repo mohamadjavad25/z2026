@@ -6,7 +6,7 @@ import { ComingSoon } from "../../components/ComingSoon";
 import { Mascot } from "../../components/Mascot";
 import { SkeletonList } from "../../components/Skeleton";
 import { listConnectionsForCategory } from "../../shared/api/connections";
-import { contactPickerSupported, pickContact } from "../../shared/lib/contactPicker";
+import { contactPickerSupported, pickContact, useRestoredContact } from "../../shared/lib/contactPicker";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { CategoryGrid } from "./CategoryGrid";
 import { CategorySheet } from "./CategorySheet";
@@ -70,12 +70,15 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
   // «از مخاطبین»: the system's own picker (it asks for access); only the chosen contact is looked up.
   async function chooseContact() {
     try {
-      const picked = await pickContact();
+      const picked = await pickContact("connect");
       if (picked) setContact(picked);
     } catch {
       onNotify?.("به مخاطب‌هات دسترسی نداریم؛ شماره رو توی جستجو بزن.");
     }
   }
+
+  // A pick (here or in a category's sheet) that came back after Android closed and restarted the app.
+  useRestoredContact("connect", setContact);
 
   // «چه کاری می‌خواهی؟»: one of my salons/artists does it -> straight to them, on that service;
   // several -> pick; none -> connect someone.

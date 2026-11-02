@@ -1,5 +1,5 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
-import { contactPickerNeedsAppUpdate, contactPickerSupported, localPhoneOf, pickContact } from "../../app/shared/lib/contactPicker.js";
+import { contactPickerNeedsAppUpdate, contactPickerSupported, localPhoneOf, pickContact, takeRestoredContact } from "../../app/shared/lib/contactPicker.js";
 
 afterEach(() => { vi.unstubAllGlobals(); });
 
@@ -39,6 +39,40 @@ describe("contact picker", () => {
   it("returns null when the person backs out of the app's picker", async () => {
     stubAppBridge(async () => ({ cancelled: true }));
     await expect(pickContact()).resolves.toBeNull();
+  });
+
+  it("finishes a pick where it started when Android restarted the app meanwhile (owner's report 2026-11-02)", async () => {
+    const stored = new Map();
+    vi.stubGlobal("localStorage", {
+      getItem: (key) => (stored.has(key) ? stored.get(key) : null),
+      setItem: (key, value) => stored.set(key, String(value)),
+      removeItem: (key) => stored.delete(key)
+    });
+    let restoredListener = null;
+    const events = [];
+    vi.stubGlobal("navigator", {});
+    vi.stubGlobal("CustomEvent", class { constructor(type) { this.type = type; } });
+    vi.stubGlobal("window", {
+      Capacitor: {
+        isNativePlatform: () => true,
+        // the app is closed while the contact list is open: this call never answers
+        nativePromise: () => new Promise(() => {}),
+        addListener: (plugin, name, listener) => { if (plugin === "App" && name === "appRestoredResult") restoredListener = listener; },
+        PluginHeaders: [{ name: "App" }, { name: "ContactPicker" }]
+      },
+      dispatchEvent: (event) => events.push(event.type)
+    });
+    void pickContact("customers");
+    expect(restoredListener).toBeTypeOf("function");
+    // ...the app starts again and Capacitor hands over the contact the person picked
+    restoredListener({ pluginId: "ContactPicker", methodName: "pick", success: true, data: { name: "سارا", phones: ["09123456789"] } });
+    expect(events).toEqual(["frfro:contact-restored"]);
+    expect(takeRestoredContact("connect")).toBeNull();
+    expect(takeRestoredContact("customers")).toEqual({ name: "سارا", phones: ["09123456789"] });
+    expect(takeRestoredContact("customers")).toBeNull();
+    // another plugin's restored result is not a contact
+    restoredListener({ pluginId: "Camera", methodName: "pick", success: true, data: { name: "x", phones: ["1"] } });
+    expect(events).toHaveLength(1);
   });
 
   it("gives the booking form an 09… mobile number", () => {

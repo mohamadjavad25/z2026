@@ -716,6 +716,9 @@
   overflow-y: auto;
   display: grid;
   align-content: start;
+  /* Rows are as tall as their content and the panel scrolls. With the default auto rows the fixed-height grid
+     squeezed any overflow:hidden child (the Settings map) and cut off its save button (owner's report 2026-11-02). */
+  grid-auto-rows: max-content;
   gap: 12px;
   padding: 12px 12px calc(88px + env(safe-area-inset-bottom));
   background:
