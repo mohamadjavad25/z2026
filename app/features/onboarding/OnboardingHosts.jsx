@@ -5,6 +5,21 @@ import { useHome } from "../shell/HomeContext";
 import { OnboardingSlides } from "./OnboardingSlides";
 import { OPEN_TUTORIAL_EVENT, WELCOME_SEEN_KEY } from "./slides";
 import { ENTER_APP_EVENT } from "../landing/constants";
+import { peekPendingOpen } from "../../shared/lib/appHandoff";
+
+/**
+ * This visit came with a purpose: a salon's or artist's link to book (`?open=`, or the place a public page's
+ * «رزرو» remembered) or a salon's team link (`?join=`). Remembered for the visit, since the link is used up by sign-up.
+ */
+const PURPOSE_KEY = "frfro-came-with-purpose";
+function cameWithPurpose() {
+  try {
+    if (/[?&](open|join)=/.test(window.location.search) || peekPendingOpen()) window.sessionStorage.setItem(PURPOSE_KEY, "1");
+    return window.sessionStorage.getItem(PURPOSE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 function welcomeSeen() {
   try {
@@ -21,12 +36,14 @@ function welcomeSeen() {
 export function WelcomeHost({ show }) {
   const { authChecked } = useHome();
   const [open, setOpen] = useState(false);
+  // Noted while the link is still there, so the tutorial after this sign-up waits too.
+  useEffect(() => { cameWithPurpose(); }, []);
   useEffect(() => {
     // Only once the session check is over: a signed-in phone has no profile for a moment while it loads.
     if (!show || !authChecked) return undefined;
     const tryOpen = () => {
       if (welcomeSeen() || !document.documentElement.classList.contains("skip-landing")) return;
-      if (/[?&](open|join)=/.test(window.location.search)) return;
+      if (cameWithPurpose()) return;
       setOpen(true);
     };
     tryOpen();
@@ -54,7 +71,7 @@ export function WelcomeHost({ show }) {
  * server, cleared here at the end or on «رد شدن»; closed midway, it comes back next time), and from Settings any time.
  */
 export function TutorialHost() {
-  const { createdProfile, profileSettings, toggleProfileSetting, goToTab } = useHome();
+  const { createdProfile, profileSettings, toggleProfileSetting, arrivalIntent } = useHome();
   const role = ["client", "salon", "artist"].includes(createdProfile?.type) ? createdProfile.type : "";
   const pending = Boolean(profileSettings?.tutorialPending);
   const [open, setOpen] = useState(false);
@@ -67,6 +84,8 @@ export function TutorialHost() {
 
   useEffect(() => {
     if (!role || !pending || endedFor.current === createdProfile?.id) return undefined;
+    // Came to book or to join a team: that comes first; the tutorial waits for the next open of the app.
+    if (cameWithPurpose() || arrivalIntent) return undefined;
     // Never over the about page: once the app itself is showing.
     const tryOpen = () => {
       if (document.documentElement.classList.contains("skip-landing")) setOpen(true);
@@ -74,7 +93,7 @@ export function TutorialHost() {
     tryOpen();
     window.addEventListener(ENTER_APP_EVENT, tryOpen);
     return () => window.removeEventListener(ENTER_APP_EVENT, tryOpen);
-  }, [role, pending, createdProfile?.id]);
+  }, [role, pending, createdProfile?.id, arrivalIntent]);
 
   useEffect(() => {
     const show = () => setOpen(true);
@@ -90,8 +109,8 @@ export function TutorialHost() {
         endedFor.current = createdProfile?.id;
         setOpen(false);
         if (pending) toggleProfileSetting?.("tutorialPending");
-        // Home: the client's bookings, the salon's and artist's «کامل کردن صفحه» steps.
-        goToTab?.("profile");
+        // No move: a new account is already on its home (the «کامل کردن صفحه» steps of a salon or artist), and
+        // a replay from Settings goes back to Settings.
       }}
     />
   );
