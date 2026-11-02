@@ -238,3 +238,18 @@ describe("submitFailure", () => {
     expect(submitFailure({ status: 400, payload: { error: 42 } }).message).toBe("نوبت ثبت نشد؛ دوباره بزن.");
   });
 });
+
+describe("how a service's price reads", () => {
+  it("counts only a plain number; «از ۵۵۰ هزار» is shown as written, never as «۵۵۰ تومان»", async () => {
+    const { priceText } = await import("../../app/features/booking/visitBookerModel.js");
+    const [plain, from, deal] = normalizeServices([
+      { id: 1, name: "کوتاهی", duration: "۴۵ دقیقه", price: "۵۵۰٬۰۰۰" },
+      { id: 2, name: "رنگ", duration: "۱۸۰ دقیقه", price: "از ۲.۵ میلیون" },
+      { id: 3, name: "عروس", duration: "۱۸۰ دقیقه", price: "توافقی" }
+    ]);
+    expect([plain.price, plain.priceText]).toEqual([550000, "۵۵۰٬۰۰۰ تومان"]);
+    expect([from.price, from.priceText]).toEqual([0, "از ۲.۵ میلیون"]);
+    expect([deal.price, deal.priceText]).toEqual([0, "توافقی"]);
+    expect(priceText("")).toBe("");
+  });
+});

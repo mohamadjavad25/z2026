@@ -4,11 +4,12 @@ import { useMemo } from "react";
 import { BOOKING_HORIZON_DAYS } from "../../shared/lib/bookingWindow";
 import { VisitBooker } from "../booking/VisitBooker";
 import { normalizeServices } from "../booking/visitBookerModel";
-import { getSalonFallbacks, getSalonVisitPreview, getSalonVisitTimes } from "../../shared/api/salons";
+import { getSalonFallbacks, getSalonVisitDays, getSalonVisitPreview, getSalonVisitTimes } from "../../shared/api/salons";
 import { serviceKey } from "../../shared/lib/serviceBundle";
 import { matchServiceNames } from "../../shared/lib/serviceMatch";
 import { buildExactBookingDateTabs } from "../artist/bookingUtils";
-import { findSalonHourForDateKey, isSalonHourOpen } from "../../shared/lib/salonAvailability";
+import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "../../shared/lib/salonAvailability";
+import { timeLabelToMinutes } from "../../shared/lib/time";
 import { getBookableSalonServiceItems } from "./useSalonDirectory";
 import { memberServices } from "./SalonTeam";
 
@@ -28,13 +29,24 @@ export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmi
   // The next two weeks (the form looks ahead through all of them for a free hour) as real dates (never a bare weekday name, which a server would have to guess a
   // date for), worked out each time the sheet opens so a screen left open past midnight is not a day behind.
   // Today and the next 60 days: how far a client may ask (owner's decision of 2026-10-25).
-  const days = useMemo(() => buildExactBookingDateTabs(BOOKING_HORIZON_DAYS + 1).map((tab) => ({
+  const days = useMemo(() => buildExactBookingDateTabs(BOOKING_HORIZON_DAYS + 1).map((tab, index) => ({
     value: tab.dateKey,
     weekday: tab.day,
     label: `${tab.label} ${tab.sub || ""}`.trim(),
+    // The step form's day card: «امروز» / «فردا» / the weekday, and the date under it.
+    short: index === 1 ? "فردا" : tab.label,
+    date: tab.sub || "",
     closed: Array.isArray(salon?.hours) && salon.hours.length > 0 && !isSalonHourOpen(findSalonHourForDateKey(salon.hours, tab.dateKey))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   })), [salon, open]);
+
+  // The longest day the salon is open, in minutes: services longer than that together can never fit in one visit.
+  const longestDay = useMemo(() => (Array.isArray(salon?.hours) ? salon.hours : [])
+    .filter((hour) => isSalonHourOpen(hour))
+    .reduce((most, hour) => {
+      const { open: from, close: to } = salonDayWindow(hour);
+      return Math.max(most, timeLabelToMinutes(to) - timeLabelToMinutes(from));
+    }, 0), [salon]);
 
   if (!open || !salon) return null;
   const salonUserId = salon.id || salon.source_key;
@@ -50,6 +62,11 @@ export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmi
     loadTimes: async ({ day, services: list, people = 1 }) => {
       const { ok, data } = await getSalonVisitTimes(salonUserId, day, list, people, prefer);
       return { ok, times: data?.times };
+    },
+    // The next two weeks at once, so each day of the step form says how many free times it has.
+    loadDays: async ({ days: list, services: wanted, people = 1 }) => {
+      const { ok, data } = await getSalonVisitDays(salonUserId, list, wanted, people, prefer);
+      return { ok, days: data?.days };
     },
     loadPlan: async ({ day, time, services: list, people = 1 }) => {
       const { ok, data } = await getSalonVisitPreview(salonUserId, day, time, list, [], people, prefer);
@@ -69,11 +86,13 @@ export function SalonClientBookingModal({ open, salon, booking, onClose, onSubmi
       role="client"
       title={withStaff ? `نوبت با ${withStaff.name} در ${salon.name || "سالن"}` : `نوبت در ${salon.name || "سالن"}`}
       withName={withStaff?.name || ""}
+      placeName={salon.name || "سالن"}
+      longestDay={longestDay}
       services={services}
       days={days}
       // A visitor not signed in has no number yet: it comes with the account made at «بفرست» (the server always uses
       // the account's own number for a client), so the form must not ask for it.
-      initial={{ selected: picked, day: booking.prefill?.day, time: booking.prefill?.time, name: booking.client, phone: guest ? "guest" : booking.phone }}
+      initial={{ selected: picked, day: booking.prefill?.day, time: booking.prefill?.time, people: booking.prefill?.people || 1, name: booking.client, phone: guest ? "guest" : booking.phone }}
       contactPhone={salon.phone || ""}
       waitlist={withStaff || guest ? null : { kind: "salon", ownerId: salonUserId, placeLabel: "توی این سالن" }}
       source={source}

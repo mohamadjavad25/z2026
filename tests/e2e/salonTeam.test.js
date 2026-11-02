@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { TEST_BASE_URL } from "../globalSetup.js";
 import { newClient, teamSalon } from "../integration/exitHelpers.js";
-import { closeBrowser, newPage } from "./browser.js";
+import { clientToTicket, closeBrowser, newPage } from "./browser.js";
 
 afterAll(closeBrowser);
 
@@ -54,11 +54,11 @@ describe("the team on a salon's page (browser)", () => {
     await menu.locator(".sduConfirm").click();
 
     await page.getByRole("heading", { name: `نوبت با ${negar.user.name} در ${salon.user.name}` }).waitFor();
-    expect(await page.locator(".vbPeople").count()).toBe(0);
-    await page.locator(".vbTime.is-on").waitFor();
-    await page.getByRole("button", { name: /^بفرست/ }).waitFor();
+    expect(await page.locator(".vbFriend").count()).toBe(0);
+    expect(await page.locator(".vbPeopleRow").count()).toBe(0);
+    await clientToTicket(page);
     await page.locator(".vbSubmit").click();
-    await page.locator(".vbTime").first().waitFor({ state: "detached" });
+    await page.locator(".vbTicket").waitFor({ state: "detached" });
 
     const bookings = (await salon.api.get("/api/salon-bookings")).payload.data.bookings;
     const mine = bookings.find((booking) => booking.client === client.user.name);

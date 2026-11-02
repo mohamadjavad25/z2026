@@ -3,7 +3,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import QRCode from "qrcode";
 import { TEST_BASE_URL } from "../globalSetup.js";
 import { createClient, futureBookingDay, registerUser } from "../integration/helpers.js";
-import { closeBrowser, newPage } from "./browser.js";
+import { clientToTicket, closeBrowser, newPage } from "./browser.js";
 
 const persian = /[؀-ۿ]/;
 afterAll(closeBrowser);
@@ -85,11 +85,9 @@ describe("booking flow (browser)", () => {
     await cp.locator(".spvBarBook").click();
     await cp.locator(".sduItem").first().click();
     await cp.locator(".sduConfirm").click();
-    // the booking form opens with the first free time already chosen; the button says which
-    await cp.locator(".vbTime.is-on").waitFor();
-    // the button says "checking" until the server has confirmed who does what at that time
-    await cp.locator(".vbPlanRow").first().waitFor();
-    await cp.getByRole("button", { name: /^بفرست/ }).waitFor();
+    // the step form opens on the day; «زودترین وقت خالی» goes straight to the ticket, whose button says which time
+    // (it says "checking" until the server has confirmed who does what at that time)
+    await clientToTicket(cp);
     // how long to wait for the salon: folded on «فقط ۱ ساعت» (decision 2026-10-21) until the client opens it
     await cp.locator(".wcFold").filter({ hasText: "۱ ساعت صبر می‌کنم" }).click();
     const waitChoice = cp.locator(".wc");
@@ -156,11 +154,10 @@ describe("booking flow (browser)", () => {
     const visitTimes = cp.waitForResponse((response) => response.url().includes("/api/salon-bookings/availability"));
     await cp.locator(".sduConfirm").click();
     expect((await visitTimes).ok()).toBe(true);
-    // both services are listed with their own time, and who does each
+    // both services are listed on the ticket with their own time, and who does each
+    await clientToTicket(cp);
     await cp.locator(".vbPlanRow").nth(1).waitFor();
     expect(await cp.locator(".vbPlanRow").count()).toBe(2);
-    await cp.locator(".vbTime.is-on").waitFor();
-    await cp.getByRole("button", { name: /^بفرست/ }).waitFor();
     // the default is one hour (decision 2026-10-21); this flow picks «صبر می‌کنم» (until the appointment, at most 24 hours)
     await cp.locator(".wcFold").click();
     await cp.getByRole("radio", { name: /صبر می‌کنم/ }).click();
@@ -265,8 +262,7 @@ describe("client starts from what they want (browser)", () => {
     await place.locator(".chServices button", { hasText: "کوتاهی مو" }).click();
     await page.locator(".sduItem.is-selected", { hasText: "کوتاهی مو" }).waitFor();
     await page.locator(".sduConfirm").click();
-    await page.locator(".vbTime.is-on").waitFor();
-    await page.getByRole("button", { name: /^بفرست/ }).waitFor();
+    await clientToTicket(page);
     await page.locator(".vbSubmit").click();
     const receipt = page.locator(".brScreen");
     await receipt.waitFor();
@@ -304,11 +300,13 @@ describe("client starts from what they want (browser)", () => {
     expect(await item.innerText()).toContain("دقیقه");
     await item.click();
     await page.locator(".sduConfirm").click();
-    // the time screen: a way back, the first free time marked «زودترین», the wait question folded
-    await page.locator(".vbTime.is-on.is-earliest").waitFor();
+    // the step form: the day first, with «زودترین وقت خالی»; the ticket has the wait question folded; each step goes back
+    await page.locator(".vbCalendar").waitFor();
+    await clientToTicket(page);
     expect(await page.locator(".wcFold").innerText()).toContain("۱ ساعت صبر می‌کنم");
-    await page.getByRole("button", { name: "برگشت" }).click();
-    await page.locator(".vbTime").first().waitFor({ state: "detached" });
+    for (let step = 0; step < 3; step += 1) await page.getByRole("button", { name: "مرحلهٔ قبل" }).click();
+    await page.getByRole("button", { name: "بستن" }).click();
+    await page.locator(".visitBookerSheet").waitFor({ state: "detached" });
     await page.locator(".spvBarBook").waitFor();
     expect(problems).toEqual([]);
     await context.close();

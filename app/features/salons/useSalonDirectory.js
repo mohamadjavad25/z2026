@@ -450,7 +450,7 @@ export function useSalonDirectory({
 
   /**
    * «همین نوبت را جای دیگر بگیر»: opens the form of the salon that is now selected with the services, day and
-   * time of an unanswered request already filled in (`prefill`: { names, day, time }). The form still asks the
+   * time of an unanswered request already filled in (`prefill`: { names, day, time, people }). The form still asks the
    * server for that day's free hours, so a time that is gone is said so there.
    */
   const openSalonClientBookingPrefilled = useCallback((prefill) => {
@@ -461,7 +461,7 @@ export function useSalonDirectory({
       open: true,
       service: names[0],
       bundle: null,
-      prefill: { names, day: prefill.day || "", time: prefill.time || "" },
+      prefill: { names, day: prefill.day || "", time: prefill.time || "", people: Number(prefill.people) > 1 ? Number(prefill.people) : 1 },
       client: current.client || createdProfile?.data?.name || "",
       phone: current.phone || createdProfile?.data?.phone || ""
     }));

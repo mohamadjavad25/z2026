@@ -221,3 +221,61 @@ button.vbWho2[aria-expanded="true"] svg { transform: rotate(180deg); }
 }
 .plWaitDayRow button.is-on { border-style: solid; border-color: var(--accent); color: var(--n-900); background: var(--accent-soft); }
 .plWaitDays .vbWait { margin-top: 0; }
+
+/* ═══ The client's step form (ClientVisitWizard, owner's decision 2026-11-02) ═══
+   Same frame as the salon's form; the client's steps get cards, a little calendar and a ticket. */
+.vbWizard.is-client .vbStage { justify-items: stretch; }
+.vbWizard.is-client .vbQuestion, .vbWizard.is-client .vbQuestionHint { justify-self: center; }
+
+/* services: two cards a row, the order number on the chosen ones */
+.vbCards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.vbCard { min-width: 0; display: grid; gap: 4px; align-content: start; padding: 10px 12px 12px; border: 2px solid transparent; border-radius: 18px; background: var(--vb-fill); color: var(--vb-ink); font: inherit; text-align: start; cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease, transform 0.12s ease; }
+.vbCard:active { transform: scale(0.97); }
+.vbCard.is-on { border-color: var(--vb-pink); background: rgb(var(--brand-pink-rgb) / 0.12); }
+.vbCardTop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+.vbCardBadge { width: 26px; height: 26px; display: grid; place-items: center; border: 1.5px solid var(--vb-line); border-radius: 999px; color: var(--vb-muted); font-size: 0.8rem; font-style: normal; font-weight: 900; transition: background 0.2s ease, color 0.2s ease; }
+.vbCard.is-on .vbCardBadge { border-color: var(--vb-pink); background: var(--vb-pink); color: var(--brand-ink); animation: vbBadgeIn 0.32s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
+.vbCard b { overflow: hidden; font-size: 0.86rem; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+.vbCard small { color: var(--vb-muted); font-size: 0.68rem; font-weight: 700; line-height: 1.6; }
+.vbFriend { justify-self: center; }
+.vbPeopleRow { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--n-700); font-size: 0.78rem; font-weight: 800; }
+.vbNoRoom { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 16px; background: var(--warning-bg); color: var(--n-800); animation: vbStageIn 0.3s ease both; }
+.vbNoRoom svg { flex: none; margin-top: 2px; color: var(--warning); }
+.vbNoRoom p { flex: 1 1 200px; margin: 0; font-size: 0.8rem; font-weight: 800; line-height: 1.8; }
+
+/* day: «زودترین وقت خالی», then a little calendar where each day says how many times it has */
+.vbFewDays { margin: -6px 0 0; justify-self: center; color: var(--warning); font-size: 0.78rem; font-weight: 900; text-align: center; line-height: 1.7; }
+.vbSoonest { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; padding: 0 18px; border: 0; border-radius: 18px; background: var(--vb-pink); color: var(--brand-ink); font: inherit; text-align: start; cursor: pointer; box-shadow: 0 10px 24px rgb(var(--brand-pink-rgb) / 0.35); }
+.vbSoonest:active { transform: scale(0.98); }
+.vbSoonest span { display: grid; }
+.vbSoonest small { font-size: 0.7rem; font-weight: 800; }
+.vbSoonest b { font-size: 0.98rem; font-weight: 950; }
+.vbCalendar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.vbDayCard { min-width: 0; display: grid; justify-items: center; gap: 0; padding: 8px 2px; border: 1.5px solid var(--vb-line); border-radius: 16px; background: var(--n-0); color: var(--vb-ink); font: inherit; cursor: pointer; transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease; }
+.vbDayCard:active { transform: scale(0.96); }
+.vbDayCard small { color: var(--vb-muted); font-size: 0.66rem; font-weight: 800; }
+.vbDayCard b { font-size: 0.82rem; font-weight: 950; white-space: nowrap; }
+.vbDayCard em { min-height: 1.4em; color: var(--pink-deep); font-size: 0.64rem; font-style: normal; font-weight: 900; }
+.vbDayCard.is-few em { color: var(--warning); }
+.vbDayCard.is-off { border-color: transparent; background: var(--vb-fill); color: var(--n-600); }
+.vbDayCard.is-off em { color: var(--n-600); }
+.vbDayCard[aria-disabled="true"] { cursor: default; }
+.vbDayCard.is-on { border-color: var(--vb-pink); background: var(--vb-pink); color: var(--brand-ink); }
+.vbDayCard.is-on small, .vbDayCard.is-on em { color: var(--brand-ink); }
+
+/* a time taken while sending */
+.vbTaken { display: grid; gap: 10px; justify-items: center; padding: 12px 14px; border-radius: 16px; background: rgb(var(--brand-pink-rgb) / 0.14); text-align: center; animation: vbStageIn 0.3s ease both; }
+.vbTaken p { margin: 0; color: var(--n-800); font-size: 0.84rem; font-weight: 800; line-height: 1.8; }
+
+/* the last look: a ticket */
+.vbTicket { overflow: hidden; border-radius: 20px; background: var(--vb-fill); }
+.vbTicketHead { display: grid; padding: 14px 16px; background: var(--vb-pink); color: var(--brand-ink); }
+.vbTicketHead small { font-size: 0.72rem; font-weight: 800; }
+.vbTicketHead b { font-size: 1.05rem; font-weight: 950; }
+.vbTicketBody { display: grid; gap: 6px; padding: 10px 14px 12px; }
+.vbTicketTotal { margin: 0; padding-top: 8px; border-top: 1.5px dashed var(--vb-line); color: var(--n-800); font-size: 0.8rem; font-weight: 900; text-align: center; }
+
+@keyframes vbBadgeIn { from { transform: scale(0.3); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .vbCard, .vbDayCard, .vbCard.is-on .vbCardBadge, .vbNoRoom, .vbTaken { animation: none; transition: none; }
+}

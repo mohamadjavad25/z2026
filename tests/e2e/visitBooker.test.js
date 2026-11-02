@@ -3,7 +3,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { TEST_BASE_URL } from "../globalSetup.js";
 import { createClient, joinSalonAsArtist, registerUser } from "../integration/helpers.js";
 import { formatPersianDateKey, getPersianWeekday } from "../../app/shared/lib/persianCalendar.js";
-import { closeBrowser, newPage } from "./browser.js";
+import { clientToTicket, closeBrowser, newPage } from "./browser.js";
 
 afterAll(closeBrowser);
 
@@ -681,9 +681,12 @@ describe("VisitBooker for a client (browser)", () => {
     await cp.locator(".sduItem", { hasText: H }).click();
     await cp.locator(".sduConfirm").click();
     await cp.locator(".visitBookerSheet").waitFor();
-    // the services they picked are already on, and the customer's own details are read-only
-    expect(await cp.locator(".vbService.is-on:not(.vbCount)").count()).toBe(2);
+    // the step form opens on the day: the two services they picked are the first answer, and nobody asks their name
+    const picked = await cp.locator(".vbDoneChip").first().innerText();
+    expect(picked).toContain(M);
+    expect(picked).toContain(H);
     expect(await cp.locator("#vb-name").count()).toBe(0);
+    await clientToTicket(cp);
     // their name and number are already known, so no contact card is shown
     expect(await cp.locator(".vbWho").count()).toBe(0);
     await cp.locator(".vbPlanRow").nth(1).waitFor();
@@ -752,7 +755,7 @@ describe("VisitBooker layout and accessibility (browser)", () => {
         await page.locator(".chPlace .chServices button", { hasText: M }).click();
         await page.locator(".sduConfirm").click();
         await page.locator(".visitBookerSheet").waitFor();
-        await page.locator(".vbPlanRow").first().waitFor();
+        await clientToTicket(page);
       }]
     ];
     for (const [label, api, open] of scenarios) {

@@ -44,3 +44,13 @@ export async function newPage({ width = 390, cookie = "", entered = true, dueLat
   page.on("pageerror", (error) => problems.push(`pageerror: ${error.message}`));
   return { page, context, problems };
 }
+
+/**
+ * The client's step form (ClientVisitWizard), from its day step: «زودترین وقت خالی» → the ticket, with who does what
+ * and a «بفرست …» button that is ready.
+ */
+export async function clientToTicket(page) {
+  await page.locator(".vbSoonest").click();
+  await page.locator(".vbTicket .vbPlanRow").first().waitFor();
+  await page.getByRole("button", { name: /^بفرست/ }).waitFor();
+}

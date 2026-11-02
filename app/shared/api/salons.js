@@ -52,6 +52,22 @@ export async function getSalonVisitTimes(salonUserId, day, services, people = 1,
 }
 
 /**
+ * GET /api/salon-bookings/availability/days → { days: [{ day, times }] }
+ * The same free times for several days at once (up to 14), so each day can say how many it has.
+ */
+export async function getSalonVisitDays(salonUserId, days, services, people = 1, prefer = "") {
+  const query = new URLSearchParams({ salonUserId: String(salonUserId) });
+  for (const day of days) query.append("day", String(day || ""));
+  if (people > 1) query.set("people", String(people));
+  if (prefer) query.set("prefer", prefer);
+  for (const service of services) {
+    query.append("service", typeof service === "string" ? service : service.name);
+    if (service?.minutes) query.append("minutes", String(service.minutes));
+  }
+  return apiJson(`/api/salon-bookings/availability/days?${query}`);
+}
+
+/**
  * GET /api/salon-bookings/fallbacks → { salons: [{ id, name, area, avatar }] }
  * Salons the client follows that do every one of these services and are free at that day and time:
  * the backup choices for a request that gets only an hour. `services`: names or { name }.

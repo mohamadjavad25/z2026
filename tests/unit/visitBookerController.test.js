@@ -595,3 +595,163 @@ describe("how long a client's request waits", () => {
     expect(state().wait).toBe(before);
   });
 });
+
+describe("how many free times each day has (the client's step form)", () => {
+  const timesByDay = { d1: [], d2: ["۱۱:۰۰", "۱۱:۳۰"], d3: ["۱۲:۰۰"] };
+  function clientWithDays(loadDays, options = {}) {
+    const source = fakeSource({ timesByDay });
+    source.loadDays = vi.fn(loadDays || (async (query) => ({ ok: true, days: query.days.map((day) => ({ day, times: timesByDay[day] || [] })) })));
+    const controller = createVisitBookerController({ role: "client", services, days, source, submit: vi.fn(), initial: { selected: ["1"], phone: "09120000000" }, ...options });
+    return { controller, source, state: () => controller.getState() };
+  }
+
+  it("asks only the open days, counts them, and names the first free time", async () => {
+    const { controller, source, state } = clientWithDays();
+    controller.start();
+    await flush();
+    expect(source.loadDays).toHaveBeenCalledTimes(1);
+    expect(source.loadDays.mock.calls[0][0]).toMatchObject({ days: ["d1", "d2", "d3"], services: [{ name: "مانیکور", minutes: 45 }] });
+    expect(state().dayCounts).toEqual({ status: "ready", byDay: { d1: 0, d2: 2, d3: 1 }, first: { day: "d2", time: "۱۱:۰۰" } });
+  });
+
+  it("asks again when the services change, and drops an answer for the old picks", async () => {
+    const answers = [];
+    const { controller, state } = clientWithDays((query) => {
+      const wait = deferred();
+      answers.push({ query, wait });
+      return wait.promise;
+    });
+    controller.start();
+    await flush();
+    controller.toggleService("2");
+    await flush();
+    expect(answers).toHaveLength(2);
+    answers[1].wait.resolve({ ok: true, days: [{ day: "d1", times: ["۱۰:۰۰"] }] });
+    await flush();
+    answers[0].wait.resolve({ ok: true, days: [{ day: "d3", times: ["۱۲:۰۰"] }] });
+    await flush();
+    expect(state().dayCounts.byDay).toEqual({ d1: 1 });
+    expect(state().dayCounts.first).toEqual({ day: "d1", time: "۱۰:۰۰" });
+  });
+
+  it("a day's own fresh times update its count, so the two never disagree", async () => {
+    const { controller, state } = clientWithDays();
+    controller.start();
+    await flush();
+    // The form opened on d2 (d1 has nothing); someone takes 11:00 and the client comes back to d2.
+    controller.setDay("d3");
+    await flush();
+    timesByDay.d2 = ["۱۱:۳۰"];
+    try {
+      controller.setDay("d2");
+      await flush();
+      expect(state().dayCounts.byDay.d2).toBe(1);
+      expect(state().dayCounts.first).toEqual({ day: "d2", time: "۱۱:۳۰" });
+    } finally {
+      timesByDay.d2 = ["۱۱:۰۰", "۱۱:۳۰"];
+    }
+  });
+
+  it("«زودترین وقت خالی» opens that day with that time chosen", async () => {
+    const { controller, state } = clientWithDays();
+    controller.start();
+    await flush();
+    controller.setDay("d3");
+    await flush();
+    expect(controller.pickSoonest()).toBe(true);
+    await flush();
+    expect(state().day).toBe("d2");
+    expect(state().time).toBe("۱۱:۰۰");
+  });
+
+  it("a soonest time gone by the time its day opens leaves the time empty, never another one", async () => {
+    const { controller, state } = clientWithDays();
+    controller.start();
+    await flush();
+    controller.setDay("d3");
+    await flush();
+    timesByDay.d2 = ["۱۱:۳۰"];
+    try {
+      expect(controller.pickSoonest()).toBe(true);
+      await flush();
+      expect(state().day).toBe("d2");
+      expect(state().time).toBe("");
+    } finally {
+      timesByDay.d2 = ["۱۱:۰۰", "۱۱:۳۰"];
+    }
+  });
+
+  it("«زودترین وقت خالی» on the same day says no when that time is no longer in the list", async () => {
+    const { controller, state } = clientWithDays(null, { autoAdvance: false });
+    controller.start();
+    await flush();
+    controller.setDay("d2");
+    await flush();
+    controller.setTime("۱۱:۳۰");
+    await flush();
+    expect(state().dayCounts.first).toEqual({ day: "d2", time: "۱۱:۰۰" });
+    timesByDay.d2 = ["۱۱:۳۰"];
+    try {
+      controller.retryTimes();
+      await flush();
+      // the day's own answer moved its count and soonest time along with it
+      expect(state().dayCounts.first).toEqual({ day: "d2", time: "۱۱:۳۰" });
+      expect(controller.pickSoonest()).toBe(true);
+      expect(state().time).toBe("۱۱:۳۰");
+    } finally {
+      timesByDay.d2 = ["۱۱:۰۰", "۱۱:۳۰"];
+    }
+  });
+
+  it("taps in a row are counted once, after they stop, with no soonest time meanwhile", async () => {
+    const { controller, source, state } = clientWithDays(null, { daysDelay: 40 });
+    controller.start();
+    await flush();
+    expect(source.loadDays).toHaveBeenCalledTimes(1);
+    controller.toggleService("2");
+    controller.toggleService("3");
+    expect(state().dayCounts.status).toBe("loading");
+    expect(state().dayCounts.first).toBeNull();
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    await flush();
+    expect(source.loadDays).toHaveBeenCalledTimes(2);
+    expect(source.loadDays.mock.calls[1][0].services).toHaveLength(3);
+    expect(state().dayCounts.status).toBe("ready");
+    controller.dispose();
+  });
+
+  it("a client's form never skips the empty first day by itself", async () => {
+    const { controller, state } = clientWithDays(null, { autoAdvance: false });
+    controller.start();
+    await flush();
+    expect(state().day).toBe("d1");
+    expect(state().time).toBe("");
+  });
+
+  it("a request asked again elsewhere keeps its group size", async () => {
+    const source = fakeSource();
+    const controller = createVisitBookerController({ role: "client", services, days, source, submit: vi.fn(), initial: { selected: ["1", "2"], people: 2, phone: "09120000000" } });
+    expect(controller.getState().people).toBe(2);
+    expect(controller.getState().selected).toEqual(["1", "2"]);
+  });
+
+  it("a failed count is an error to retry, not «پر» everywhere", async () => {
+    let fail = true;
+    const { controller, state } = clientWithDays(async (query) => (fail ? { ok: false } : { ok: true, days: query.days.map((day) => ({ day, times: timesByDay[day] || [] })) }));
+    controller.start();
+    await flush();
+    expect(state().dayCounts).toEqual({ status: "error", byDay: {}, first: null });
+    fail = false;
+    controller.retryDays();
+    await flush();
+    expect(state().dayCounts.status).toBe("ready");
+  });
+
+  it("is never asked by a salon's or an artist's form", async () => {
+    const source = fakeSource();
+    source.loadDays = vi.fn();
+    createVisitBookerController({ role: "salon", services, days, source, submit: vi.fn(), initial: { selected: ["1"], name: "مریم" } }).start();
+    await flush();
+    expect(source.loadDays).not.toHaveBeenCalled();
+  });
+});

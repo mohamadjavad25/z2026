@@ -1,20 +1,15 @@
 "use client";
 
-import { ATTEND_NOTICE } from "../../shared/lib/attendance";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { CalendarCheck, Check, ChevronRight, Plus, Scissors } from "lucide-react";
+import { Plus, Scissors } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
-import { ServiceIcon } from "../../components/ServiceIcon";
-import { toPersianDigits } from "../../shared/lib/digits";
 import { createVisitBookerController } from "./visitBookerController";
 import { VisitWizard } from "./VisitWizard";
+import { ClientVisitWizard } from "./ClientVisitWizard";
 import { NameConflictSheet } from "./NameConflictSheet";
 import { findNameConflict } from "../salons/customers";
 import { renameCustomer } from "../../shared/api/customers";
-import { WaitChoice } from "./WaitChoice";
-import { PlanList, TimesList } from "./visitBookerParts";
-import { notify } from "../../shared/notice/noticeStore";
-import { MAX_VISIT_PEOPLE, clockText, maxServicesFor, missingText, visitSummaryText } from "./visitBookerModel";
+import { clockText, missingText } from "./visitBookerModel";
 
 const ROLE_COPY = {
   client: { submit: "بفرست", busy: "دارم می‌فرستم…" },
@@ -49,7 +44,9 @@ export function VisitBooker({
   onEditProfile,
   contactPhone = "",
   withName = "",
-  waitlist = null
+  waitlist = null,
+  placeName = "",
+  longestDay = 0
 }) {
   return (
     <ProfileSheet
@@ -76,6 +73,8 @@ export function VisitBooker({
         contactPhone={contactPhone}
         withName={withName}
         waitlist={waitlist}
+        placeName={placeName}
+        longestDay={longestDay}
         onClose={onClose}
       />
     </ProfileSheet>
@@ -83,7 +82,7 @@ export function VisitBooker({
 }
 
 /** `withName`: the client asked for one team member («رزرو با …»): one person only, and empty days say it is them who is full. */
-function VisitBookerForm({ role, title, subtitle, services, days, initial, customers, source, onSubmit, onDone, onAddService, onEditProfile, contactPhone, withName, waitlist, onClose }) {
+function VisitBookerForm({ role, title, subtitle, services, days, initial, customers, source, onSubmit, onDone, onAddService, onEditProfile, contactPhone, withName, waitlist, placeName, longestDay, onClose }) {
   // The controller lives as long as the sheet is open; what the parent passes later (fresh lists,
   // new closures) is read through refs so it never has to be recreated.
   const latest = useRef({});
@@ -99,9 +98,13 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
     source: {
       loadTimes: (query) => latest.current.source.loadTimes(query),
       ...(source.loadPlan ? { loadPlan: (query) => latest.current.source.loadPlan(query) } : {}),
-      ...(source.loadBackups ? { loadBackups: (query) => latest.current.source.loadBackups(query) } : {})
+      ...(source.loadBackups ? { loadBackups: (query) => latest.current.source.loadBackups(query) } : {}),
+      ...(source.loadDays ? { loadDays: (query) => latest.current.source.loadDays(query) } : {})
     },
-    submit: (body) => latest.current.onSubmit(body)
+    submit: (body) => latest.current.onSubmit(body),
+    // A client chooses the day: an empty one is said so (with the first free hour ahead), never skipped silently.
+    autoAdvance: role !== "client",
+    daysDelay: role === "client" ? 350 : 0
     // Created once per opening of the sheet.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), []);
@@ -123,10 +126,8 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
   const { services: frozenServices, days: frozenDays } = frozen;
   const copy = ROLE_COPY[role] || ROLE_COPY.salon;
   const day = frozenDays.find((item) => item.value === state.day);
-  const summary = visitSummaryText(state.picked, state.people);
   const { readiness } = state;
   const checking = readiness.reason === "checking";
-  const phoneMissing = role === "client" && !String(state.phone || "").trim();
   // What to say above the button, most important first.
   let hint = "";
   if (state.error) hint = state.error;
@@ -208,7 +209,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
     );
   }
 
-  // Salon and artist: one question at a time. The client keeps the single page below.
+  // Salon and artist: one question at a time, asking who the customer is.
   if (role !== "client") {
     return (
       <>
@@ -240,176 +241,25 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
     );
   }
 
+  // The client: the same one question at a time, with the client's own steps (owner's decision of 2026-11-02).
   return (
-    <form className={`vb is-${role}`} onSubmit={handleSubmit} noValidate aria-label={title}>
-      <header className="vbHead">
-        <button type="button" className="vbBack" onClick={onClose} aria-label="برگشت">
-          <ChevronRight size={20} aria-hidden="true" />
-        </button>
-        <h2>{title}</h2>
-        {subtitle ? <small>{subtitle}</small> : null}
-      </header>
-
-      <div className="vbBody">
-        {/* The client's own name and number are already known; the card shows only to ask for a missing number. */}
-        {phoneMissing ? (
-          <section className="vbWho is-readonly" aria-label="اطلاعات تماس">
-            <span><small>شماره موبایل</small><b dir="ltr">هنوز نذاشتی</b></span>
-            {typeof onEditProfile === "function" ? (
-              <button type="button" className="vbLink" onClick={onEditProfile}>شماره‌ت رو بذار</button>
-            ) : null}
-          </section>
-        ) : null}
-
-        <section className="vbSection" aria-label="خدمت‌ها">
-          {frozenServices.length ? (
-            <>
-              <div className="vbChips" role="group" aria-label="خدمت‌ها؛ به همین ترتیب انجام می‌شن">
-                {frozenServices.map((service) => {
-                  const order = state.selected.indexOf(service.key);
-                  const on = order >= 0;
-                  return (
-                    <button
-                      type="button"
-                      key={service.key}
-                      className={`vbService${on ? " is-on" : ""}`}
-                      aria-pressed={on}
-                      onClick={() => controller.toggleService(service.key)}
-                    >
-                      <ServiceIcon emoji={service.emoji} name={service.name} size="xs" />
-                      <span>{service.name}</span>
-                      {on && state.selected.length > 1 ? <i>{toPersianDigits(order + 1)}</i> : null}
-                      {on && state.selected.length < 2 ? <Check size={14} aria-hidden="true" /> : null}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="vbSummary" aria-live="polite">
-                {state.limitHit
-                  ? `حداکثر ${toPersianDigits(maxServicesFor(state.people))} کار توی یه نوبت${state.people > 1 ? ` برای ${toPersianDigits(state.people)} نفر` : ""}.`
-                  : summary || "یکی یا چندتا کار انتخاب کن."}
-              </p>
-            </>
-          ) : (
-            <button type="button" className="vbEmpty" onClick={onAddService}>
-              <Plus size={16} aria-hidden="true" />
-              هنوز خدمتی نداری؛ اولیش رو اضافه کن
-            </button>
-          )}
-        </section>
-
-        {frozenServices.length && !withName ? (
-          <section className="vbSection vbPeople" aria-label="برای چند نفر؟">
-            <p className="vbPeopleTitle" id="vb-people-label">برای چند نفر؟</p>
-            <div className="vbChips" role="group" aria-labelledby="vb-people-label">
-              {Array.from({ length: MAX_VISIT_PEOPLE }, (_, index) => index + 1).map((count) => (
-                <button
-                  type="button"
-                  key={count}
-                  className={`vbService vbCount${state.people === count ? " is-on" : ""}`}
-                  aria-pressed={state.people === count}
-                  onClick={() => controller.setPeople(count)}
-                >
-                  {toPersianDigits(count)}
-                </button>
-              ))}
-            </div>
-            {state.people > 1 && state.chain ? (
-              <p className="vbSummary">{toPersianDigits(state.people)} نوبت پشت‌سرهم. <button type="button" className="vbLink" onClick={() => controller.setPeople(state.people)}>با هم، هم‌زمان</button></p>
-            ) : null}
-          </section>
-        ) : null}
-
-        <section className="vbSection" aria-label="روز">
-          <div className="vbChips" role="group" aria-label="روز">
-            {frozenDays.map((item) => (
-              <button
-                type="button"
-                key={item.value}
-                aria-pressed={state.day === item.value}
-                className={`vbDay${state.day === item.value ? " is-on" : ""}${item.closed ? " is-closed" : ""}`}
-                onClick={() => controller.setDay(item.value)}
-              >
-                {item.label}
-                {item.closed ? <small>تعطیل</small> : null}
-              </button>
-            ))}
-            {role === "client" ? (
-              <button type="button" className="vbDay is-closed is-horizon" onClick={() => notify({ id: "booking-horizon", title: "فعلاً تا ۶۰ روز جلوتر", text: "برای بعدش به سالن زنگ بزن.", tone: "info" })}>
-                بعدش؟
-              </button>
-            ) : null}
-          </div>
-        </section>
-
-        <section className="vbSection vbTimesSection" aria-label="ساعت">
-          <TimesList
-            state={state}
-            role={role}
-            phone={contactPhone}
-            withName={withName}
-            waitlist={waitlist ? { ...waitlist, dayLabel: day?.label || "" } : null}
-            onPick={(time) => controller.setTime(time)}
-            onRetry={() => controller.retryTimes()}
-            onAhead={() => controller.goToAhead()}
-            onChain={() => controller.chainPeople()}
-          />
-        </section>
-
-        {state.time ? (
-          <section className="vbSection vbPlanSection" aria-label="برنامهٔ نوبت" aria-live="polite">
-            <PlanList role={role} state={state} onStaff={(index, name) => controller.setStaff(index, name)} onRetry={() => controller.retryPlan()} />
-            {role === "client" && state.plan.status === "ok" && state.plan.parts.length > 1 ? (
-              <p className="vbPlanNote">آرتیست‌ها رو سالن پیشنهاد داده و شاید عوضشون کنه. اگه ساعت رو عوض کنه، اول از خودت می‌پرسه.</p>
-            ) : null}
-          </section>
-        ) : null}
-
-        {state.time ? (
-          <WaitChoice
-            value={state.wait}
-            onChange={(wait) => controller.setWait(wait)}
-            backups={state.backups.list}
-            backup={state.backup}
-            onBackup={(id) => controller.setBackup(id)}
-            disabled={state.submitting}
-          />
-        ) : null}
-      </div>
-
-      <footer className="vbFoot">
-        {state.conflict ? (
-          <div className="vbConflict" role="alert">
-            {state.conflict.next ? (
-              <>
-                <p>این ساعت همین الان پر شد. ساعت خالی بعدی: {clockText(state.conflict.next)}. همین رو بفرستم؟</p>
-                <div className="vbConflictActions">
-                  <button type="button" className="vbAction is-primary" disabled={state.submitting} onClick={() => void controller.acceptConflict()}>آره، بفرست</button>
-                  <button type="button" className="vbAction" onClick={() => controller.dismissConflict()}>یه ساعت دیگه</button>
-                </div>
-              </>
-            ) : (
-              <>
-                <p>این ساعت همین الان پر شد و این روز دیگه ساعت خالی نداره. یه روز دیگه انتخاب کن.</p>
-                <div className="vbConflictActions">
-                  <button type="button" className="vbAction" onClick={() => controller.dismissConflict()}>باشه</button>
-                </div>
-              </>
-            )}
-          </div>
-        ) : null}
-        {hint ? <p className="vbHint" role="alert">{hint}</p> : null}
-        {role === "client" ? <p className="vbNotice">{ATTEND_NOTICE}</p> : null}
-        <button
-          type="submit"
-          className={`vbSubmit${readiness.ok ? "" : " is-incomplete"}`}
-          disabled={state.submitting}
-          aria-disabled={!readiness.ok || undefined}
-        >
-          <CalendarCheck size={18} aria-hidden="true" />
-          {label}
-        </button>
-      </footer>
-    </form>
+    <ClientVisitWizard
+      title={title}
+      placeName={placeName}
+      state={state}
+      controller={controller}
+      services={frozenServices}
+      days={frozenDays}
+      contactPhone={contactPhone}
+      withName={withName}
+      waitlist={waitlist}
+      hint={hint}
+      label={label}
+      longestDay={longestDay}
+      startStep={frozen.initial?.time && frozen.initial?.day && !(frozen.initial?.people > 1) ? "confirm" : ""}
+      onClose={onClose}
+      onSave={handleSubmit}
+      onEditProfile={onEditProfile}
+    />
   );
 }

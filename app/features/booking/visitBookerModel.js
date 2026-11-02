@@ -1,7 +1,7 @@
 import { serviceKey, joinServiceNames } from "../../shared/lib/serviceBundle.js";
 import { MAX_BOOKING_PARTS, MAX_GROUP_PEOPLE, scheduleBookingParts } from "../../shared/lib/bookingParts.js";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits.js";
-import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money.js";
+import { formatToman, formatTomanNumber, parseTomanAmount } from "../../shared/lib/money.js";
 import { parseServiceDurationMinutes, minutesToPersianTime, timeLabelToMinutes } from "../../shared/lib/time.js";
 import { BOOKING_WAIT_CHOICES } from "../../shared/lib/bookingWindow.js";
 
@@ -17,6 +17,16 @@ export const MAX_VISIT_SERVICES = MAX_BOOKING_PARTS;
 /** Most people in one request (owner's decision 2026-10-22) and how many services each of them may have. */
 export const MAX_VISIT_PEOPLE = MAX_GROUP_PEOPLE;
 export const maxServicesFor = (people = 1) => Math.max(1, Math.floor(MAX_VISIT_SERVICES / Math.max(1, people)));
+
+/** A price written as just a number (digits, separators, maybe «تومان»). */
+const plainPrice = (raw) => /^[\d۰-۹٬,.\s]+(تومان)?$/.test(String(raw ?? "").trim()) && parseTomanAmount(raw) > 0;
+
+/** How a service's price reads in the client's form: a plain number as «۵۵۰٬۰۰۰ تومان», anything else as written. */
+export function priceText(raw) {
+  const text = String(raw ?? "").trim();
+  if (!text) return "";
+  return plainPrice(text) ? formatToman(parseTomanAmount(text)) : text.slice(0, 40);
+}
 
 /** The salon's or artist's own service list as the form's services: one per name, with a length (same parser the server uses). */
 export function normalizeServices(raw) {
@@ -35,7 +45,10 @@ export function normalizeServices(raw) {
       key,
       name,
       minutes: parseServiceDurationMinutes(item.duration),
-      price: parseTomanAmount(item.price),
+      // A price that is only a number counts toward the total; «از ۵۵۰ هزار» or «توافقی» is shown as written and
+      // counts as unknown, never as «۵۵۰ تومان».
+      price: plainPrice(item.price) ? parseTomanAmount(item.price) : 0,
+      priceText: priceText(item.price),
       emoji: item.emoji || "",
       duration: String(item.duration || "")
     });

@@ -1,10 +1,9 @@
-/* global document */
 import { afterAll, describe, expect, it } from "vitest";
 import pg from "pg";
 import { TEST_BASE_URL, TEST_CRON_SECRET } from "../globalSetup.js";
 import { createClient, joinSalonAsArtist, registerUser, futureBookingDay } from "../integration/helpers.js";
 import { formatPersianDateKey, getPersianWeekday } from "../../app/shared/lib/persianCalendar.js";
-import { closeBrowser, newPage } from "./browser.js";
+import { clientToTicket, closeBrowser, newPage } from "./browser.js";
 
 afterAll(closeBrowser);
 const db = new pg.Client({ connectionString: process.env.TEST_POSTGRES_URL });
@@ -75,18 +74,30 @@ async function fillDay(team, offset) {
   }
 }
 
+/** From the day step back to the services: the first chip at the top is the services answer. */
+async function backToServices(page) {
+  await page.locator(".vbCalendar").waitFor();
+  await page.locator(".vbDoneChip").first().click();
+  await page.locator(".vbCards").waitFor();
+}
+
 describe("«برای چند نفر؟» (browser)", () => {
   it("2 people: only hours with 2 free artists, sent as one request answered together", async () => {
     const team = await seed({ artists: 2, label: "دونفره" });
     const { page, context, problems } = await newPage({ cookie: team.clientApi.cookie() });
     await openForm(page);
-    await page.locator(".vbTime.is-on").waitFor();
-    const row = page.locator(".vbPeople");
+    await backToServices(page);
+    // folded into one line on the services step (owner's decision 2026-11-02)
+    await page.getByRole("button", { name: "با دوستت میای؟" }).click();
+    const row = page.locator(".vbPeopleRow");
     expect(await row.innerText()).toContain("برای چند نفر؟");
     expect(await row.locator("button").allInnerTexts()).toEqual(["۱", "۲", "۳"]);
     expect(await row.locator("button[aria-pressed=true]").innerText()).toBe("۱");
     await row.locator("button", { hasText: "۲" }).click();
+    await page.locator(".vbSubmit").click();
+    await page.locator(".vbDayCard.is-free, .vbDayCard.is-few").first().click();
     await page.locator(".vbNote", { hasText: "ساعت‌هایی که ۲ نفر با هم جا می‌شن" }).waitFor();
+    await page.locator(".vbTime").first().click();
     await page.locator(".vbPlanRow").nth(1).waitFor();
     expect(await page.locator(".vbPlanRow").allInnerTexts()).toEqual([expect.stringContaining("نفر ۱"), expect.stringContaining("نفر ۲")]);
     await page.getByRole("button", { name: /^بفرست/ }).waitFor();
@@ -101,19 +112,21 @@ describe("«برای چند نفر؟» (browser)", () => {
     await context.close();
   });
 
-  it("nobody free together: «آره، پشت‌سرهم» turns it into two requests back to back at the same salon", async () => {
+  it("nobody free together: said before the calendar, and «آره، پشت‌سرهم» turns it into two back to back at the same salon", async () => {
     const team = await seed({ artists: 0, label: "پشت‌سرهم" });
     const { page, context, problems } = await newPage({ cookie: team.clientApi.cookie() });
     await openForm(page);
-    await page.locator(".vbTime.is-on").waitFor();
-    await page.locator(".vbPeople button", { hasText: "۲" }).click();
-    const info = page.locator(".vbAhead", { hasText: "ساعت مشترک نیست" });
+    await backToServices(page);
+    await page.getByRole("button", { name: "با دوستت میای؟" }).click();
+    await page.locator(".vbPeopleRow button", { hasText: "۲" }).click();
+    const info = page.locator(".vbNoRoom", { hasText: "ساعت مشترک نیست" });
     await info.waitFor();
-    expect(await info.innerText()).toContain("برای ۲ نفر این روز ساعت مشترک نیست. دو تا نوبت پشت‌سرهم بگیریم؟");
+    expect(await info.innerText()).toContain("برای ۲ نفر با هم تا دو هفتهٔ دیگه ساعت مشترک نیست. دو تا نوبت پشت‌سرهم بگیریم؟");
     await info.getByRole("button", { name: "آره، پشت‌سرهم" }).click();
-    await page.locator(".vbTime.is-on").waitFor();
+    await info.waitFor({ state: "detached" });
+    await page.locator(".vbSubmit").click();
+    await clientToTicket(page);
     await page.locator(".vbPlanRow").nth(1).waitFor();
-    await page.getByRole("button", { name: /^بفرست/ }).waitFor();
     await page.locator(".vbSubmit").click();
     await page.locator(".brScreen").waitFor();
     const mine = (await salonBookings(team)).filter((item) => item.client === "مشتری گروه");
@@ -125,15 +138,17 @@ describe("«برای چند نفر؟» (browser)", () => {
   });
 });
 
-describe("no time on the wanted day (browser)", () => {
-  it("a full day says when the first free hour is and «برو به آن روز» goes there", async () => {
+describe("the day step says what each day has (browser)", () => {
+  it("a full day says «پر»; opened anyway, it names the first free hour and «بریم همون روز» goes there", async () => {
     const team = await seed({ artists: 0, label: "روزپر" });
     const full = plainOffset(2);
     await fillDay(team, full);
     const { page, context, problems } = await newPage({ cookie: team.clientApi.cookie() });
     await openForm(page);
-    await page.locator(".vbTime.is-on").waitFor();
-    await page.locator(".vbDay").nth(full).click();
+    const card = page.locator(".vbDayCard").nth(full);
+    await page.locator(".vbDayCard").nth(full).filter({ hasText: "پر" }).waitFor();
+    expect(await card.getAttribute("class")).toContain("is-off");
+    await card.click();
     const ahead = page.locator(".vbAhead", { hasText: "اولین ساعت خالی:" });
     await ahead.waitFor();
     expect(await ahead.innerText()).toMatch(/اولین ساعت خالی: .+ ۱۰:۰۰/);
@@ -145,87 +160,99 @@ describe("no time on the wanted day (browser)", () => {
     await context.close();
   });
 
-  it("a closed day can be tapped and says when the salon opens next", async () => {
+  it("a closed day says «تعطیل» and cannot be opened", async () => {
     const team = await seed({ artists: 0, label: "تعطیل" });
     const { page, context, problems } = await newPage({ cookie: team.clientApi.cookie() });
     await openForm(page);
-    await page.locator(".vbTime.is-on").waitFor();
-    await page.locator(".vbDay.is-closed").first().click();
-    const text = await page.locator(".vbTimesSection .vbInfo").innerText();
-    expect(text).toMatch(/^این روز سالن تعطیله\. بعدی که بازه: .+\.$/);
+    const closed = page.locator('.vbDayCard[aria-disabled="true"]').first();
+    expect(await closed.innerText()).toContain("تعطیل");
+    await closed.click({ force: true });
+    expect(await page.locator(".vbCalendar").count()).toBe(1);
     expect(await page.locator(".vbTime").count()).toBe(0);
     expect(problems).toEqual([]);
     await context.close();
   });
 
-  it("nothing for two weeks says so and offers a call to the salon's number", async () => {
+  it("nothing for two weeks is said before the calendar, with a call to the salon's number", async () => {
     const team = await seed({ artists: 1, label: "دوهفته" });
     const staff = (await team.salonApi.get("/api/salon-staff")).payload.data.staff;
     expect((await team.salonApi.patch("/api/salon-staff", { id: staff[0].id, state: "مرخصی" })).ok).toBe(true);
     const { page, context, problems } = await newPage({ cookie: team.clientApi.cookie() });
     await openForm(page);
-    const none = page.locator(".vbAhead", { hasText: "تا دو هفتهٔ دیگه جا نیست" });
+    const none = page.locator(".vbNoRoom", { hasText: "تا دو هفتهٔ دیگه برای این کار جا نیست" });
     await none.waitFor();
-    expect(await none.innerText()).toContain("تا دو هفتهٔ دیگه جا نیست؛ به سالن زنگ بزن");
+    expect(await none.innerText()).toContain("روزهای بعد رو ببین یا به سالن زنگ بزن");
     const call = none.getByRole("link", { name: "تماس" });
     expect(await call.getAttribute("href")).toMatch(/^tel:09\d{9}$/);
+    expect(await page.locator(".vbSoonest").count()).toBe(0);
     expect(problems).toEqual([]);
     await context.close();
   });
 });
 
 describe("the hour is taken while sending (browser)", () => {
-  async function takeShownHour(team, page) {
-    const shown = LATIN(await page.locator(".vbTime.is-on").innerText());
-    const day = await page.locator(".vbDay.is-on").count();
-    expect(day).toBe(1);
-    const dayIndex = await page.evaluate(() => [...document.querySelectorAll(".vbDay")].findIndex((el) => el.classList.contains("is-on")));
-    const made = await team.salonApi.post("/api/salon-bookings", { service: SERVICE, bookingDate: dayKeyAhead(dayIndex), time: shown, client: "قاپ‌زن", phone: "", durationMinutes: 30 });
-    expect(made.ok, JSON.stringify(made.payload)).toBe(true);
-    return { shown, dayIndex };
+  /** Day `offset` on the calendar → its hours → the first one → the ticket. Returns the hour picked. */
+  async function chooseHour(page, offset) {
+    await page.locator(".vbDayCard").nth(offset).click();
+    const hour = page.locator(".vbTime").first();
+    await hour.waitFor();
+    const shown = LATIN(await hour.innerText());
+    await hour.click();
+    await page.locator(".vbTicket .vbPlanRow").first().waitFor();
+    await page.getByRole("button", { name: /^بفرست/ }).waitFor();
+    return shown;
   }
+  const takeHour = async (team, offset, time, minutes = 30) => {
+    const made = await team.salonApi.post("/api/salon-bookings", { service: SERVICE, bookingDate: dayKeyAhead(offset), time, client: "قاپ‌زن", phone: "", durationMinutes: minutes });
+    expect(made.ok, JSON.stringify(made.payload)).toBe(true);
+  };
 
-  it("offers the next free hour: no silent jump; «بله، ارسال» sends that one", async () => {
+  it("several hours left: says how many, never moves by itself, and another one can be sent", async () => {
     const team = await seed({ artists: 0, label: "۴۰۹" });
+    const offset = plainOffset(2);
     const { page, context, problems } = await newPage({ cookie: team.clientApi.cookie() });
     await openForm(page);
-    await page.locator(".vbTime.is-on").waitFor();
-    await page.locator(".vbPlanRow").first().waitFor();
-    await page.getByRole("button", { name: /^بفرست/ }).waitFor();
-    const { shown } = await takeShownHour(team, page);
+    const shown = await chooseHour(page, offset);
+    await takeHour(team, offset, shown);
     await page.locator(".vbSubmit").click();
-    const card = page.locator(".vbConflict");
+    const card = page.locator(".vbTaken");
     await card.waitFor();
-    const text = await card.innerText();
-    expect(text).toMatch(/^این ساعت همین الان پر شد\. ساعت خالی بعدی: .+\. همین رو بفرستم؟/);
+    expect(await card.innerText()).toMatch(/همین الان پر شد\. .+ هنوز .+ تا ساعت دیگه خالیه؛ یکی رو انتخاب کن\./);
     expect(await page.locator(".vbTime.is-on").count()).toBe(0); // it did not move to another hour by itself
-    const next = LATIN(text.match(/ساعت خالی بعدی: (\S+)\./)[1]);
-    expect(next > shown).toBe(true);
-    await card.getByRole("button", { name: "آره، بفرست" }).click();
+    const other = LATIN(await page.locator(".vbTime").first().innerText());
+    expect(other).not.toBe(shown);
+    await page.locator(".vbTime").first().click();
+    await page.getByRole("button", { name: /^بفرست/ }).waitFor();
+    await page.locator(".vbSubmit").click();
     await page.locator(".brScreen").waitFor();
     const mine = (await salonBookings(team)).filter((item) => item.client === "مشتری گروه");
     expect(mine).toHaveLength(1);
-    expect(mine[0].time).toBe(next);
+    expect(mine[0].time).toBe(other);
     expect(problems).toEqual([]);
     await context.close();
   });
 
-  it("«ساعت دیگر» closes the card and leaves the day's list to choose from", async () => {
+  it("one hour left: names it, and «همین … رو می‌خوام» goes to the ticket with it", async () => {
     const team = await seed({ artists: 0, label: "۴۰۹ب" });
+    const offset = plainOffset(2);
+    // Only 16:00–17:30 stays open: a 45-minute service fits at 16:00 and 16:30.
+    await takeHour(team, offset, "10:00", 360);
+    await takeHour(team, offset, "17:30", 150);
     const { page, context, problems } = await newPage({ cookie: team.clientApi.cookie() });
     await openForm(page);
-    await page.locator(".vbTime.is-on").waitFor();
-    await page.locator(".vbPlanRow").first().waitFor();
-    await page.getByRole("button", { name: /^بفرست/ }).waitFor();
-    await takeShownHour(team, page);
+    expect(await chooseHour(page, offset)).toBe("16:00");
+    await takeHour(team, offset, "16:00", 30);
     await page.locator(".vbSubmit").click();
-    const card = page.locator(".vbConflict");
+    const card = page.locator(".vbTaken");
     await card.waitFor();
-    await card.getByRole("button", { name: "یه ساعت دیگه" }).click();
-    await card.waitFor({ state: "detached" });
-    expect(await page.locator(".vbTime").count()).toBeGreaterThan(1);
-    expect(await page.locator(".vbTime.is-on").count()).toBe(0);
-    expect((await salonBookings(team)).filter((item) => item.client === "مشتری گروه")).toHaveLength(0);
+    expect(await card.innerText()).toContain("فقط ساعت ۱۶:۳۰ مونده.");
+    await card.getByRole("button", { name: "همین ۱۶:۳۰ رو می‌خوام" }).click();
+    await page.getByRole("button", { name: /^بفرست .*۱۶:۳۰/ }).waitFor();
+    await page.locator(".vbSubmit").click();
+    await page.locator(".brScreen").waitFor();
+    const mine = (await salonBookings(team)).filter((item) => item.client === "مشتری گروه");
+    expect(mine).toHaveLength(1);
+    expect(mine[0].time).toBe("16:30");
     expect(problems).toEqual([]);
     await context.close();
   });
@@ -279,9 +306,10 @@ describe("the salon did not answer (browser)", () => {
     await sheet.locator(".erPlace").click();
     await page.locator(".visitBookerSheet").waitFor();
     expect(await page.locator(".visitBookerSheet h2").innerText()).toContain(other.name);
-    expect(await page.locator(".vbService.is-on:not(.vbCount)").innerText()).toContain(SERVICE);
-    await page.locator(".vbTime.is-on").waitFor();
-    expect(LATIN(await page.locator(".vbTime.is-on").innerText())).toBe("11:00");
+    // the same service, day and hour: straight to the ticket
+    expect(await page.locator(".vbDoneChip").first().innerText()).toContain(SERVICE);
+    await page.locator(".vbTicket .vbPlanRow").first().waitFor();
+    expect(LATIN(await page.locator(".vbTicketHead b").innerText())).toContain("11:00");
     expect(problems).toEqual([]);
     await context.close();
   });
