@@ -1,0 +1,24 @@
+# Handoff for cloud sessions (2026-11-02)
+
+The owner is away from the PC and works from a laptop through cloud sessions. This PC holds the private status file, the
+deploy script and the server's SSH key, so a cloud session can NOT deploy to the main server (frfro.ir). It can do
+everything else: branch, push, and give the owner the Vercel preview link (every pushed branch gets one; project `z2026`).
+Deploying to the main server waits until the owner is back at this PC (or until a deploy path from the cloud is set up).
+
+## What is live (main ecb32932, deployed 2026-11-02)
+
+- The client's step-by-step booking form (services → day with free-time counts → time → ticket), for app clients and
+  Instagram visitors; booking from public pages without signing in first; «میای؟» the day before a visit.
+- Artist break: weekdays switched on/off, «الان استراحت می‌کنم» (15/30/60 min, today), half-hour buttons (migration 066).
+- Artists can paste a salon's join link in «همکاری».
+- Picking a phone contact survives Android restarting the app; sheets never cut off their bottom (Settings map).
+
+## Open, in the owner's order
+
+1. The first Instagram ad (owner's next request).
+2. The full e2e suite has not run on this work (CI runs it on a pull request or on main; check the Actions tab).
+3. «خبرم کن» SMS: the WAITLIST_OPEN pattern must be created at Faraz SMS; until then the SMS is skipped (push still goes).
+4. Not tried on a real phone yet: the contact pick after a restart, the new break screen as an artist, the paste box.
+5. Salons get the same break screen later (owner's decision 2026-11-02).
+
+Business items (payment gateway, tax file, loan) are in the owner's private status file, not here.
