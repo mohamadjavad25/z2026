@@ -432,6 +432,9 @@ const SCREENS = [
 ];
 
 async function closeArrivalDialogs(page) {
+  // The role's tutorial opens by itself once after sign-up; «رد شدن» closes it for good.
+  const skip = page.locator(".onbRoot .onbSkip");
+  if (await skip.count()) { await skip.first().click().catch(() => {}); await page.waitForTimeout(700); }
   for (let k = 0; k < 3; k += 1) {
     const close = page.locator(".sbmScreen button", { hasText: "بستن" });
     if (!(await close.count())) break;
