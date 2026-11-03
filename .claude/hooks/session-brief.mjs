@@ -50,8 +50,26 @@ async function live() {
   return out;
 }
 
+// Last finished CI run on main (needs the gh CLI; quiet without it). A red main means nothing new is proven to
+// work, so the session must say so first (lesson 2026-11-03: main was red for days and nobody noticed).
+async function ciOnMain() {
+  const out = await run("gh", ["run", "list", "--workflow", "ci.yml", "--branch", "main", "--limit", "10",
+    "--json", "conclusion,status,headSha,createdAt,url"], 15000);
+  if (!out) return null;
+  let runs;
+  try { runs = JSON.parse(out); } catch { return null; }
+  const done = runs.filter((r) => r.status === "completed");
+  if (!done.length) return null;
+  const last = done[0];
+  const green = done.findIndex((r) => r.conclusion === "success");
+  const sha = last.headSha.slice(0, 8);
+  if (last.conclusion === "success") return `CI on main: green (${sha}).`;
+  const streak = green === -1 ? `the last ${done.length} finished runs` : `${green} run(s) in a row`;
+  return `CI on main: RED (${last.conclusion} on ${sha}, ${streak}; ${last.url}). Tell the owner and fix it before new work.`;
+}
+
 async function main() {
-  const [, liveState] = await Promise.all([git("fetch", "origin", "--quiet", "--prune"), live()]);
+  const [, liveState, ci] = await Promise.all([git("fetch", "origin", "--quiet", "--prune"), live(), ciOnMain()]);
   const lines = ["frfro session brief (auto, read-only):"];
 
   let state = {};
@@ -79,6 +97,7 @@ async function main() {
   } else {
     lines.push(`Main server: site ${liveState.health} (no SSH from here).`);
   }
+  if (ci) lines.push(ci);
   if (liveState.counts) {
     const c = liveState.counts;
     lines.push(`Last 24h on the live site: ${c.newUsers} new accounts (${c.users} total), ${c.bookings} new bookings, ${c.errors} app error reports.`);

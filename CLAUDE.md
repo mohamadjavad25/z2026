@@ -8,7 +8,9 @@ The owner builds frfro alone with Claude and never touches code: they report wha
 - In a cloud session (no access to this PC, its private status file or the deploy key), read `docs/HANDOFF.md` first.
 - Read only what the task needs, from this map: `docs/PROJECT_NOTES.md` (how each area works, with decisions; one section per area below), `docs/DECISIONS.md` (owner's answers, never ask twice), `docs/HEALTH.md` (scorecard and debt), `docs/ARCHITECTURE.md`, `docs/DESIGN_SYSTEM.md`, `docs/COPY.md`, `docs/OPERATIONS.md`, `docs/DEPLOY_SERVER.md`, `docs/ROADMAP.md` (ideas, never start without the owner), `docs/screens/` (a picture of every screen). For "where is X in the code", search first; `graphify-out/` may be stale.
 - Keep it current, in the same change: when an area's behaviour changes, update its section in `docs/PROJECT_NOTES.md` (and `DECISIONS.md` for an owner's answer, `HEALTH.md` after meaningful work). Status, open items and what is live go in the private status file (loaded via `CLAUDE.local.md`), kept short: finished history moves to its archive. Never let this file grow back; add detail to the docs, not here.
-- Get better every day: every bug found in real use gets a test that would have caught it, and one dated line in `docs/HEALTH.md` («درس‌ها») saying what went wrong and the rule that prevents it, so the same mistake never ships twice. Read those lessons before touching the same area.
+- Get better every day: every bug found in real use gets a test that would have caught it, and one dated line in `docs/HEALTH.md` («درس‌ها») saying what went wrong and the rule that prevents it, so the same mistake never ships twice. Before touching an area run `node scripts/docs/area.mjs <area>`: every decision and lesson for it in one list.
+- Routines (`.claude/skills/`): `frfro-finish` before saying anything is done, `frfro-bug` for every reported bug, `frfro-migration`, `frfro-screens`, `frfro-deploy-main`, `frfro-self-review` (also runs on its own twice a month). "Done" means `npm run check` and the touched tests passed.
+- `scripts/guard/` checks the hard rules below on every `git commit` and in CI. A red main (the session brief says so) is told to the owner and fixed before new work.
 
 ## Which server (owner's rule, 2026-10-20)
 
@@ -48,7 +50,7 @@ For any question or change about how something looks or reads, first look at tha
 - Name: **frfro** (lowercase) / «فرفرو». Never "Farfaroo", "Frfru", "Zibaban" or «زیبابان».
 - Colours: only tokens (`app/styles/tokens.css`, rules in `docs/DESIGN_SYSTEM.md`); no hard-coded colours; no black buttons: violet for your own business or account, pink with ink text for anything with a client or booking, pink for what is new or live.
 - Service icon ids are stored in the database: never rename or remove one.
-- App downloads are closed (`APP_DOWNLOADS_OPEN = false` in `app/features/landing/constants.js`); turn on only when the owner says so. App version stays 1.0.0: never raise `versionName`. The release signing key is never committed.
+- App downloads are open since 2026-10-28 (`APP_DOWNLOADS_OPEN` in `app/features/landing/constants.js`); switch only when the owner says so. App version stays 1.0.0: never raise `versionName`. The release signing key is never committed.
 - Migrations: `git fetch origin` first, take a number above every migration on main and open branches, keep each independent (`IF NOT EXISTS`, own columns only). Every Vercel deploy migrates the shared test database.
 - The app keeps nothing on disk besides the database, env file and certificates; anything new goes into the move bundle (`docs/SERVER_MOVE.md`).
 - Money: amounts from the plan on the server, "paid" only from the gateway's verify, billing writes under row locks.
@@ -59,7 +61,7 @@ For any question or change about how something looks or reads, first look at tha
 
 ## Area index (each has a section in `docs/PROJECT_NOTES.md`)
 
-Brand and logo · Android/iOS shell and downloads · public website · colour system · service icons · subscriptions and billing · connecting and invites · «کجاست؟» location · hosting and server moves · migrations · Android push and the admin app · names · app release.
+Brand and logo · Android/iOS shell and downloads · public website · colour system · service icons · subscriptions and billing · connecting and invites · «کجاست؟» location · hosting and server moves · migrations · Android push and the admin app · names · app release · how Claude works here.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

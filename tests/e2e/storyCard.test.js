@@ -1,3 +1,4 @@
+/* global document, getComputedStyle */
 import { afterAll, describe, expect, it } from "vitest";
 import { TEST_BASE_URL } from "../globalSetup.js";
 import { confirmedAt, directConfirmed, newArtist, newClient, teamSalon } from "../integration/exitHelpers.js";

@@ -11,6 +11,18 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/guard/check-rules.mjs\" --hook",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   },
   "permissions": {
@@ -106,9 +118,14 @@
       "mcp__d898f930-0b9f-4952-89b8-17b7d64053f6__get_runtime_errors",
       "mcp__d898f930-0b9f-4952-89b8-17b7d64053f6__get_runtime_logs",
       "mcp__d898f930-0b9f-4952-89b8-17b7d64053f6__filter_project_envs",
-      "Bash(cd /c/Users/novin && python -c \" *)",
       "mcp__claude-in-chrome__get_page_text",
-      "Bash(git ls-remote *)"
+      "Bash(git ls-remote *)",
+      "Bash(npm run check)",
+      "Bash(npm run check *)",
+      "Bash(node scripts/guard/*)",
+      "Bash(node scripts/docs/*)",
+      "Bash(gh run list *)",
+      "Bash(gh run view *)"
     ]
   }
 }

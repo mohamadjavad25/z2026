@@ -10,7 +10,8 @@
     "start": "next start",
     "migrate": "node scripts/migrate.mjs up",
     "test": "next build && vitest run",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "check": "eslint . && node scripts/guard/check-rules.mjs"
   },
   "dependencies": {
     "@breezystack/lamejs": "^1.2.7",
