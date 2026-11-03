@@ -108,7 +108,7 @@ describe("subscriptions: off by default", () => {
 
     const salon = await provider("salon", "Off Salon");
     const off = (await salon.client.get("/api/billing")).payload.data;
-    expect(off).toMatchObject({ visible: false, preview: true, enabled: false, role: "salon", trialDays: 30 });
+    expect(off).toMatchObject({ visible: false, preview: true, enabled: false, role: "salon", trialDays: 7 });
     expect(off.plans.map((plan) => plan.months)).toEqual([1, 6, 12]);
     const refused = await salon.client.post("/api/billing/checkout", { plan: "salon_1m" });
     expect(refused.status).toBe(409);
@@ -160,10 +160,10 @@ describe("subscriptions: buying a plan", () => {
 
   it("offers the three plans with the owner's prices and dates", async () => {
     const overview = (await salon.client.get("/api/billing")).payload.data;
-    expect(overview).toMatchObject({ visible: true, enabled: true, checkoutReady: true, enforced: true, sandbox: true, trialDays: 14 });
+    expect(overview).toMatchObject({ visible: true, enabled: true, checkoutReady: true, enforced: true, sandbox: true, trialDays: 7 });
     expect(overview.account.state).toBe("trial");
-    // Made after billing launched, so it has the 14 days for new accounts (accounts older than billing get 30 from launch).
-    expect(overview.account.daysLeft).toBe(14);
+    // Made after billing launched, so it has 7 free days from sign-up (owner's decision 2026-11-03).
+    expect(overview.account.daysLeft).toBe(7);
     expect(overview.plans.map((plan) => [plan.id, plan.amountToman, plan.days, plan.preselected])).toEqual([
       ["salon_1m", 500_000, 30, false],
       ["salon_6m", 2_500_000, 180, true],
@@ -425,16 +425,16 @@ describe("subscriptions: hourly sweep", () => {
     expect((await fetch(`${TEST_BASE_URL}/api/cron/billing`, { method: "POST" })).status).toBe(401);
   });
 
-  it("reminds once, five days before the free month ends", async () => {
+  it("reminds once, on day five of the 7 free days (two left)", async () => {
     const salon = await provider("salon", "Reminder Salon");
-    await age(salon.user.id, 11);
+    await age(salon.user.id, 5);
     const first = await cron();
     expect(first.status).toBe(200);
     expect(first.data.reminders).toBeGreaterThanOrEqual(1);
     await connected;
     const notices = await db.query("SELECT kind FROM billing_notices WHERE user_id = $1", [salon.user.id]);
     expect(notices.rows.map((row) => row.kind)).toEqual(["ends_5d"]);
-    expect((await smsFor(salon.phone, "billing_reminder"))[0]?.body).toContain("۳ روز");
+    expect((await smsFor(salon.phone, "billing_reminder"))[0]?.body).toContain("۲ روز");
     await cron();
     expect((await db.query("SELECT COUNT(*)::int AS n FROM billing_notices WHERE user_id = $1", [salon.user.id])).rows[0].n).toBe(1);
   });

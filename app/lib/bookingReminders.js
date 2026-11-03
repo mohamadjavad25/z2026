@@ -7,6 +7,7 @@ import { formatRelativeBookingDayLabel } from "../shared/lib/persianCalendar.js"
 import { toPersianDigits } from "../shared/lib/digits.js";
 import { clientReliability } from "./db/repos/reliability.js";
 import { needsAttendQuestion } from "../shared/lib/attendance.js";
+import { closedWhileEnforced } from "./billing/access.js";
 
 /**
  * Appointment reminders for CLIENTS: one push about a day before and one about two hours before
@@ -14,6 +15,8 @@ import { needsAttendQuestion } from "../shared/lib/attendance.js";
  * .github/workflows/cron-booking-reminders.yml), like the expiry sweep.
  *
  * - Respects the client's own "reminders" setting (default on).
+ * - None for a salon or artist whose subscription is closed (owner's decision 2026-11-03): reminders are part of
+ *   what the subscription pays for. The booking itself stays.
  * - Claims a (booking, kind) row BEFORE sending, so overlapping sweeps can't double-send. The claimed kind carries
  *   the booking's date and time ("day@1405-08-03 15:00"), so a booking moved to a new time is reminded again for it.
  * - Only confirmed bookings: cancelled, expired and still-pending requests never get one.
@@ -92,8 +95,9 @@ export async function sweepBookingReminders(now = new Date()) {
     if (kind) due.push({ booking, kind });
   }
   result.candidates = due.length;
+  const closed = await closedWhileEnforced(due.map(({ booking }) => booking.owner_user_id));
   const remind = async ({ booking, kind }) => {
-    if (!(await remindersEnabled(db, booking))) {
+    if (closed.has(Number(booking.owner_user_id)) || !(await remindersEnabled(db, booking))) {
       result.skipped += 1;
       return;
     }

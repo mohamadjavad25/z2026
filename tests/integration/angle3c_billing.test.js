@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { newSalon, newClient, newArtist, bookSalon, hhmm, db, connected, futureBookingDay, createClient, ipHeaders } from "./angle3Helpers.js";
 import { adminClient } from "./helpers.js";
-import { TEST_ADMIN_PHONE, TEST_BASE_URL } from "../globalSetup.js";
+import { TEST_ADMIN_PHONE, TEST_BASE_URL, TEST_CRON_SECRET } from "../globalSetup.js";
+import { bookingStartMs } from "../../app/shared/lib/reminderTiming.js";
 
 const DAY = 86_400_000;
 
@@ -55,9 +56,35 @@ describe("angle3c: a salon closes while it holds bookings", () => {
     expect((await salon.client.patch("/api/salon-bookings", { id: pend.payload.data.booking.id, status: "تایید شده" })).status).toBe(200);
     // client keeps the right to cancel
     expect((await early3.client.post(`/api/salon-bookings/${toCancel.payload.data.booking.id}/cancel`, {})).status).toBe(200);
-    // and the salon still enters walk-ins (documented behaviour)
+    // but enters no new booking by hand either (owner's decision 2026-11-03: unpaid, frfro is not a free notebook)
     const walkin = await salon.client.post("/api/salon-bookings", { salonUserId: salon.user.id, service: "کراتین مو", client: "Walk", phone: "09120000555", bookingDate: day, time: hhmm(18) });
-    expect(walkin.status).toBe(201);
+    expect(walkin.status).toBe(403);
+    expect(walkin.payload).toMatchObject({ code: "SUBSCRIPTION_CLOSED", error: "اشتراکت تموم شده؛ برای گذاشتن نوبت تازه، از تنظیمات اشتراک بخر. نوبت‌های قبلیت سر جاشه." });
+  });
+
+  it("a closed independent artist enters no booking by hand either; its clients get no reminders (decision 2026-11-03)", async () => {
+    const artist = await newArtist("Closed Hand Artist");
+    await age(artist.user.id, 40);
+    const day = futureBookingDay(2, { notOn: ["پنجشنبه"] });
+    const own = await artist.client.post("/api/artist/me", { kind: "booking", client: "Walk", phone: "09120000556", service: "ناخن", bookingDate: day, time: "12:00", durationMinutes: 60 });
+    expect(own.status).toBe(403);
+    expect(own.payload.code).toBe("SUBSCRIPTION_CLOSED");
+
+    const salon = await newSalon("Closed Reminder Salon");
+    const c = await newClient("Reminder Client");
+    const made = await bookSalon(c, salon, { day, time: hhmm(12) });
+    expect(made.status).toBe(201);
+    expect((await salon.client.patch("/api/salon-bookings", { id: made.payload.data.booking.id, status: "تایید شده" })).status).toBe(200);
+    await age(salon.user.id, 40);
+    const at = new Date(bookingStartMs(day, "12:00", new Date()) - 90 * 60_000);
+    const swept = await fetch(`${TEST_BASE_URL}/api/cron/send-reminders`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${TEST_CRON_SECRET}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ now: at.toISOString() })
+    });
+    expect(swept.status).toBe(200);
+    const claimed = await db.query("SELECT 1 FROM booking_reminders WHERE source = 'salon' AND booking_id = $1", [made.payload.data.booking.id]);
+    expect(claimed.rows).toHaveLength(0);
   });
 
   it("a closed salon does not keep offering free times to clients (availability / preview agree with POST)", async () => {

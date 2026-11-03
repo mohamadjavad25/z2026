@@ -2,7 +2,7 @@ import * as artists from "./db/repos/artists.js";
 import * as users from "./db/repos/users.js";
 import * as userSettings from "./db/repos/userSettings.js";
 import * as artistPlace from "./db/repos/artistPlace.js";
-import { onlineBookingBlock } from "./billing/access.js";
+import { onlineBookingBlock, ownEntryBlock } from "./billing/access.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
 import { BOOKING_REQUEST_LEAD_MINUTES, TOO_FAR_TEXT, isTooFarToRequest, isTooSoonToRequest } from "../shared/lib/bookingWindow.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
@@ -66,8 +66,9 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
   }
   if (!isOwner && isTooFarToRequest(day)) return refuse(409, TOO_FAR_TEXT.replace("سالن", "آرتیست"), "TOO_FAR");
   // An artist whose subscription has closed (and no salon of theirs covers them) takes no new online requests.
-  if (!isOwner) {
-    const blocked = await onlineBookingBlock(artistUserId, "artist");
+  // Their own entries stop too once the subscription is closed (owner's decision 2026-11-03).
+  {
+    const blocked = isOwner ? await ownEntryBlock(artistUserId) : await onlineBookingBlock(artistUserId, "artist");
     if (blocked) return refuse(blocked.status, blocked.error, blocked.code);
   }
   if (!isOwner && (artistSettings.vacationMode || artistSettings.directBooking === false)) {

@@ -10,9 +10,18 @@ describe("subscription reminders", () => {
     expect(reminderKind(access(10), NOW)).toBeNull();
   });
 
-  it("warns at five days and at the last day", () => {
-    expect(reminderKind(access(25), NOW)).toBe("ends_5d");
-    expect(reminderKind(access(29.5), NOW)).toBe("ends_1d");
+  it("warns a paid period at five days and at the last day", () => {
+    const paid = (daysLeft) => computeAccess({ now: NOW, createdAt: new Date(0), launchedAt: new Date(0), paidUntil: new Date(NOW.getTime() + daysLeft * DAY_MS) });
+    expect(reminderKind(paid(6), NOW)).toBeNull();
+    expect(reminderKind(paid(5), NOW)).toBe("ends_5d");
+    expect(reminderKind(paid(0.5), NOW)).toBe("ends_1d");
+  });
+
+  it("warns the 7 free days on day five (two left) and on the last day, not before", () => {
+    const free = (createdDaysAgo) => computeAccess({ now: NOW, createdAt: new Date(NOW.getTime() - createdDaysAgo * DAY_MS), launchedAt: new Date(0), graceDays: 3, trialDays: 7 });
+    expect(reminderKind(free(2), NOW)).toBeNull();
+    expect(reminderKind(free(5), NOW)).toBe("ends_5d");
+    expect(reminderKind(free(6.5), NOW)).toBe("ends_1d");
   });
 
   it("tells the account when it ended, and once more when it closed (only that week)", () => {

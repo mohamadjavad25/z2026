@@ -1,6 +1,6 @@
 import * as salons from "./db/repos/salons.js";
 import * as artists from "./db/repos/artists.js";
-import { onlineBookingBlock } from "./billing/access.js";
+import { onlineBookingBlock, ownEntryBlock } from "./billing/access.js";
 import { visitSlotProblem } from "./visitSlotRules.js";
 import { parseServiceDurationMinutes } from "../shared/lib/time.js";
 import { readBookingSlot } from "./validation/bookingSlot.js";
@@ -43,11 +43,10 @@ export async function createSalonBooking({ actor, salonUserId, body, data, wait 
   const isClient = actor.type === "client";
   const salon = await salons.getSalon(salonUserId);
   if (!salon) return refuse(404, "این سالن رو پیدا نکردیم.");
-  // A salon whose subscription has closed takes no new online requests; its own entries for walk-in customers go on.
-  if (isClient) {
-    const blocked = await onlineBookingBlock(salonUserId, "salon");
-    if (blocked) return refuse(blocked.status, blocked.error, blocked.code);
-  }
+  // A salon whose subscription has closed takes no new online requests, and enters no new booking itself either
+  // (owner's decision 2026-11-03); the bookings it already has go on.
+  const blocked = isClient ? await onlineBookingBlock(salonUserId, "salon") : await ownEntryBlock(salonUserId);
+  if (blocked) return refuse(blocked.status, blocked.error, blocked.code);
   // Everything that decides WHEN and HOW LONG is read strictly first: a bad value is a 400, never a guessed one.
   const slot = readBookingSlot(body.bookingDate || body.booking_date || body.date || "", body.time ?? "");
   if (!slot.ok) return refuse(slot.status, slot.error);

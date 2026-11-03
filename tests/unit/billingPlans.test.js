@@ -32,8 +32,8 @@ describe("subscription plans", () => {
 
   it("runs each period for a fixed number of days", () => {
     expect(plansFor("salon").map((plan) => plan.days)).toEqual([30, 180, 365]);
-    expect(TRIAL_DAYS).toBe(14);
-    expect(LAUNCH_TRIAL_DAYS).toBe(30);
+    expect(TRIAL_DAYS).toBe(7);
+    expect(LAUNCH_TRIAL_DAYS).toBe(7);
   });
 
   it("bills only salons and artists", () => {

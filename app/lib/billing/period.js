@@ -6,7 +6,7 @@ import { getPersianDateParts } from "../../shared/lib/persianCalendar.js";
  * (tests/unit/billingPeriod.test.js) and the API, the gate and the reminders all use the same answers.
  *
  * Access runs until the later of two dates:
- *   - the end of the free period: 14 days from sign-up, or 30 days from the day billing was switched on for
+ *   - the end of the free period: 7 days from sign-up, or 7 days from the day billing was switched on for
  *     accounts that existed before that (nobody is surprised by a bill the day it launches);
  *   - `paid_until`: the end of the last paid (or admin-granted) period.
  * After that come a few grace days where everything still works, then the account is "expired".

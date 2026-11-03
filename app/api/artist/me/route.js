@@ -19,6 +19,7 @@ import { parseRequestedMinutes } from "../../../lib/validation/numbers.js";
 import { bookingWhen, smsBookingAnswer } from "../../../lib/bookingSms.js";
 import { noticeClientCancelledByProvider } from "../../../lib/providerNotices.js";
 import { STARTED_NO_CANCEL_TEXT, STARTED_TEAM_NO_CANCEL_TEXT, hasStarted } from "../../../shared/lib/providerRules.js";
+import { ownEntryBlock } from "../../../lib/billing/access.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,6 +53,9 @@ async function _POST(request) {
   if (!auth.ok) return auth.response;
   const body = await readObjectBody(request);
   if (body.kind === "booking") {
+    // No new entry by hand once the subscription is closed (owner's decision 2026-11-03).
+    const closed = await ownEntryBlock(auth.user.id);
+    if (closed) return json({ error: closed.error, code: closed.code }, { status: closed.status });
     // An entry the artist makes in their own calendar is already settled. Left as "تازه" (a client's
     // pending request) the expiry sweep would cancel it an hour later, as if nobody had answered.
     const slot = readBookingSlot(body.bookingDate || body.booking_date || body.date || "", body.time ?? "");

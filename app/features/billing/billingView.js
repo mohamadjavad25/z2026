@@ -1,5 +1,6 @@
 import { formatDaysLeft, formatPersianLongDate } from "../../shared/lib/billingFormat.js";
 import { toPersianDigits } from "../../shared/lib/digits.js";
+import { TRIAL_DAYS, TRIAL_SOON_DAYS } from "../../lib/billing/plans.js";
 
 /**
  * What the subscription card (Settings) and the reminder bar (home) say, from GET /api/billing. Pure, so every state
@@ -8,10 +9,10 @@ import { toPersianDigits } from "../../shared/lib/digits.js";
  * tone: trial | active | warn | danger | soon. While billing is on but no gateway can take a payment yet
  * ("not enforced"), nothing is closed, so an ended free month reads calm ("soon"), never alarming.
  */
-const TRIAL_DAYS_FALLBACK = 30;
+const TRIAL_DAYS_FALLBACK = TRIAL_DAYS;
 /** The card in Settings turns warmer and says what is at stake once this many days or fewer are left (owner's decision 2026-10-28). */
 export const LOW_DAYS = 7;
-const LOW_SUB = "بعدش مشتری‌ها دیگه پیدات نمی‌کنن و نوبت تازه نمی‌گیری.";
+const LOW_SUB = "بعدش لینک نوبتت خاموش می‌شه و نوبت تازه نمی‌تونی بذاری.";
 
 export function accountView(overview) {
   if (!overview?.visible || !overview.account) return null;
@@ -20,7 +21,7 @@ export function accountView(overview) {
   const ready = Boolean(overview.checkoutReady);
   const cta = (label, emphasis = "primary") => ({ label: ready ? label : "پرداخت به‌زودی باز می‌شه", emphasis, disabled: !ready });
   // Only when something would really close: while nobody can pay yet, nothing does, so no scare.
-  const isLow = Boolean(overview.enforced) && Number(account.daysLeft) <= LOW_DAYS;
+  const isLow = Boolean(overview.enforced) && Number(account.daysLeft) <= (account.state === "trial" ? TRIAL_SOON_DAYS : LOW_DAYS);
 
   if (account.state === "trial") {
     return {
@@ -65,7 +66,7 @@ export function accountView(overview) {
       tone: "warn",
       badge: "مهلت تمدید",
       title: "اشتراکت تموم شده",
-      sub: `${formatDaysLeft(account.graceDaysLeft)} وقت داری تمدید کنی. بعدش توی جستجو دیده نمی‌شی و نوبت آنلاین نمی‌گیری.`,
+      sub: `${formatDaysLeft(account.graceDaysLeft)} وقت داری تمدید کنی. بعدش لینک نوبتت خاموش می‌شه و نوبت تازه نمی‌تونی بذاری.`,
       note: "",
       meter: null,
       action: cta("تمدیدش کن")
@@ -75,7 +76,7 @@ export function accountView(overview) {
     tone: "danger",
     badge: "غیرفعال",
     title: "اشتراکت غیرفعاله",
-    sub: "توی جستجو دیده نمی‌شی و نوبت آنلاین نمی‌گیری. نوبت‌ها، مشتری‌ها و عکس‌هات سر جاشونه و اشتراک بخری همون لحظه همه‌چی برمی‌گرده.",
+    sub: "لینک نوبتت خاموشه و نوبت تازه نمی‌تونی بذاری. نوبت‌های قبلی، مشتری‌ها و عکس‌هات سر جاشونه و اشتراک بخری همون لحظه همه‌چی برمی‌گرده.",
     note: "",
     meter: null,
     action: cta("اشتراک بخر")
@@ -96,7 +97,7 @@ export function bannerView(overview) {
   if (!overview.enforced) return null;
   const key = `${account.state}-${account.accessEndsAt}`;
   if (account.state === "trial" || account.state === "active") {
-    if (account.daysLeft > 5) return null;
+    if (account.daysLeft > (account.state === "trial" ? TRIAL_SOON_DAYS : 5)) return null;
     const lastDay = account.daysLeft <= 1;
     return {
       key: `${key}-${lastDay ? "1" : "5"}`,
@@ -111,7 +112,7 @@ export function bannerView(overview) {
   if (account.state === "grace") {
     return { key, tone: "warn", text: `اشتراکت تموم شده؛ ${formatDaysLeft(account.graceDaysLeft)} وقت داری تمدید کنی.`, action: "تمدید", kind: "plans" };
   }
-  return { key, tone: "danger", text: "توی جستجو دیده نمی‌شی و نوبت آنلاین نمی‌گیری.", action: "اشتراک بخر", kind: "plans" };
+  return { key, tone: "danger", text: "لینک نوبتت خاموشه و نوبت تازه نمی‌تونی بذاری.", action: "اشتراک بخر", kind: "plans" };
 }
 
 /**
@@ -120,7 +121,7 @@ export function bannerView(overview) {
  */
 export function teamMemberView(member, overview) {
   const account = member?.account || {};
-  if (account.state === "trial") return { tone: "trial", status: `دوره‌ی رایگان، ${formatDaysLeft(account.daysLeft)} مونده`, urgent: account.daysLeft <= 5 };
+  if (account.state === "trial") return { tone: "trial", status: `دوره‌ی رایگان، ${formatDaysLeft(account.daysLeft)} مونده`, urgent: account.daysLeft <= TRIAL_SOON_DAYS };
   if (account.state === "active") return { tone: "active", status: `فعال تا ${formatPersianLongDate(account.accessEndsAt)}`, urgent: account.daysLeft <= 5 };
   if (!overview?.enforced) return { tone: "soon", status: "دوره‌ی رایگان تموم شد", urgent: false };
   if (account.state === "grace") return { tone: "warn", status: `تموم شده، ${formatDaysLeft(account.graceDaysLeft)} مهلت`, urgent: true };

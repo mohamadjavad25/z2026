@@ -32,9 +32,11 @@ describe("subscription card and reminder bar", () => {
   it("turns the card urgent only at seven days or fewer, and only when something would really close", () => {
     const week = accountView(overview({ state: "active", daysLeft: 7, accessEndsAt: iso(7) }));
     expect(week.low).toBe(true);
-    expect(week.sub).toContain("پیدات نمی‌کنن");
+    expect(week.sub).toContain("لینک نوبتت خاموش می‌شه");
     expect(week.action.label).toBe("همین حالا تمدید کن");
-    expect(accountView(overview({ state: "trial", daysLeft: 3 })).action.label).toBe("همین حالا اشتراک بخر");
+    // The 7 free days turn urgent only at two days or fewer (day five).
+    expect(accountView(overview({ state: "trial", daysLeft: 2 })).action.label).toBe("همین حالا اشتراک بخر");
+    expect(accountView(overview({ state: "trial", daysLeft: 3 })).low).toBe(false);
     expect(accountView(overview({ state: "active", daysLeft: 8, accessEndsAt: iso(8) })).low).toBe(false);
     expect(accountView(overview({ state: "active", daysLeft: 3, accessEndsAt: iso(3) }, { enforced: false })).low).toBe(false);
   });
@@ -76,7 +78,8 @@ describe("subscription card and reminder bar", () => {
 
   it("raises the bar only when it matters", () => {
     expect(bannerView(overview({ state: "trial", daysLeft: 12 }))).toBeNull();
-    expect(bannerView(overview({ state: "trial", daysLeft: 4 })).tone).toBe("info");
+    expect(bannerView(overview({ state: "trial", daysLeft: 4 }))).toBeNull();
+    expect(bannerView(overview({ state: "trial", daysLeft: 2 })).tone).toBe("info");
     expect(bannerView(overview({ state: "active", daysLeft: 1 })).tone).toBe("warn");
     expect(bannerView(overview({ state: "grace", graceDaysLeft: 2 })).tone).toBe("warn");
     expect(bannerView(overview({ state: "expired", open: false })).tone).toBe("danger");

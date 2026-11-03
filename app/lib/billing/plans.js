@@ -8,11 +8,16 @@ import { toPersianDigits } from "../../shared/lib/digits.js";
  * yearly plan is always the cheapest per month. A change here changes what new checkouts charge; payments
  * already made keep the amount they were made with (it is copied onto the payment row).
  */
-/** Free days for a salon or artist who signs up after billing is switched on (owner's decision 2026-10-28). */
-export const TRIAL_DAYS = 14;
-/** Free days for accounts that already existed when billing was switched on: they keep the 30 days promised at launch. */
-export const LAUNCH_TRIAL_DAYS = 30;
+/** Free days for a salon or artist, from sign-up (owner's decision 2026-11-03; was 14, then 30 for launch accounts). */
+export const TRIAL_DAYS = 7;
+/**
+ * Free days for accounts made before payment is switched on, counted from that day. Also 7 (owner, 2026-11-03): only
+ * one real account existed then, so nobody had been promised more, and sign-ups from the first ads get the same week.
+ */
+export const LAUNCH_TRIAL_DAYS = 7;
 export const DEFAULT_GRACE_DAYS = 3;
+/** In the 7 free days, the "almost over" notice comes this many days before the end (day 5), not 5 days before. */
+export const TRIAL_SOON_DAYS = 2;
 /** A new period runs this many days (not calendar months): simple to explain, and the receipt shows the exact end date. */
 export const PERIOD_DAYS = { 1: 30, 6: 180, 12: 365 };
 

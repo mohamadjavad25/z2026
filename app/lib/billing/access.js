@@ -3,10 +3,13 @@ import { suspendedAccountIds } from "../db/repos/users.js";
 import { activeGateway } from "../payments/index.js";
 
 /**
- * The gate: what a salon or artist loses when the subscription and the grace days are over. Only two things:
+ * The gate: what a salon or artist loses when the subscription and the grace days are over (owner's decision 2026-11-03):
  *   - they are left out of the public directory and of search (people who already connected still see them);
- *   - nobody but themselves can send them a new online booking request.
- * Their own calendar, existing bookings, customers, photos and settings keep working, and nothing is ever deleted.
+ *   - nobody can send them a new online booking request: their page and story links take none (onlineBookingBlock);
+ *   - they cannot enter a new booking by hand either (ownEntryBlock), so frfro is not a free notebook;
+ *   - their clients get no reminders for their bookings (bookingReminders.js).
+ * They still see their calendar, customers, photos and settings, and answer, move or cancel the bookings they already
+ * have, so no client is left waiting. Nothing is ever deleted, and paying brings everything back at once.
  *
  * Enforced only while billing is switched on AND a gateway can take the payment: nobody is closed for not paying
  * while paying is impossible.
@@ -56,6 +59,25 @@ export async function onlineBookingBlock(providerUserId, kind = "salon") {
   if (!closed.has(id)) return null;
   const who = kind === "artist" ? "این آرتیست" : "این سالن";
   return { status: 403, code: "PROVIDER_INACTIVE", error: `${who} فعلاً نوبت آنلاین نمی‌گیره؛ برای نوبت مستقیم بهش زنگ بزن.` };
+}
+
+export const OWN_ENTRY_CLOSED_MESSAGE = "اشتراکت تموم شده؛ برای گذاشتن نوبت تازه، از تنظیمات اشتراک بخر. نوبت‌های قبلیت سر جاشه.";
+
+/**
+ * Whether a salon or artist may enter a new booking themselves (a walk-in, a phone booking). null when they may, or
+ * { status, code, error }. Closed only while billing is enforced, like the rest of the gate.
+ */
+export async function ownEntryBlock(userId) {
+  const id = Number(userId);
+  if (!id || !(await billingEnforced())) return null;
+  if (!(await closedAccountIds([id])).has(id)) return null;
+  return { status: 403, code: "SUBSCRIPTION_CLOSED", error: OWN_ENTRY_CLOSED_MESSAGE };
+}
+
+/** Of these salon and artist ids, the ones whose access is closed, only while billing is enforced (else none). */
+export async function closedWhileEnforced(userIds) {
+  if (!userIds?.length || !(await billingEnforced())) return new Set();
+  return closedAccountIds(userIds);
 }
 
 /** Filters out the owner's test accounts only (phone search: a suspended or closed account is still found by its number). */
