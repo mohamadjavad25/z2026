@@ -1,6 +1,6 @@
 import subprocess, sys, os
 SRC='/home/user/z2026/docs/brand/reels/01-kanseli/film-v5.mp4'
-W=os.path.dirname(os.path.abspath(__file__)); C=W+'/cap/'  # segment cuts and overlays; fonts: copy public/fonts/vazirmatn-*.woff2 into cap/ before running the .mjs files
+W=os.path.dirname(os.path.abspath(__file__)); C=W+'/cap/'
 CROP={'close':'crop=650:1155:410:275,scale=1080:1920:flags=lanczos,unsharp=5:5:0.6,','wide':'crop=804:1430:138:0,scale=1080:1920:flags=lanczos,unsharp=5:5:0.4,'}
 def seg(name, a, b, kind, cap=None, logo=None, freeze=None, notif=None, mute=False):
     out=f'{W}/s_{name}.mp4'; d=b-a
