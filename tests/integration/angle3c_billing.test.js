@@ -36,7 +36,8 @@ describe("angle3c: a salon closes while it holds bookings", () => {
     const early = await newClient("Early A");
     const early2 = await newClient("Early B");
     const early3 = await newClient("Early C");
-    const day = futureBookingDay(2);
+    // The walk-in below is at 18:00, past a default Thursday close (it failed only when run two days before a Thursday).
+    const day = futureBookingDay(2, { notOn: ["پنجشنبه"] });
     const pend = await bookSalon(early, salon, { day, time: hhmm(10) });
     const approved = await bookSalon(early2, salon, { day, time: hhmm(12) });
     const toCancel = await bookSalon(early3, salon, { day, time: hhmm(14) });

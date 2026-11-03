@@ -4,6 +4,7 @@ import {
   smsRows, settledSmsCount
 } from "./angle3Helpers.js";
 import { adminClient } from "./helpers.js";
+import { LOGIN_PER_IP_15MIN } from "../../app/lib/limits.js";
 
 afterAll(async () => { await connected; await db.end(); });
 
@@ -279,7 +280,8 @@ describe("angle3b: information leaks (phone enumeration, public payloads)", () =
     expect(none.ok).toBe(false);
     expect(none.payload.error).not.toBe(known.payload.error);
     let limited = null;
-    for (let i = 0; i < 40 && !limited; i += 1) {
+    // The per-address limit is read from app/lib/limits.js (100 per 15 minutes since the owner's decision of 2026-10-29).
+    for (let i = 0; i < LOGIN_PER_IP_15MIN + 5 && !limited; i += 1) {
       const res = await anon.post("/api/auth/login", { phone: `0912${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`, password: "wrong-password-1" }, h1);
       if (res.status === 429) limited = res;
     }

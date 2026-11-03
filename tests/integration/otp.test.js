@@ -1,6 +1,7 @@
 import { describe, it, expect, afterAll } from "vitest";
 import pg from "pg";
 import { adminClient, createClient, uniquePhone, registerUser } from "./helpers.js";
+import { OTP_SEND_SITE_HOUR } from "../../app/lib/limits.js";
 
 async function codeFor(admin, phone) {
   const res = await admin.get(`/api/admin/sms?phone=${phone}`);
@@ -32,11 +33,13 @@ describe("SMS codes", () => {
     const marker = "otp-send-global";
     await db.query("DELETE FROM rate_limit_hits WHERE key = $1", [marker]);
     try {
-      await db.query("INSERT INTO rate_limit_hits (key, hit_at) SELECT $1, NOW() FROM generate_series(1, 160)", [marker]);
+      // The cap is read from app/lib/limits.js (1500 since the owner's decision of 2026-10-29), never written here.
+      const warnAt = Math.ceil(OTP_SEND_SITE_HOUR * 0.8);
+      await db.query("INSERT INTO rate_limit_hits (key, hit_at) SELECT $1, NOW() FROM generate_series(1, $2::int)", [marker, warnAt]);
       const dash = (await admin.get("/api/admin/dashboard")).payload.data;
-      expect(dash.alerts.otpUsed).toBeGreaterThanOrEqual(160);
-      expect(dash.alerts.otpCap).toBe(200);
-      await db.query("INSERT INTO rate_limit_hits (key, hit_at) SELECT $1, NOW() FROM generate_series(1, 40)", [marker]);
+      expect(dash.alerts.otpUsed).toBeGreaterThanOrEqual(warnAt);
+      expect(dash.alerts.otpCap).toBe(OTP_SEND_SITE_HOUR);
+      await db.query("INSERT INTO rate_limit_hits (key, hit_at) SELECT $1, NOW() FROM generate_series(1, $2::int)", [marker, OTP_SEND_SITE_HOUR - warnAt]);
       const res = await createClient().post("/api/auth/otp/send", { phone: uniquePhone(), purpose: "register" });
       expect(res.status).toBe(429);
       expect(res.payload.code).toBe("otp_busy");

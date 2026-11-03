@@ -165,11 +165,21 @@ describe("GET /api/salon-bookings/preview", () => {
     expect(unlisted.payload.data.durationMinutes).toBe(75);
   });
 
-  it("is for clients and the salon itself only", async () => {
+  it("is for clients and the salon itself only; a visitor not signed in sees exactly a client's view", async () => {
     const ctx = await setup();
     const day = futureBookingDay(2);
-    const anonymous = await createClient().get(previewUrl(ctx, { day, time: "10:00" }));
-    expect(anonymous.status).toBe(401);
+    // Owner's decision of 2026-11-02: a visitor from an Instagram story picks everything before signing in, so the
+    // preview answers them as a client (it used to be 401). Never the salon's own view: no free lists or options,
+    // and a named artist is ignored.
+    const anonymous = await createClient().get(previewUrl(ctx, { day, time: "10:00", staff: [ctx.hair.user.name, ctx.hair.user.name] }));
+    expect(anonymous.status).toBe(200);
+    const asClient = await ctx.customer.client.get(previewUrl(ctx, { day, time: "10:00" }));
+    expect(anonymous.payload.data.parts.map((part) => part.staff)).toEqual(asClient.payload.data.parts.map((part) => part.staff));
+    for (const part of anonymous.payload.data.parts) {
+      expect(part).not.toHaveProperty("free");
+      expect(part).not.toHaveProperty("options");
+      expect(part).not.toHaveProperty("unknownStaff");
+    }
     const artist = await ctx.nail.client.get(previewUrl(ctx, { day, time: "10:00" }));
     expect(artist.status).toBe(403);
     const otherSalon = createClient();
