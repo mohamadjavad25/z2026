@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { adminClient, createClient, registerUser, futureBookingDay } from "./helpers.js";
-import { TEST_ADMIN_PASSWORD } from "../globalSetup.js";
+import { adminClient, createClient, enrolledAdminClient, registerUser, futureBookingDay } from "./helpers.js";
+import { TEST_ADMIN8_PHONE, TEST_ADMIN_PASSWORD } from "../globalSetup.js";
 
 const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
 
@@ -35,7 +35,8 @@ describe("admin panel: users, content, bookings, security", () => {
   });
 
   it("moderates posts: hide/show freely, delete only after a password re-check", async () => {
-    const admin = await adminClient();
+    // Its own session: the shared one may carry another file's re-check from the last 5 minutes.
+    const admin = await enrolledAdminClient(TEST_ADMIN8_PHONE);
     const artist = createClient();
     await registerUser(artist, { type: "artist", menu: true, name: "Moderated Artist" });
     const created = await artist.post("/api/posts", { title: "پست قابل بررسی", tag: "ناخن", caption: "x", image: PNG });
