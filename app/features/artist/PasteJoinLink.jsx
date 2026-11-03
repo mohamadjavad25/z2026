@@ -54,8 +54,13 @@ export function PasteJoinLink() {
     open(text);
   }
 
+  // Sits as the third tile of the scan row (ArtistCollabBoard); the field and the note take the full row below it.
   return (
     <div className="pjl">
+      <button type="button" className="cnScanBtn pjlBox" onClick={typing ? showField : readClipboard} aria-label="لینک دعوت سالن رو اینجا بذار؛ یه بار بزن، لینک خودش برداشته می‌شه">
+        <span aria-hidden="true"><ClipboardPaste size={20} /></span>
+        <span><b>لینک دعوت</b></span>
+      </button>
       {typing ? (
         <label className="pjlField">
           <span>لینک دعوت سالن رو اینجا بچسبون</span>
@@ -72,12 +77,7 @@ export function PasteJoinLink() {
             onChange={(event) => { if (joinPathFrom(event.target.value)) open(event.target.value); }}
           />
         </label>
-      ) : (
-        <button type="button" className="pjlBox" onClick={readClipboard}>
-          <span aria-hidden="true"><ClipboardPaste size={20} /></span>
-          <span><b>لینک دعوت سالن رو اینجا بذار</b><small>یه بار بزن؛ لینک خودش برداشته می‌شه</small></span>
-        </button>
-      )}
+      ) : null}
       {message ? <p className="pjlNote" role="status">{message}</p> : null}
     </div>
   );

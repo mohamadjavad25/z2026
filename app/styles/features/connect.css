@@ -700,14 +700,16 @@ a.cnInviteBtn { text-decoration: none; }
 /* Typing brings the search box to the top; keep it clear of the top edge. */
 .cnSearch input { scroll-margin-top: 16px; }
 
-/* «لینک دعوت سالن رو اینجا بذار» (PasteJoinLink.jsx, owner's decision 2026-11-02): one dashed box under the scan row. */
-.pjl { display: grid; gap: 6px; margin-top: 10px; }
-.pjlBox { display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 10px 12px; border: 1.5px dashed var(--fill-strong); border-radius: 18px; background: var(--n-0); color: var(--cn-ink); font: inherit; text-align: right; cursor: pointer; }
-.pjlBox > span:first-child { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); }
-.pjlBox > span:last-child { display: grid; gap: 1px; min-width: 0; }
-.pjlBox b { font-size: 0.92rem; font-weight: 900; }
-.pjlBox small { color: var(--n-600); font-size: 0.72rem; font-weight: 600; }
-.pjlBox:active { transform: scale(0.98); }
+/* «لینک دعوت سالن رو اینجا بذار» (PasteJoinLink.jsx, owner's decisions 2026-11-02 and 2026-11-03): the third small
+   tile of the artist's scan row; its paste field and note take the whole row under the tiles. */
+.cnScanRow.is-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.cnScanRow.is-tiles .cnScanBtn { flex-direction: column; justify-content: center; gap: 6px; min-height: 0; padding: 10px 6px; border-radius: 16px; text-align: center; }
+.cnScanRow.is-tiles .cnScanBtn > span:first-child { width: 36px; height: 36px; }
+.cnScanRow.is-tiles .cnScanBtn b { font-size: 0.82rem; white-space: nowrap; }
+.pjl { display: contents; }
+.pjlBox.cnScanBtn { border: 1.5px dashed var(--fill-strong); }
+.pjlBox > span:first-child { background: var(--accent-soft); color: var(--accent); }
+.pjlField, .pjlNote { grid-column: 1 / -1; }
 .pjlField { display: grid; gap: 6px; }
 .pjlField span { color: var(--n-700); font-size: 0.78rem; font-weight: 800; }
 .pjlField input { min-height: 48px; padding: 0 12px; border: 1.5px dashed var(--fill-strong); border-radius: 14px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.86rem; }

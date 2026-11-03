@@ -553,17 +553,18 @@ export function ArtistCollabBoard({
       ) : null}
 
       {connected ? <p className="clwAddLead">یه سالن دیگه هم اضافه کن</p> : null}
-      <div className="cnScanRow">
-        <button type="button" className="cnScanBtn" onClick={() => setSheet("scan")}>
+      {/* Three small tiles in one row (owner, 2026-11-03): scan, my code, paste the salon's link. */}
+      <div className="cnScanRow is-tiles">
+        <button type="button" className="cnScanBtn" onClick={() => setSheet("scan")} aria-label="اسکن کن؛ کد سالن رو اسکن کن">
           <span aria-hidden="true"><ScanLine size={20} /></span>
-          <span><b>اسکن کن</b><small>کد سالن رو اسکن کن</small></span>
+          <span><b>اسکن کن</b></span>
         </button>
-        <button type="button" className="cnScanBtn" disabled={!codeUrl} onClick={() => setSheet("code")}>
+        <button type="button" className="cnScanBtn" disabled={!codeUrl} onClick={() => setSheet("code")} aria-label="کد من؛ کدت رو به سالن نشون بده">
           <span aria-hidden="true"><QrCode size={20} /></span>
-          <span><b>کد من</b><small>کدت رو به سالن نشون بده</small></span>
+          <span><b>کد من</b></span>
         </button>
+        <PasteJoinLink />
       </div>
-      <PasteJoinLink />
       {!cards.length ? <Mascot pose="team" size={190} className="clConnMascot" /> : null}
 
       <ArtistSelfSheet open={Boolean(selfFor)} team={selfFor} artistName={artistName} onClose={() => setSelfFor(null)} onChanged={() => onChanged?.()} />
