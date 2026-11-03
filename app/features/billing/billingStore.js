@@ -9,6 +9,7 @@ import { getBilling } from "../../shared/api/billing";
  * it or open a sheet; all of them re-render together.
  *
  * sheet: null | { kind: "plans", forUserId } | { kind: "result", paymentId } | { kind: "history" } | { kind: "sms" }
+ *        | { kind: "closed-entry" } (a closed account tapped «نوبت تازه»)
  * forUserId: a salon paying for one of its team's artists; null for the account's own subscription.
  */
 const INITIAL = { overview: null, loading: false, error: "", sheet: null, loadedAt: 0 };
@@ -51,6 +52,16 @@ export const openPaymentResult = (paymentId) => update({ sheet: { kind: "result"
 export const openPaymentHistory = () => update({ sheet: { kind: "history" } });
 export const openSmsPack = () => update({ sheet: { kind: "sms" } });
 export const closeBillingSheet = () => update({ sheet: null });
+export const openClosedEntry = () => update({ sheet: { kind: "closed-entry" } });
+
+/**
+ * True when this account's subscription is closed and enforced, so the server refuses a new booking by hand (owner's
+ * decision 2026-11-03). False while the picture is not loaded yet: then the form opens and the server still decides.
+ */
+export function entryClosedNow() {
+  const overview = state.overview;
+  return Boolean(overview?.enforced && overview.account && overview.account.open === false);
+}
 
 /** Sign-out or a different account: forget everything. */
 export function resetBilling() {

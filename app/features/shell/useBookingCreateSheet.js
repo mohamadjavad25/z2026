@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { entryClosedNow, openClosedEntry } from "../billing/billingStore";
 
 /**
  * Whether the «ایجاد رزرو» sheet (VisitBooker, see features/booking) is open, and the name and
@@ -26,6 +27,11 @@ export function useBookingCreateSheet({
   // `prefill` ({ client, phone }) comes from «مخاطبین» on the customers page; the owner stays on
   // that page instead of being sent to the profile tab.
   const openBookingSheet = useCallback((prefill = null) => {
+    // A closed subscription takes no new booking by hand: say so first instead of a form refused at the end.
+    if (entryClosedNow()) {
+      openClosedEntry();
+      return;
+    }
     const customer = prefill && typeof prefill === "object" && !("nativeEvent" in prefill) ? prefill : null;
     setBookingPrefill(customer ? { client: String(customer.client || ""), phone: String(customer.phone || "") } : null);
     if (!customer) setActiveTab("profile");

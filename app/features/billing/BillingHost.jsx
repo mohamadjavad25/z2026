@@ -6,6 +6,7 @@ import { PlanSheet } from "./PlanSheet";
 import { PaymentResultSheet } from "./PaymentResultSheet";
 import { PaymentsSheet } from "./PaymentsSheet";
 import { SmsPackSheet } from "./SmsPackSheet";
+import { ClosedEntrySheet } from "./ClosedEntrySheet";
 import {
   closeBillingSheet,
   markPendingShown,
@@ -83,6 +84,7 @@ export function BillingHost() {
       <SmsPackSheet open={sheet?.kind === "sms"} overview={overview} onClose={closeBillingSheet} />
       <PaymentResultSheet open={sheet?.kind === "result"} paymentId={sheet?.paymentId} onClose={closeBillingSheet} onRetry={openPlans} onRetryPack={openSmsPack} />
       <PaymentsSheet open={sheet?.kind === "history"} onClose={closeBillingSheet} />
+      <ClosedEntrySheet open={sheet?.kind === "closed-entry"} onClose={closeBillingSheet} onPlans={() => openPlans()} />
     </>
   );
 }
