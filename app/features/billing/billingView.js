@@ -125,7 +125,7 @@ export function teamMemberView(member, overview) {
   if (account.state === "active") return { tone: "active", status: `فعال تا ${formatPersianLongDate(account.accessEndsAt)}`, urgent: account.daysLeft <= 5 };
   if (!overview?.enforced) return { tone: "soon", status: "دوره‌ی رایگان تموم شد", urgent: false };
   if (account.state === "grace") return { tone: "warn", status: `تموم شده، ${formatDaysLeft(account.graceDaysLeft)} مهلت`, urgent: true };
-  return { tone: "danger", status: "غیرفعال؛ توی جستجو دیده نمی‌شه", urgent: true };
+  return { tone: "danger", status: "غیرفعال؛ لینک نوبتش خاموشه", urgent: true };
 }
 
 /** «رسید پرداخت فرفرو …», the text the «کپی رسید» button copies. */

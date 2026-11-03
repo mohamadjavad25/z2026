@@ -5,6 +5,7 @@ import { bookingStartMs } from "../shared/lib/reminderTiming.js";
 import { formatPersianDateKey } from "../shared/lib/persianCalendar.js";
 import { parseBookingParts } from "../shared/lib/bookingParts.js";
 import { DUE_SEND_WINDOW_DAYS, dueText } from "../shared/lib/dueReminder.js";
+import { closedWhileEnforced } from "./billing/access.js";
 
 /**
  * «وقتش شده» (owner's decisions of 2026-10-25): once the usual gap after a visit has passed, its client gets ONE push
@@ -85,7 +86,12 @@ export async function sweepDueReminders(now = new Date()) {
   const result = { candidates: 0, sent: 0 };
   if (!tehranDaytime(now)) return result;
   const db = await getDb();
-  for (const booking of await candidates(db, now)) {
+  const rows = await candidates(db, now);
+  // No «وقتش شده» for clients of a salon or artist whose subscription is closed (owner's decision 2026-11-03): its
+  // booking link takes no request, and nothing is recorded, so the nudge still comes once they pay.
+  const closed = await closedWhileEnforced(rows.map((booking) => booking.owner_user_id));
+  for (const booking of rows) {
+    if (closed.has(Number(booking.owner_user_id))) continue;
     const due = await dueService(db, booking, now);
     if (!due) continue;
     result.candidates += 1;

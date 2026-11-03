@@ -65,7 +65,7 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     return refuse(409, `این ساعت خیلی نزدیکه؛ آرتیست فرصت جواب نداره. ساعتی رو بزن که دست‌کم ${toPersianDigits(BOOKING_REQUEST_LEAD_MINUTES)} دقیقه بعد باشه.`);
   }
   if (!isOwner && isTooFarToRequest(day)) return refuse(409, TOO_FAR_TEXT.replace("سالن", "آرتیست"), "TOO_FAR");
-  // An artist whose subscription has closed (and no salon of theirs covers them) takes no new online requests.
+  // An artist whose subscription has closed takes no new online requests (a salon may pay into their subscription).
   // Their own entries stop too once the subscription is closed (owner's decision 2026-11-03).
   {
     const blocked = isOwner ? await ownEntryBlock(artistUserId) : await onlineBookingBlock(artistUserId, "artist");

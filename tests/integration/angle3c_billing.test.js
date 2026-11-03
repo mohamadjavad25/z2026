@@ -69,6 +69,10 @@ describe("angle3c: a salon closes while it holds bookings", () => {
     const own = await artist.client.post("/api/artist/me", { kind: "booking", client: "Walk", phone: "09120000556", service: "ناخن", bookingDate: day, time: "12:00", durationMinutes: 60 });
     expect(own.status).toBe(403);
     expect(own.payload.code).toBe("SUBSCRIPTION_CLOSED");
+    // the other door an artist uses for themselves: booking their own calendar through the booking route
+    const self = await artist.client.post("/api/artist/bookings", { artistUserId: artist.user.id, client: "Walk", phone: "09120000556", service: "ناخن", bookingDate: day, time: "12:00" });
+    expect(self.status).toBe(403);
+    expect(self.payload.code).toBe("SUBSCRIPTION_CLOSED");
 
     const salon = await newSalon("Closed Reminder Salon");
     const c = await newClient("Reminder Client");
@@ -76,6 +80,12 @@ describe("angle3c: a salon closes while it holds bookings", () => {
     expect(made.status).toBe(201);
     expect((await salon.client.patch("/api/salon-bookings", { id: made.payload.data.booking.id, status: "تایید شده" })).status).toBe(200);
     await age(salon.user.id, 40);
+    // A salon still in its free days, same day and time: its client IS reminded, so the sweep really ran.
+    const open = await newSalon("Open Reminder Salon");
+    const c2 = await newClient("Reminder Client 2");
+    const made2 = await bookSalon(c2, open, { day, time: hhmm(12) });
+    expect(made2.status).toBe(201);
+    expect((await open.client.patch("/api/salon-bookings", { id: made2.payload.data.booking.id, status: "تایید شده" })).status).toBe(200);
     const at = new Date(bookingStartMs(day, "12:00", new Date()) - 90 * 60_000);
     const swept = await fetch(`${TEST_BASE_URL}/api/cron/send-reminders`, {
       method: "POST",
@@ -85,6 +95,8 @@ describe("angle3c: a salon closes while it holds bookings", () => {
     expect(swept.status).toBe(200);
     const claimed = await db.query("SELECT 1 FROM booking_reminders WHERE source = 'salon' AND booking_id = $1", [made.payload.data.booking.id]);
     expect(claimed.rows).toHaveLength(0);
+    const reminded = await db.query("SELECT 1 FROM booking_reminders WHERE source = 'salon' AND booking_id = $1", [made2.payload.data.booking.id]);
+    expect(reminded.rows).toHaveLength(1);
   });
 
   it("a closed salon does not keep offering free times to clients (availability / preview agree with POST)", async () => {
