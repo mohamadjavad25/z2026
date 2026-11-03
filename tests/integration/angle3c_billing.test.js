@@ -73,6 +73,9 @@ describe("angle3c: a salon closes while it holds bookings", () => {
     // what the screens show must match what POST does
     expect((avail.payload.data?.times || []).length).toBe(0);
     expect(preview.payload.data?.ok).toBe(false);
+    // A visitor from a story, not signed in (decision 2026-11-02), is told the same and offered nothing.
+    const guest = await createClient().get(`/api/salon-bookings/preview?salonUserId=${salon.user.id}&day=${encodeURIComponent(day)}&time=11:00&service=${encodeURIComponent("کراتین مو")}`);
+    expect(guest.payload.data).toMatchObject({ ok: false, code: "PROVIDER_INACTIVE", parts: [] });
   });
 
   it("a request cannot name a closed salon as its backup; a closed independent artist takes no anonymous or signed-in request", async () => {

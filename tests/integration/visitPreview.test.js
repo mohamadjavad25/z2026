@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import pg from "pg";
 import { createClient, joinSalonAsArtist, registerUser, futureBookingDay } from "./helpers.js";
 import { formatPersianDateKey, getPersianWeekday } from "../../app/shared/lib/persianCalendar.js";
 
@@ -171,8 +172,10 @@ describe("GET /api/salon-bookings/preview", () => {
     // Owner's decision of 2026-11-02: a visitor from an Instagram story picks everything before signing in, so the
     // preview answers them as a client (it used to be 401). Never the salon's own view: no free lists or options,
     // and a named artist is ignored.
-    const anonymous = await createClient().get(previewUrl(ctx, { day, time: "10:00", staff: [ctx.hair.user.name, ctx.hair.user.name] }));
+    const anonymous = await createClient().get(previewUrl(ctx, { day, time: "10:00", staff: [ctx.hair.staff.name, ctx.hair.staff.name] }));
     expect(anonymous.status).toBe(200);
+    expect(anonymous.payload.data.ok).toBe(true);
+    expect(anonymous.payload.data.parts).toHaveLength(2);
     const asClient = await ctx.customer.client.get(previewUrl(ctx, { day, time: "10:00" }));
     expect(anonymous.payload.data.parts.map((part) => part.staff)).toEqual(asClient.payload.data.parts.map((part) => part.staff));
     for (const part of anonymous.payload.data.parts) {
@@ -185,6 +188,26 @@ describe("GET /api/salon-bookings/preview", () => {
     const otherSalon = createClient();
     await registerUser(otherSalon, { type: "salon", name: "Other Salon" });
     expect((await otherSalon.get(previewUrl(ctx, { day, time: "10:00" }))).status).toBe(403);
+  });
+
+  it("stops a visitor not signed in at the per-address limit, and only that address", async () => {
+    const ctx = await setup();
+    const day = futureBookingDay(2);
+    const ip = `10.71.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`;
+    const key = `visit-preview-guest-ip:${ip}`;
+    const db = new pg.Client({ connectionString: process.env.TEST_POSTGRES_URL });
+    await db.connect();
+    try {
+      // 300 a minute per address (preview/route.js): filled directly, as the SMS cap test does.
+      await db.query("INSERT INTO rate_limit_hits (key, hit_at) SELECT $1, NOW() FROM generate_series(1, 300)", [key]);
+      const stopped = await createClient().get(previewUrl(ctx, { day, time: "10:00" }), { headers: { "x-real-ip": ip } });
+      expect(stopped.status).toBe(429);
+      const other = await createClient().get(previewUrl(ctx, { day, time: "10:00" }), { headers: { "x-real-ip": `10.72.${Math.floor(Math.random() * 250)}.1` } });
+      expect(other.status).toBe(200);
+    } finally {
+      await db.query("DELETE FROM rate_limit_hits WHERE key = $1", [key]);
+      await db.end();
+    }
   });
 
   it("books exactly what it showed: the salon's chosen artists land in the booking and their calendars", async () => {
