@@ -123,6 +123,15 @@ async function main() {
     lines.push(`This checkout: ${branch || "detached"}, ${ahead} ahead / ${behind} behind origin/main, ${changed} uncommitted file(s).`);
   }
 
+  // The owner's standing priorities (docs/PRIORITIES.md, 2026-11-04): the first open items, every session.
+  try {
+    const open = readFileSync(join(process.env.CLAUDE_PROJECT_DIR || process.cwd(), "docs", "PRIORITIES.md"), "utf8").split("\n").filter((l) => l.startsWith("- [ ]"));
+    if (open.length) {
+      lines.push(`Owner's priorities (docs/PRIORITIES.md, ${open.length} open; continue the first unless the owner asks for something else):`);
+      for (const l of open.slice(0, 3)) lines.push(`  ${l.slice(6, 160)}`);
+    }
+  } catch { /* no priorities file on this branch */ }
+
   console.log(lines.join("\n"));
   if (head) {
     try { mkdirSync(STATE_DIR, { recursive: true }); writeFileSync(STATE_FILE, JSON.stringify({ mainSha: head, at: new Date().toISOString() })); } catch {}

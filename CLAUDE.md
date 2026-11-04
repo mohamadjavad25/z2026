@@ -10,6 +10,7 @@ The owner builds frfro alone with Claude and never touches code: they report wha
 - Keep it current, in the same change: when an area's behaviour changes, update its section in `docs/PROJECT_NOTES.md` (and `DECISIONS.md` for an owner's answer, `HEALTH.md` after meaningful work). Status, open items and what is live go in the private status file (loaded via `CLAUDE.local.md`), kept short: finished history moves to its archive. Never let this file grow back; add detail to the docs, not here.
 - Get better every day: every bug found in real use gets a test that would have caught it, and one dated line in `docs/HEALTH.md` («درس‌ها») saying what went wrong and the rule that prevents it, so the same mistake never ships twice. Before touching an area run `node scripts/docs/area.mjs <area>`: every decision and lesson for it in one list.
 - Routines (`.claude/skills/`): `frfro-finish` before saying anything is done, `frfro-bug` for every reported bug, `frfro-migration`, `frfro-screens`, `frfro-deploy-main`, `frfro-self-review` (also runs on its own twice a month). "Done" means `npm run check` and the touched tests passed.
+- `docs/PRIORITIES.md` is the owner's standing order (2026-11-04): the brief prints its first open items; continue the first one unless the owner asks for something else, then name it in one sentence at the end.
 - `scripts/guard/` checks the hard rules below on every `git commit` and in CI. A red main (the session brief says so) is told to the owner and fixed before new work.
 
 ## Which server (owner's rule, 2026-10-20)
