@@ -110,7 +110,7 @@ export function ClientBookingTracker({ bookings = [], onOpen, away = false }) {
     const confirmed = status === "تایید شده";
     const Icon = confirmed ? Check : status === "لغو" ? XCircle : TimerOff;
     const movedTo = movedToName(booking);
-    const title = confirmed ? "نوبتت تأیید شد!" : status === "لغو" ? "نوبتت لغو شد" : movedTo ? `درخواستت رفت برای ${movedTo}` : "جواب نداد؛ وقتش تموم شد";
+    const title = confirmed ? "نوبتت قطعی شد!" : status === "لغو" ? "نوبتت لغو شد" : movedTo ? `درخواستت رفت برای ${movedTo}` : "جواب نداد؛ وقتش تموم شد";
     return (
       <Strip
         away={away}
@@ -176,7 +176,7 @@ export function ClientBookingTracker({ bookings = [], onOpen, away = false }) {
         <Hourglass size={18} />
       </span>
       <span className="cbtText">
-        <b>منتظر {label}</b>
+        <b>منتظر تأیید {current.salonName || current.salon_name || label}</b>
         <small>
           {shortServiceLabel(current.service) || "نوبت"}
           {deadline ? `، تا ${deadline}` : ""}

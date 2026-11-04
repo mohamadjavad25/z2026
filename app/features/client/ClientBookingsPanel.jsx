@@ -16,6 +16,7 @@ import {
   bookingStatusLabel,
   bookingStatusTone,
   clientBookingKey,
+  hasBookingEnded,
   isBookingAhead,
   isBookingInPast,
   isPlaceGone,
@@ -64,7 +65,7 @@ function metaOf(booking) {
     date: rawDate ? formatRelativeBookingDayLabel(rawDate) : "امروز",
     time: booking.time || "زمان",
     end: bookingEndLabel(booking),
-    status: bookingStatusLabel(booking.status),
+    status: bookingStatusLabel(booking.status, { ended: hasBookingEnded(booking) }),
     tone: bookingStatusTone(booking.status || "تازه")
   };
 }

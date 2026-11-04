@@ -8,6 +8,7 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { scheduleBookingParts } from "../../shared/lib/bookingParts";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
+import { bookingStatusLabel } from "../client/bookingStatus";
 import {
   getArtistClientVisits,
   getBookingTimelineLabel,
@@ -233,9 +234,10 @@ export const ScheduleRow = memo(function ScheduleRow({
   const phaseTagClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase}`;
   // A salon's booking given to an artist waits on the salon, not on them.
   const waitsOnSalon = booking.ownerType === "artist" && sourceSalon && statusTone === "pending";
-  const statusText = isClientBooking && rawStatus === AWAITING_CLIENT
-    ? "در انتظار تو"
-    : waitsOnSalon ? "منتظر سالن" : rawStatus;
+  // One set of words for every side (bookingStatusLabel); a new time the client has not answered yet is theirs to answer.
+  const statusText = rawStatus === AWAITING_CLIENT
+    ? (isClientBooking ? "در انتظار تو" : AWAITING_CLIENT)
+    : bookingStatusLabel(rawStatus, { waitsOnSalon });
   const phaseTagLabel = unansweredAndOver ? "بی‌جواب موند" : showStatusTag ? (statusText || "درخواست") : phaseLabel;
 
   // The time column: start, a rail as long as the visit, end, and how long it takes.

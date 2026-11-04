@@ -5,7 +5,7 @@ import { ArrowLeft, CalendarCheck, CheckCircle2, Clock3, Hourglass, Phone, Rotat
 import { connectTo, listConnections } from "../../shared/api/connections";
 import { SheetClose } from "../../components/SheetClose";
 import { LocationCard } from "../../components/LocationButton";
-import { bookingStatusLabel, bookingStatusTone, canClientCancel, hasBookingStarted, isPlaceGone, movedToName, openProposalOf, requestWaitNote } from "./bookingStatus";
+import { bookingStatusLabel, bookingStatusTone, canClientCancel, hasBookingEnded, hasBookingStarted, isPlaceGone, movedToName, openProposalOf, requestWaitNote } from "./bookingStatus";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { minutesToPersianTime, timeLabelToMinutes } from "../../shared/lib/time";
@@ -277,7 +277,7 @@ export function ClientBookingSettingsModal({
             </div>
             <strong className={`clientBookingSettingsStatus is-${statusTone}`}>
               <StatusIcon size={13} />
-              {booking.no_show_at ? "نیومدی" : booking.status === "تایید شده" && hasBookingStarted(booking) ? "گذشته" : bookingStatusLabel(booking.status, byArtist ? "artist" : "salon")}
+              {booking.no_show_at ? "نیومدی" : bookingStatusLabel(booking.status, { ended: hasBookingEnded(booking) })}
             </strong>
           </div>
           <div className="clientBookingSettingsGrid">

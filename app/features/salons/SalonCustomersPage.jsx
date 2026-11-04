@@ -6,7 +6,7 @@ import { PageIcon } from "../../components/PageIcon";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ArrowDownUp, CalendarCheck, Check, CalendarPlus, ContactRound, Link2, MessageSquare, Phone, Repeat2, Search, Sparkles, Trash2, UserPlus, Users, X } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
-import { bookingStatusLabel, bookingStatusTone, isBookingActive, isBookingInPast } from "../client/bookingStatus";
+import { bookingStatusLabel, bookingStatusTone, hasBookingEnded, isBookingActive, isBookingInPast } from "../client/bookingStatus";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { buildBookingCustomers, customerMatchesQuery, describeFollowTime, pickFreshFollowers, phoneKey } from "./customers";
@@ -206,7 +206,7 @@ function BookingGroup({ title, bookings, manyNames, isPast = false }) {
                 <b>{shortServiceLabel(booking.service) || "خدمت"}</b>
                 {manyNames && booking.client ? <small>برای {booking.client}</small> : null}
               </div>
-              <em className={`is-${tone}`}>{noShow ? NO_SHOW_LABEL : bookingStatusLabel(booking.status)}</em>
+              <em className={`is-${tone}`}>{noShow ? NO_SHOW_LABEL : bookingStatusLabel(booking.status, { ended: hasBookingEnded(booking) })}</em>
             </li>
           );
         })}

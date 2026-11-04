@@ -148,10 +148,7 @@ button.vbWho2[aria-expanded="true"] svg { transform: rotate(180deg); }
 .vbWizard .vbHint { justify-self: center; }
 
 .vbPick { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-.vbPick.is-days { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .vbBigChoice { min-height: 48px; padding: 0 16px; border-radius: 14px; font-size: 0.86rem; }
-.vbPick.is-days .vbBigChoice { min-height: 52px; justify-content: center; }
-.vbPick.is-days .vbDay { flex-direction: row; gap: 6px; }
 .vbBigChoice span { max-width: 62vw; }
 .vbSummary.is-center { text-align: center; }
 .vbWizard .vbSummary { text-align: center; min-height: 1.4em; }

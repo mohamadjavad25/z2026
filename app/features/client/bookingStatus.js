@@ -4,13 +4,18 @@ import { bookingWaitMinutes, minutesUntilSlotStart, requestDeadlineLabel } from 
 import { scheduleBookingParts } from "../../shared/lib/bookingParts";
 import { getTehranClockMinutes, normalizeBookingTimeLabel, timeLabelToMinutes } from "../../shared/lib/time";
 
-/** Plain-language status for a booking row (the stored values are internal: تازه / درخواست ...). */
-export function bookingStatusLabel(status = "", waitsOn = "salon") {
-  if (status === "تایید شده" || status === "تایید") return "تأیید شد";
+/**
+ * The words a booking's state is shown with, the same for clients, salons and artists (owner's decision 2026-11-04):
+ * «منتظر تأیید» («منتظر تأیید سالن» on an artist's copy of a salon booking), «قطعی», «لغو شد», and «انجام شد» once a
+ * confirmed visit is over (`ended`); «بی‌جواب موند» for a request nobody answered, «در انتظار تو» for a new time the
+ * client must answer. Display only: the stored values (تازه / درخواست / تایید شده ...) never change.
+ */
+export function bookingStatusLabel(status = "", { ended = false, waitsOnSalon = false } = {}) {
+  if (status === "تایید شده" || status === "تایید") return ended ? "انجام شد" : "قطعی";
   if (status === "لغو") return "لغو شد";
-  if (status === "منقضی شده") return "منقضی شد";
+  if (status === "منقضی شده") return "بی‌جواب موند";
   if (status === AWAITING_CLIENT) return "در انتظار تو";
-  return waitsOn === "artist" ? "منتظر آرتیست" : "منتظر سالن";
+  return waitsOnSalon ? "منتظر تأیید سالن" : "منتظر تأیید";
 }
 
 export function bookingStatusTone(status = "") {

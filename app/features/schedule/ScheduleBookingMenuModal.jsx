@@ -38,6 +38,7 @@ import { ArtistBookingPlace } from "./ArtistBookingPlace";
 import { getSalonBookingMoveTimes, getSalonBookingStaffOptions } from "../../shared/api/salons";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { AWAITING_CLIENT, bookingTimeOffer } from "../../shared/lib/bookingOffer";
+import { bookingStatusLabel, hasBookingEnded } from "../client/bookingStatus";
 import { CALL_FIRST_TEXT, CANCEL_WITH_NOTICE, CLIENT_CAN_CALL, NO_SHOW_HOURS, NO_SHOW_LABEL, NO_SHOW_UNDO_LABEL, PROPOSE_LABEL, noShowPhase, shortClock, startsSoon } from "../../shared/lib/providerRules";
 
 // Shown when a customer / staff member / source has no uploaded photo.
@@ -411,7 +412,7 @@ export function ScheduleBookingMenuModal({
             <b>{title}</b>
             <strong className={`clientBookingSettingsStatus is-${statusTone}${showReview ? " is-live" : ""}`}>
               <StatusIcon size={11} />
-              {markedNoShow ? NO_SHOW_LABEL : !isSalonOwner && sourceSalon.name && statusTone === "pending" ? "منتظر سالن" : (booking.status === "تایید شده" ? "تأیید شده" : booking.status || "درخواست")}
+              {markedNoShow ? NO_SHOW_LABEL : booking.status === AWAITING_CLIENT ? AWAITING_CLIENT : bookingStatusLabel(booking.status || "درخواست", { ended: hasBookingEnded(booking), waitsOnSalon: Boolean(!isSalonOwner && sourceSalon.name && statusTone === "pending") })}
             </strong>
           </div>
           {team.length ? (

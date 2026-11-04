@@ -1,6 +1,6 @@
 "use client";
 
-import { Bookmark, CalendarCheck, ChevronLeft, ChevronUp, Heart, Phone, Scissors, Share2 } from "lucide-react";
+import { Bookmark, CalendarCheck, ChevronLeft, ChevronUp, Phone, Scissors, Share2 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { LocationButton } from "../../components/LocationButton";
 import { folderPhotos, InstagramRow } from "../../components/InstagramFolder";
@@ -159,7 +159,7 @@ export function PublicArtistModal({
           <section className="pphInfo" aria-label={`معرفی ${artist.name || "آرتیست"}`}>
             <div className="pphActions">
               <LocationButton name={artist.name || ""} location={artist.location} variant="action" />
-              {visitorBar ? null : <ConnectToggle following={following} onToggle={onFollow} name={artist.name || ""} kind="آرتیست" icon={<Heart size={18} />} />}
+              {visitorBar ? null : <ConnectToggle following={following} onToggle={onFollow} name={artist.name || ""} kind="آرتیست" />}
               {artist.phone ? (
                 <a className="pphCall" href={`tel:${toLatinDigits(artist.phone)}`} aria-label="تماس با آرتیست">
                   <Phone size={18} /> تماس

@@ -11,8 +11,7 @@ import {
   Phone,
   RotateCw,
   Scissors,
-  Share2,
-  UserPlus
+  Share2
 } from "lucide-react";
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { LocationButton } from "../../components/LocationButton";
@@ -180,7 +179,7 @@ export function SalonClientPage({
           <section className="pphInfo" aria-label={`معرفی ${publicName}`}>
             <div className="pphActions">
               <LocationButton name={publicName} location={selectedSalon.location} variant="action" />
-              {visitorBar ? null : <ConnectToggle following={isFollowing} onToggle={() => onFollow(selectedSalon)} name={publicName} kind="سالن" icon={<UserPlus size={18} />} />}
+              {visitorBar ? null : <ConnectToggle following={isFollowing} onToggle={() => onFollow(selectedSalon)} name={publicName} kind="سالن" />}
               {selectedSalon.phone ? (
                 <a className="pphCall" href={`tel:${toLatinDigits(selectedSalon.phone)}`} aria-label="تماس با سالن">
                   <Phone size={18} /> تماس

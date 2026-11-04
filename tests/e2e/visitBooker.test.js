@@ -70,9 +70,13 @@ async function openBookingSheet(page) {
   await page.locator(".visitBookerSheet").waitFor();
 }
 
-/** Picks day chip number `offset` (0 = today); skips none, so choose a day the salon is open. */
+// The day step's tiles and the hour step's row of days (2026-11-04: the day step has the client form's tiles).
+const DAY_BUTTONS = ".vbDayCard, .vbDay";
+const DAY_ON = ".vbDayCard.is-on, .vbDay.is-on";
+
+/** Picks day number `offset` (0 = today); skips none, so choose a day the salon is open. */
 async function pickDay(page, offset) {
-  await page.locator(".vbDay").nth(offset).click();
+  await page.locator(DAY_BUTTONS).nth(offset).click();
 }
 
 async function pickService(page, name) {
@@ -216,7 +220,7 @@ describe("VisitBooker for the salon (browser)", () => {
     // the services cannot be skipped either
     await fillWho(page, "ناقص");
     await page.locator(".vbSubmit").click({ force: true });
-    expect(await page.locator(".vbDay").count()).toBe(0);
+    expect(await page.locator(DAY_BUTTONS).count()).toBe(0);
     expect(await bookingsOf(team)).toHaveLength(0);
     await context.close();
   });
@@ -285,7 +289,7 @@ describe("VisitBooker for the salon (browser)", () => {
     // on the hour step the days stay in a row above the hours: there is always a way to another day
     await pickDay(page, DAY2);
     await page.locator(".vbTime").first().waitFor();
-    expect(await page.locator(".vbDay").count()).toBeGreaterThan(0);
+    expect(await page.locator(DAY_BUTTONS).count()).toBeGreaterThan(0);
     // and the phone number is explained
     await page.locator(".vbDoneChip").first().click();
     expect(await page.locator(".vbPhoneNote").innerText()).toContain("شماره‌ش رو بزن");
@@ -299,11 +303,11 @@ describe("VisitBooker for the salon (browser)", () => {
     await fillWho(page, "تعطیل");
     await pickService(page, H);
     await goOn(page);
-    const days = page.locator(".vbDay");
+    const days = page.locator(DAY_BUTTONS);
     const closed = days.filter({ hasText: "تعطیل" });
     expect(await closed.count()).toBeGreaterThan(0);
     // Late in the day today has no free hour and the form moves itself to the next open day: wait for that first.
-    const onDay = () => page.locator(".vbDay.is-on").innerText();
+    const onDay = () => page.locator(DAY_ON).innerText();
     let before = await onDay();
     for (let still = 0; still < 2;) {
       await page.waitForTimeout(400);
@@ -315,7 +319,7 @@ describe("VisitBooker for the salon (browser)", () => {
     expect(await closed.first().getAttribute("aria-disabled")).toBe("true");
     // still asking for the day: a closed one does not move on
     expect(await page.locator(".vbTime").count()).toBe(0);
-    expect(await page.locator(".vbDay.is-on").innerText()).toBe(before);
+    expect(await page.locator(DAY_ON).innerText()).toBe(before);
     await context.close();
   });
 

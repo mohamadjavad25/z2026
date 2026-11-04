@@ -5,6 +5,7 @@ import { ArrowLeft, CalendarCheck, CalendarX, Check, ChevronRight, Info } from "
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { PlanList, TimesList } from "./visitBookerParts";
+import { dayDate, dayShort } from "./clientWizardParts";
 import { MAX_VISIT_SERVICES, clockText, visitSummaryText } from "./visitBookerModel";
 
 const STEPS = ["who", "services", "day", "time", "confirm"];
@@ -241,22 +242,24 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
 
           {current === "day" ? (
             <div className="vbAsk">
-              <div className="vbPick is-days" role="group" aria-label="روز">
+              {/* The same day tiles the client's form has (owner's decision 2026-11-04: one day picker everywhere). */}
+              <div className="vbCalendar" role="group" aria-label="روز">
                 {days.map((item) => (
                   <button
                     type="button"
                     key={item.value}
                     aria-pressed={state.day === item.value}
                     aria-disabled={item.closed || undefined}
-                    className={`vbDay vbBigChoice${state.day === item.value ? " is-on" : ""}${item.closed ? " is-closed" : ""}`}
+                    className={`vbDayCard${state.day === item.value ? " is-on" : ""}${item.closed ? " is-off" : ""}`}
                     onClick={() => {
                       if (item.closed) return;
                       controller.setDay(item.value);
                       go("time");
                     }}
                   >
-                    {item.label}
-                    {item.closed ? <small>تعطیل</small> : null}
+                    <small>{dayShort(item)}</small>
+                    <b>{dayDate(item)}</b>
+                    <em>{item.closed ? "تعطیل" : ""}</em>
                   </button>
                 ))}
               </div>

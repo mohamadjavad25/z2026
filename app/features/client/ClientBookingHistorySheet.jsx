@@ -6,7 +6,7 @@ import { ProfileSheet } from "../profile/ProfileSheet";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
-import { bookingStatusLabel, bookingStatusTone } from "./bookingStatus";
+import { bookingStatusLabel, bookingStatusTone, hasBookingEnded } from "./bookingStatus";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { ExpiredRequestActions } from "./ExpiredRequestActions";
 
@@ -84,7 +84,7 @@ export function ClientBookingHistorySheet({ open, onClose, bookings = [], onOpen
                           <b>{shortServiceLabel(booking.service) || "خدمت زیبایی"}</b>
                           <small>{place}{booking.time ? `، ${toPersianDigits(booking.time)}` : ""}</small>
                         </span>
-                        <em className={`is-${tone}`}>{booking.no_show_at ? "نیومدی" : bookingStatusLabel(booking.status)}</em>
+                        <em className={`is-${tone}`}>{booking.no_show_at ? "نیومدی" : bookingStatusLabel(booking.status, { ended: hasBookingEnded(booking) })}</em>
                       </button>
                       <button
                         type="button"

@@ -10,9 +10,9 @@ const SETTLE_MS = 2000;
  * «وصل شو» / «وصل هستی» on a salon's or artist's public page. Right after connecting it says
  * «وصل هستی» for two seconds, then settles into the linked look; tapping that opens a small menu
  * under it, as wide as the button, with «قطع اتصال» and «گزارش به پشتیبانی» (the support chat,
- * a complaint already titled with this page's name).
+ * a complaint already titled with this page's name). The chain icon on salon and artist pages alike (2026-11-04).
  */
-export function ConnectToggle({ following, onToggle, name = "", kind = "سالن", icon }) {
+export function ConnectToggle({ following, onToggle, name = "", kind = "سالن" }) {
   // Already connected when the page opened: no «just connected» moment, straight to the linked look.
   const [settled, setSettled] = useState(Boolean(following));
   const [open, setOpen] = useState(false);
@@ -53,7 +53,7 @@ export function ConnectToggle({ following, onToggle, name = "", kind = "سالن
   if (!following) {
     return (
       <button type="button" className="pphFollow" onClick={onToggle}>
-        {icon}
+        <Link2 size={18} aria-hidden="true" />
         وصل شو
       </button>
     );

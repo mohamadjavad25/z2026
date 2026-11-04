@@ -4,6 +4,7 @@ import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { SheetClose } from "../../components/SheetClose";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
+import { bookingStatusLabel, hasBookingEnded } from "../client/bookingStatus";
 
 const TYPE_LABELS = {
   client: "مشتری",
@@ -79,7 +80,7 @@ export function ClientProfileModal({ client, onClose }) {
                 <article key={item.id}>
                   <b className="svcInline"><ServiceIcon emoji={item.service_emoji} name={item.service} size="xs" />{shortServiceLabel(item.service) || "خدمت"}</b>
                   <span>{item.date}، {item.time}</span>
-                  <em>{item.status}</em>
+                  <em>{bookingStatusLabel(item.status, { ended: hasBookingEnded(item) })}</em>
                 </article>
               ))}
             </div>

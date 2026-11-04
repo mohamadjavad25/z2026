@@ -104,7 +104,7 @@ describe("booking flow (browser)", () => {
     expect(await receipt.locator(".brCount").innerText()).toContain("دقیقه تا جواب");
     expect(await receipt.locator(".brCount").innerText()).toContain("اگه جواب نداد، لغو می‌شه.");
     await cp.locator(".cbt.is-wait").waitFor({ state: "attached" });
-    expect(await cp.locator(".cbt").innerText()).toContain("منتظر سالن");
+    expect(await cp.locator(".cbt").innerText()).toContain(`منتظر تأیید ${name}`);
     // and takes the client home, where the new booking is the first card
     await receipt.getByRole("button", { name: "ببینش توی «نوبت‌هام»" }).click();
     await receipt.waitFor({ state: "detached" });

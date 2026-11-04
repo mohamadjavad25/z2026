@@ -158,7 +158,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                   <CalendarCheck size={18} />
                   {picked.length > 1
                     ? `رزرو ${toPersianDigits(picked.length)} خدمت`
-                    : picked.length ? `رزرو «${picked[0].name}»` : "چه کارهایی می‌خوای؟"}
+                    : picked.length ? `رزرو «${picked[0].name}»` : "یه کار انتخاب کن"}
                   {totalAmount ? <small>{formatTomanNumber(totalAmount)} تومان</small> : null}
                 </button>
               </div>

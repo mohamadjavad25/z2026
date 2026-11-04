@@ -195,7 +195,7 @@ export function resolveBookingDateToWeekday(date) {
 const BOOKING_PHASE_LABEL = {
   live: "در حال انجام",
   done: "انجام شد",
-  upcoming: "تأیید شده"
+  upcoming: "قطعی"
 };
 
 /**

@@ -126,12 +126,13 @@
 .sduItemPrice { font-size: 0.88rem; font-weight: 900; white-space: nowrap; }
 .sduItemPrice small { color: var(--n-600); font-size: 0.68rem; font-weight: 700; }
 .sduCheck { width: 22px; height: 22px; flex: none; box-sizing: border-box; display: grid; place-items: center; border: 2px solid var(--n-300); border-radius: 7px; color: transparent; transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
-.sduItem.is-selected .sduCheck { border-color: var(--n-900); background: var(--fill-strong); color: var(--n-0); }
+/* Pink: picking a service is part of a booking (owner's decision 2026-11-04, one look for salon and artist pages). */
+.sduItem.is-selected .sduCheck { border-color: var(--live-fill); background: var(--live-fill); color: var(--on-live-fill); }
 .sduSummary { margin: 0 4px 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--n-700); font-size: 0.78rem; font-weight: 800; }
 .sduSummary b { color: var(--n-900); font-weight: 900; }
 .sduFoot { padding: 12px 14px 14px; border-top: 1px solid var(--n-100); }
-.sduConfirm { width: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 12px; border: 0; border-radius: 18px; background: var(--fill-strong); color: var(--n-0); font: inherit; font-size: 0.92rem; font-weight: 900; cursor: pointer; box-shadow: 0 12px 24px -10px rgb(var(--shadow-rgb) / 0.5); }
-.sduConfirm small { padding-inline-start: 10px; border-inline-start: 1px solid rgb(var(--paper-rgb) / 0.24); color: rgb(var(--paper-rgb) / 0.8); font-size: 0.8rem; font-weight: 800; }
+.sduConfirm { width: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 12px; border: 0; border-radius: 18px; background: var(--live-fill); color: var(--on-live-fill); font: inherit; font-size: 0.92rem; font-weight: 900; cursor: pointer; box-shadow: 0 12px 24px -10px rgb(var(--shadow-rgb) / 0.5); }
+.sduConfirm small { padding-inline-start: 10px; border-inline-start: 1px solid rgb(var(--shadow-rgb) / 0.2); color: var(--on-live-fill); font-size: 0.8rem; font-weight: 800; }
 .sduConfirm:disabled { background: var(--n-100); color: var(--n-500); box-shadow: none; cursor: default; }
 .sduEmpty { display: grid; justify-items: center; gap: 6px; padding: 24px 18px; text-align: center; }
 .sduEmpty b { font-size: 0.92rem; font-weight: 900; }
