@@ -113,7 +113,7 @@ export async function ensureJoinTerms(salonClient, terms = DEFAULT_JOIN_TERMS) {
  *  code first (as the real "artist scans the salon's QR" flow does) -- the endpoint
  *  rejects a bare salonUserId with no code (see app/lib/db/repos/salons/invites.js).
  *  The salon's terms are saved on demand and their version sent, as the join page does. */
-export async function joinSalonAsArtist(artistClient, salonClient, salonUserId, { keepTerms = false } = {}) {
+export async function joinSalonAsArtist(artistClient, salonClient, salonUserId, { keepTerms = false, keepNotice = false } = {}) {
   const terms = await ensureJoinTerms(salonClient);
   const code = await salonClient.get("/api/salon-invites/join-code");
   if (!code.ok) throw new Error(`fetching salon join code failed: ${JSON.stringify(code.payload)}`);
@@ -126,7 +126,21 @@ export async function joinSalonAsArtist(artistClient, salonClient, salonUserId, 
     await db.connect();
     try { await db.query("DELETE FROM team_terms WHERE salon_user_id = $1 AND artist_user_id = $2", [salonUserId, artistId]); } finally { await db.end(); }
   }
+  // The salon's «اومد توی تیمت» card (2026-11-04) is written just after the join; a test that later opens the salon's
+  // screen wants it already seen, or it sits over everything. Pass { keepNotice: true } to test the card itself.
+  if (res.ok && !keepNotice) await closeJoinNotice(salonClient);
   return res;
+}
+
+async function closeJoinNotice(salonClient) {
+  for (let i = 0; i < 40; i += 1) {
+    const notices = ((await salonClient.get("/api/team-notices")).payload?.data?.notices || []).filter((notice) => notice.kind === "joined");
+    if (notices.length) {
+      await salonClient.post("/api/team-notices", { ids: notices.map((notice) => notice.id) });
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
 }
 
 /** A Persian date key a few open (non-Friday) days from now, so booking tests never land on a past slot. */

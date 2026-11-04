@@ -13,7 +13,7 @@ describe("an artist coming into a salon's team is told to the other side", () =>
   it("joining with the salon's code: the salon gets the card and one SMS, the artist gets nothing", async () => {
     const salon = await newSalon("Join Card Salon");
     const artist = await newArtist("Join Card Artist");
-    expect((await joinSalonAsArtist(artist.api, salon.api, salon.id)).status).toBe(201);
+    expect((await joinSalonAsArtist(artist.api, salon.api, salon.id, { keepNotice: true })).status).toBe(201);
 
     const texts = await smsEventually(salon.phone, "team_joined", 1);
     expect(texts).toHaveLength(1);
