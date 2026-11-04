@@ -565,6 +565,8 @@ describe("work location on a map (browser)", () => {
     await page.locator(".mpp .profileLocationMapPin").waitFor();
     await page.locator(".mppSave:not([disabled])").click();
     await page.locator(".profileLocationSettings .profileLocationRow").waitFor();
+    // The row comes back before the save has landed on a slow runner (CI red on 21f6a273): wait for the saved spot.
+    await expect.poll(async () => (await api.get("/api/auth/me")).payload.data.user.location, { timeout: 10000 }).toBeTruthy();
     const me = (await api.get("/api/auth/me")).payload.data.user;
     expect(Math.round(me.location.lat)).toBe(31);
     expect(Math.round(me.location.lng)).toBe(49);
