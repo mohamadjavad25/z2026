@@ -7,7 +7,6 @@ import { ProfileQrCodeSheet } from "../../components/ProfileQrCodeSheet";
 import { usePolling } from "../../shared/lib/usePolling";
 import { SalonRulesNote } from "../salons/SalonRulesNote";
 import { TermsChips } from "../collab/TermsEditor";
-import { NEGOTIABLE } from "../collab/collabPresets";
 import { ScanFlow } from "../connect/ScanFlow";
 import { PasteJoinLink } from "./PasteJoinLink";
 import { ArtistSalonDetails, ArtistSelfSheet } from "./ArtistSalonDetails";
@@ -85,25 +84,6 @@ function WalletCard({ card, active, menuOpen, onMenu, onLeave, leaveBusy, onFocu
         </div>
       ) : null}
     </article>
-  );
-}
-
-/** Days, hours and the artist's share as three small boxes; the rest of the terms stay as chips. */
-function TermsFacts({ terms }) {
-  const share = terms.share ? (terms.share === NEGOTIABLE ? "توافقی" : `${toPersianDigits(terms.share)}٪`) : "";
-  const hours = terms.from && terms.to ? `${terms.from} تا ${terms.to}` : "";
-  const facts = [
-    terms.days ? { k: "روزها", v: terms.days } : null,
-    hours ? { k: "ساعت", v: hours } : null,
-    share ? { k: "سهم تو", v: share } : null
-  ].filter(Boolean);
-  if (!facts.length) return null;
-  return (
-    <div className="clwFacts" style={{ gridTemplateColumns: `repeat(${facts.length}, minmax(0, 1fr))` }}>
-      {facts.map((fact) => (
-        <span key={fact.k}><small>{fact.k}</small><b>{fact.v}</b></span>
-      ))}
-    </div>
   );
 }
 
@@ -520,7 +500,6 @@ export function ArtistCollabBoard({
                       <span className="clwCount">{toPersianDigits(info.weekCount)} نوبت این هفته اینجاست</span>
                     </div>
                   ) : null}
-                  <TermsFacts terms={card.terms} />
                   <ArtistSalonDetails
                     card={card}
                     team={card.terms}

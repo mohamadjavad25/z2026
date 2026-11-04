@@ -136,6 +136,24 @@ export function overlapHours(own = [], salon = []) {
   });
 }
 
+const joinDays = (names) => (names.length > 1 ? `${names.slice(0, -1).join("، ")} و ${names[names.length - 1]}` : names[0] || "");
+
+/**
+ * The small line when the days she really works here (her hours inside the salon's) are not the agreed days: clients can
+ * book her on the real ones. "" when they match, or when the agreed days are not a plain list of weekdays.
+ */
+export function daysMismatch(week, days) {
+  const agreed = String(days || "").split(/[،,]/).map(plain).filter(Boolean);
+  const names = WEEK_DAYS.map((item) => item.day);
+  if (!agreed.length || agreed.some((day) => !names.some((name) => plain(name) === day))) return "";
+  const real = week.filter((item) => item.on).map((item) => item.day);
+  if (!real.length) return "";
+  const extra = real.filter((day) => !agreed.includes(plain(day)));
+  if (extra.length) return `${joinDays(extra)} هم ساعت گذاشتی ولی توی شرایط کار نیست.`;
+  const missing = names.filter((day) => agreed.includes(plain(day)) && !real.includes(day));
+  return missing.length ? `${joinDays(missing)} توی شرایط کاره ولی اون روز اینجا ساعت نداری.` : "";
+}
+
 /** A Persian date key (YYYY-MM-DD) as «۱۲ آبان»; "" when it is not one. */
 export function keyLabel(key) {
   const date = persianDateKeyToDate(String(key || ""));

@@ -16,7 +16,7 @@ export function diffRows(current, next) {
   if ((current.days || "") !== (next.days || "")) rows.push(["روزها", current.days || "—", next.days]);
   if (fmtHours(current) !== fmtHours(next)) rows.push(["ساعت", fmtHours(current) || "—", fmtHours(next)]);
   if (current.share !== next.share) rows.push(["سهم آرتیست", fmtShare(current.share) || "—", fmtShare(next.share)]);
-  if ((current.ownShare ?? null) !== (next.ownShare ?? null)) rows.push(["مشتری خودش", fmtShare(current.ownShare ?? current.share) || "—", fmtShare(next.ownShare ?? next.share)]);
+  if ((current.ownShare ?? null) !== (next.ownShare ?? null)) rows.push(["از مشتری خود آرتیست", fmtShare(current.ownShare ?? current.share) || "—", fmtShare(next.ownShare ?? next.share)]);
   return rows;
 }
 
@@ -25,7 +25,7 @@ export function diffRows(current, next) {
  * what is agreed to start later, a proposal waiting for an answer (to accept, reject or counter) and the button to propose
  * a change (owner's decision 2026-10-28). Until a proposal is accepted the old terms stand.
  */
-export function TeamTermsCard({ pair, otherName, onChanged }) {
+export function TeamTermsCard({ pair, otherName, onChanged, hideHead = false }) {
   const [state, setState] = useState(null);
   const [sheet, setSheet] = useState(false);
   const [counter, setCounter] = useState(null);
@@ -87,15 +87,17 @@ export function TeamTermsCard({ pair, otherName, onChanged }) {
   const rows = pending ? diffRows(current, pending) : [];
   return (
     <section className="ttCard" aria-label="شرایط کار">
-      <div className="ttHead"><b>شرایط کار</b>{current.effectiveFrom ? <small>از {keyLabel(current.effectiveFrom)}</small> : null}</div>
+      {hideHead ? (current.effectiveFrom ? <p className="ttNone">از {keyLabel(current.effectiveFrom)}</p> : null) : (
+        <div className="ttHead"><b>شرایط کار</b>{current.effectiveFrom ? <small>از {keyLabel(current.effectiveFrom)}</small> : null}</div>
+      )}
       {nothing && !upcoming ? (
         <p className="ttNone">هنوز شرایطی ثبت نشده؛ روز، ساعت و درصد رو پیشنهاد بده تا حساب درست دربیاد.</p>
       ) : nothing ? null : (
         <div className="ttRows">
           <div><CalendarDays size={15} aria-hidden="true" /><span>روزها</span><b>{current.days || "—"}</b></div>
           <div><Timer size={15} aria-hidden="true" /><span>ساعت</span><b>{fmtHours(current) || "—"}</b></div>
-          <div><Percent size={15} aria-hidden="true" /><span>سهم آرتیست</span><b>{fmtShare(current.share) || "مشخص نیست"}</b></div>
-          {Number.isInteger(current.ownShare) ? <div><Percent size={15} aria-hidden="true" /><span>مشتری خودش</span><b>{fmtShare(current.ownShare)}</b></div> : null}
+          <div><Percent size={15} aria-hidden="true" /><span>{side === "artist" ? "سهمت" : "سهم آرتیست"}</span><b>{fmtShare(current.share) || "مشخص نیست"}</b></div>
+          {Number.isInteger(current.ownShare) ? <div><Percent size={15} aria-hidden="true" /><span>{side === "artist" ? "سهمت از مشتری خودت" : "از مشتری خود آرتیست"}</span><b>{fmtShare(current.ownShare)}</b></div> : null}
         </div>
       )}
       {upcoming ? <p className="ttSoon">از {keyLabel(upcoming.effectiveFrom)} اجرا می‌شه: {upcoming.days}، {fmtHours(upcoming)}، {fmtShare(upcoming.share)}.</p> : null}

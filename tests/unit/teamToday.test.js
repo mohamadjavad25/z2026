@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { memberToday, weekFromHours } from "../../app/features/team/teamWeek.js";
+import { daysMismatch, memberToday, weekFromHours } from "../../app/features/team/teamWeek.js";
 import { getPersianWeekday } from "../../app/shared/lib/persianCalendar.js";
 
 // The salon's «پرسنل» tab, owner's screenshot of 2026-11-04 at 21:04: «امروز تا ۲۰ سرکاره» after 20:00, and «سرکاره»
@@ -49,5 +49,23 @@ describe("a team member's day on the salon's «پرسنل» tab", () => {
   it("a salon leave wins over the hours", () => {
     const from = at("12:00");
     expect(say(member(todayHours(from), { state: "مرخصی" }), from)).toMatchObject({ tone: "leave", now: false, today: false });
+  });
+});
+
+// The artist's «من اینجا» (owner's screenshot of 2026-11-04): Thursday had hours but was not in the agreed days.
+describe("the days she really works against the agreed days", () => {
+  const week = (days) => weekFromHours(days.map((day) => ({ day, active: true, open: "10:00", close: "18:00" })), at("12:00"));
+  const sixDays = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه"];
+
+  it("names the extra day", () => {
+    expect(daysMismatch(week(sixDays), "شنبه، یکشنبه، دوشنبه، سه‌شنبه، چهارشنبه")).toBe("پنجشنبه هم ساعت گذاشتی ولی توی شرایط کار نیست.");
+  });
+  it("names an agreed day with no hours here", () => {
+    expect(daysMismatch(week(sixDays.slice(0, 5)), sixDays.join("، "))).toBe("پنجشنبه توی شرایط کاره ولی اون روز اینجا ساعت نداری.");
+  });
+  it("says nothing when they match, or when the terms are not a plain list of days", () => {
+    expect(daysMismatch(week(sixDays), sixDays.join("،"))).toBe("");
+    expect(daysMismatch(week(sixDays), "شنبه تا چهارشنبه")).toBe("");
+    expect(daysMismatch(week(sixDays), "")).toBe("");
   });
 });

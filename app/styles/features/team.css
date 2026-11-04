@@ -101,6 +101,12 @@
 .cwRowBtn > span:first-child { flex: 1; min-width: 0; display: grid; }
 .cwRowBtn b { color: var(--n-900); font-size: 0.86rem; font-weight: 950; }
 .cwRowBtn small { color: var(--n-600); font-size: 0.72rem; font-weight: 700; }
+/* the artist's salon page: one card of rows, each opening its own sheet (2026-11-04) */
+.cwList { gap: 0; padding-block: 4px; }
+.cwList > .cwRowBtn { min-height: 56px; padding-block: 8px; }
+.cwList > .cwRowBtn + .cwRowBtn { border-top: 1px solid var(--n-150); }
+.cwList > .cwRowBtn.is-live b { color: var(--pink-deep); }
+.cwWarn { color: var(--warning); }
 .cwLines { display: grid; }
 .cwLine { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--n-100); color: var(--n-900); font-size: 0.82rem; font-weight: 900; }
 .cwLine:first-child { border-top: 0; }

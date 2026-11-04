@@ -1,34 +1,60 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ChevronLeft, Clock, Store } from "lucide-react";
+import { ChevronLeft, Store } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { WeekStrip } from "../team/WeekStrip";
-import { hourOnly, overlapHours, weekFromHours, weekSentence } from "../team/teamWeek";
+import { daysMismatch, hourOnly, keyLabel, overlapHours, weekFromHours, weekSentence } from "../team/teamWeek";
 import { SalonRulesNote } from "../salons/SalonRulesNote";
 import { TeamTermsCard } from "../team/TeamTermsCard";
 import { TeamLedgerSheet } from "../team/TeamLedgerSheet";
 import { getArtistTeamPosts, sendArtistTeamPost } from "../../shared/api/artists";
+import { getTeamTerms } from "../../shared/api/team";
 import { getPosts } from "../../shared/api/posts";
 import { toPersianDigits } from "../../shared/lib/digits";
 
 const splitRoles = (role) => String(role || "").split(/[،,]/).map((item) => item.trim()).filter(Boolean);
+/** «سهمت ۶۰٪، از مشتری خودت ۷۰٪» from the agreed terms; "" when no share is agreed. */
+function shareLine(current) {
+  if (!current || !Number.isInteger(current.share)) return "";
+  const own = Number.isInteger(current.ownShare) && current.ownShare !== current.share ? `، از مشتری خودت ${toPersianDigits(current.ownShare)}٪` : "";
+  return `سهمت ${toPersianDigits(current.share)}٪${own}`;
+}
 
 /**
- * What an artist wants to know under a salon's card (owner's choice of 2026-10-28): where their clients go (the caller
- * puts that row first), when and what they do at this salon, who else is there, their posts on its page, and the salon's
- * own facts. Leaving is last and quiet, with the 24-hour rule written out.
+ * An artist's page for one salon she works at (owner's decisions of 2026-10-28 and 2026-11-04): where her clients go (the
+ * caller puts that row first), then one «من اینجا» card that says the days, hours and share once, and a short list that
+ * opens each of the rest (terms, the account, herself on the salon's page, the salon's hours and rules). Leaving is last
+ * and quiet, with the 24-hour rule written out.
  */
 export function ArtistSalonDetails({ card, team, leaveBusy, onLeave, onOpenSelf }) {
-  const [ledgerOpen, setLedgerOpen] = useState(false);
+  const [open, setOpen] = useState(""); // "" | terms | ledger | salon
+  const [terms, setTerms] = useState(null);
+  const salonId = team?.salonId;
+  const loadTerms = useCallback(async () => {
+    try {
+      const result = await getTeamTerms({ salonUserId: salonId });
+      if (result.ok) setTerms(result.data);
+    } catch {
+      // the share line waits for the next open
+    }
+  }, [salonId]);
+  useEffect(() => { if (salonId) loadTerms(); }, [salonId, loadTerms]);
   if (!team) return null;
   const week = weekFromHours(overlapHours(team.ownHours || [], team.salonHours || []));
   const roles = splitRoles(team.role);
   const mates = team.teammates || [];
   const posts = team.posts || { pending: 0, approved: 0 };
-  const salonToday = weekFromHours(team.salonHours || []).find((item) => item.today);
+  const salonWeek = weekFromHours(team.salonHours || []);
+  const salonToday = salonWeek.find((item) => item.today);
   const away = team.state === "مرخصی";
+  const current = terms?.current || null;
+  const agreed = Boolean(current && (current.days || current.from || Number.isInteger(current.share)));
+  const newFromSalon = Boolean(terms?.pending && terms.pending.by !== terms.side);
+  const share = shareLine(current);
+  const mismatch = team.ownHours?.length ? daysMismatch(week, current?.days) : "";
+  const close = () => setOpen("");
 
   return (
     <div className="cwStack">
@@ -40,35 +66,53 @@ export function ArtistSalonDetails({ card, team, leaveBusy, onLeave, onOpenSelf 
         {team.ownHours?.length ? (
           <>
             <WeekStrip week={week} large />
-            <p className="cwSub">{weekSentence(week) || "الان هیچ روزی با ساعت سالن جور نیست."}</p>
+            <p className="cwSub">{[weekSentence(week) || "الان هیچ روزی با ساعت سالن جور نیست.", share].filter(Boolean).join(" · ")}</p>
+            {mismatch ? <p className="cwSub cwWarn">{mismatch}</p> : null}
           </>
         ) : (
           <p className="cwSub">هنوز ساعت کاریت رو نذاشتی؛ از تنظیمات بذارش.</p>
         )}
         {away ? <p className="cwSub">{team.salonName} تو رو مرخصی گذاشته. تا برگردی نوبت تازه نمی‌گیری.</p> : null}
-        <div>
-          <p className="cwSub" style={{ marginBottom: 6 }}>اینجا این کارها رو می‌کنی</p>
-          <div className="cwChips">
-            {roles.length ? roles.map((role) => <span key={role} className="cwChip"><ServiceIcon name={role} size="xs" />{role}</span>) : <span className="cwSub">هنوز کارهات رو نگفتی؛ از خدمات خودت بگو.</span>}
-          </div>
+        <div className="cwChips">
+          {roles.length ? roles.map((role) => <span key={role} className="cwChip"><ServiceIcon name={role} size="xs" />{role}</span>) : <span className="cwSub">هنوز کارهات رو نگفتی؛ از خدمات خودت بگو.</span>}
         </div>
       </section>
 
-      <TeamTermsCard pair={{ salonUserId: team.salonId }} otherName={card.name} />
-
-      <section className="cwCard" aria-label="حساب من با سالن">
-        <button type="button" className="cwRowBtn" onClick={() => setLedgerOpen(true)}>
+      <section className="cwCard cwList" aria-label={`کار با ${card.name}`}>
+        <button type="button" className={`cwRowBtn${newFromSalon ? " is-live" : ""}`} onClick={() => setOpen("terms")}>
+          <span>
+            <b>{newFromSalon ? `${card.name} شرایط تازه پیشنهاد داده` : "شرایط کار"}</b>
+            <small>
+              {newFromSalon ? "ببین و جواب بده"
+                : agreed ? `${current.effectiveFrom ? `از ${keyLabel(current.effectiveFrom)} · ` : ""}پیشنهاد تغییر هم از اینجاست`
+                : "هنوز شرایطی ثبت نشده؛ پیشنهاد بده"}
+            </small>
+          </span>
+          <ChevronLeft size={18} aria-hidden="true" />
+        </button>
+        <button type="button" className="cwRowBtn" onClick={() => setOpen("ledger")}>
           <span>
             <b>حساب من با {card.name}</b>
             <small>کارهای انجام‌شده، سهم هر کس و تصفیه</small>
           </span>
           <ChevronLeft size={18} aria-hidden="true" />
         </button>
-        <TeamLedgerSheet open={ledgerOpen} pair={{ salonUserId: team.salonId }} otherName={card.name} onClose={() => setLedgerOpen(false)} />
-      </section>
-
-      {mates.length ? (
-        <section className="cwCard" aria-label="هم‌تیمی‌هام">
+        <button type="button" className="cwRowBtn" onClick={onOpenSelf}>
+          <span>
+            <b>خودت توی صفحهٔ سالن</b>
+            <small>{posts.approved ? `${toPersianDigits(posts.approved)} تا نمونه‌کارت روی صفحهٔ سالنه` : "ببین مشتری‌ها تو رو اونجا چطور می‌بینن"}</small>
+          </span>
+          {posts.pending ? <span className="cwChip is-live">{toPersianDigits(posts.pending)} تا منتظره</span> : null}
+          <ChevronLeft size={18} aria-hidden="true" />
+        </button>
+        <button type="button" className="cwRowBtn" onClick={() => setOpen("salon")}>
+          <span>
+            <b>ساعت و قوانین سالن</b>
+            <small>{salonToday?.on ? `امروز ${toPersianDigits(hourOnly(salonToday.open))} تا ${toPersianDigits(hourOnly(salonToday.close))}` : salonToday && salonWeek.some((item) => item.on) ? "امروز تعطیله" : "ساعتش رو نذاشته"}</small>
+          </span>
+          <ChevronLeft size={18} aria-hidden="true" />
+        </button>
+        {mates.length ? (
           <div className="cwRowBtn" style={{ cursor: "default" }}>
             <span>
               <b>هم‌تیمی‌هام</b>
@@ -78,39 +122,27 @@ export function ArtistSalonDetails({ card, team, leaveBusy, onLeave, onOpenSelf 
               {mates.slice(0, 4).map((m, i) => (m.avatar ? <img key={i} src={m.avatar} alt="" /> : <span key={i}>{String(m.name || "?").slice(0, 1)}</span>))}
             </span>
           </div>
-        </section>
-      ) : null}
-
-      <section className="cwCard" aria-label="صفحهٔ من توی سالن">
-        <button type="button" className="cwRowBtn" onClick={onOpenSelf}>
-          <span>
-            <b>خودت توی صفحهٔ سالن</b>
-            <small>{posts.approved ? `${toPersianDigits(posts.approved)} تا نمونه‌کارت روی صفحهٔ سالنه.` : "ببین مشتری‌ها تو رو اونجا چطور می‌بینن."}</small>
-          </span>
-          {posts.pending ? <span className="cwChip is-live">{toPersianDigits(posts.pending)} تا منتظره</span> : null}
-          <ChevronLeft size={18} aria-hidden="true" />
-        </button>
-      </section>
-
-      <section className="cwCard" aria-label="خود سالن">
-        <div className="cwLines">
-          <div className="cwLine">
-            <span className="cwIco"><Clock size={15} aria-hidden="true" /></span>
-            <span>ساعت کاری سالن</span>
-            <small>{salonToday?.on ? `امروز ${toPersianDigits(hourOnly(salonToday.open))} تا ${toPersianDigits(hourOnly(salonToday.close))}` : salonToday ? "امروز تعطیله" : "ساعتش رو نذاشته"}</small>
-          </div>
-          {card.rules ? (
-            <div className="cwLine" style={{ display: "block" }}>
-              <SalonRulesNote rules={card.rules} />
-            </div>
-          ) : null}
-        </div>
+        ) : null}
       </section>
 
       <div className="cwQuiet">
         <button type="button" disabled={leaveBusy} onClick={onLeave}>{leaveBusy ? "یه لحظه…" : `ترک تیم ${card.name}`}</button>
         <small>نوبت‌هایی که تا ۲۴ ساعت دیگه داری، اول باید انجام یا لغو شن.</small>
       </div>
+
+      <ProfileSheet open={open === "terms"} kicker={card.name} title="شرایط کار" panelClassName="clwSheet" onClose={close}>
+        <TeamTermsCard pair={{ salonUserId: team.salonId }} otherName={card.name} onChanged={loadTerms} hideHead />
+      </ProfileSheet>
+      <TeamLedgerSheet open={open === "ledger"} pair={{ salonUserId: team.salonId }} otherName={card.name} onClose={close} />
+      <ProfileSheet open={open === "salon"} kicker={card.name} title="ساعت و قوانین سالن" panelClassName="clwSheet" onClose={close}>
+        {salonWeek.some((item) => item.on) ? (
+          <>
+            <WeekStrip week={salonWeek} large />
+            <p className="cwSub">{weekSentence(salonWeek)}</p>
+          </>
+        ) : <p className="cwSub">{card.name} هنوز ساعت کاریش رو نذاشته.</p>}
+        {card.rules ? <SalonRulesNote rules={card.rules} open /> : <p className="cwSub">قانون خاصی ننوشته.</p>}
+      </ProfileSheet>
     </div>
   );
 }
