@@ -46,6 +46,9 @@ export async function teamSalon(name, n = 2) {
     if (!joined.ok) throw new Error(`join failed ${JSON.stringify(joined.payload)}`);
     members.push(artist);
   }
+  // A ready team, as if the salon had seen its «اومد توی تیمت» cards (2026-11-04): they would sit over a salon's screen.
+  const notices = (await salon.api.get("/api/team-notices")).payload.data?.notices || [];
+  if (notices.length) await salon.api.post("/api/team-notices", { ids: notices.map((notice) => notice.id) });
   const rows = (await salon.api.get("/api/salon-staff")).payload.data.staff;
   for (const member of members) member.staff = rows.find((row) => Number(row.artist_user_id) === member.id);
   return { salon, members };

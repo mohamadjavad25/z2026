@@ -74,6 +74,7 @@ async function people() {
     for (const [name, price, duration] of [["کاشت ناخن", "800000", "۹۰ دقیقه"], ["لاک ژل", "450000", "۶۰ دقیقه"]]) await artist.post("/api/artist/me", { name, price, duration });
     await artist2.post("/api/artist/me", { name: "میکاپ عروس", price: "5000000", duration: "۱۸۰ دقیقه" });
     await artist.post("/api/artist/join-salon", { salonUserId: ids.salon, ...(await joinCodeOf(salon)) });
+    await closeTeamNotices(salon);
     for (const who of [client, client2]) {
       await who.post("/api/follows", { targetUserId: ids.salon, follow: true });
       await who.post("/api/follows", { targetUserId: ids.artist, follow: true });
@@ -100,6 +101,11 @@ async function joinCodeOf(salonClient) {
   if (!terms) terms = (await salonClient.put("/api/salon-join-terms", { days: "شنبه، یکشنبه، دوشنبه، سه‌شنبه، چهارشنبه", from: "10:00", to: "18:00", share: 60, allowProposals: true })).payload.data?.terms;
   const code = (await salonClient.get("/api/salon-invites/join-code")).payload.data?.code;
   return { code, termsVersion: terms?.version };
+}
+/** Closes the salon's «اومد توی تیمت» cards (since 2026-11-04) so they do not sit over the screens taken after a join. */
+async function closeTeamNotices(salonClient) {
+  const notices = (await salonClient.get("/api/team-notices")).payload.data?.notices || [];
+  if (notices.length) await salonClient.post("/api/team-notices", { ids: notices.map((notice) => notice.id) });
 }
 const tap = (name, opts = {}) => async (p) => { await p.getByRole("button", { name, ...opts }).first().click({ timeout: 4000, force: true }); await p.waitForTimeout(900); };
 const text = (t) => async (p) => { await p.getByText(t, { exact: true }).first().click({ timeout: 4000 }); await p.waitForTimeout(900); };
@@ -176,6 +182,7 @@ async function withSecondSalon(ctx) {
   ids.salon2 = res.payload.data?.user?.id;
   await client.get("/api/salon-hours");
   await sessions.artist.post("/api/artist/join-salon", { salonUserId: ids.salon2, ...(await joinCodeOf(client)) });
+  await closeTeamNotices(client);
 }
 
 /** The client opens the artist's page in the app, picks the first service and goes to the day and hour sheet. */
@@ -231,6 +238,7 @@ async function teamWorld(ctx) {
   const team = (await sessions.salon.get("/api/salon-staff")).payload.data.staff;
   if (!team.some((person) => person.artist_user_id === ids.artist2)) {
     await sessions.artist2.post("/api/artist/join-salon", { salonUserId: ids.salon, ...(await joinCodeOf(sessions.salon)) });
+    await closeTeamNotices(sessions.salon);
   }
   const after = (await sessions.salon.get("/api/salon-staff")).payload.data.staff;
   const mina = after.find((person) => person.artist_user_id === ids.artist2);
