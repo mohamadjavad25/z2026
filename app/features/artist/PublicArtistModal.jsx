@@ -19,6 +19,7 @@ import { PublicArtistGalleryPanel } from "./PublicArtistGalleryPanel";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { WaitChoice } from "../booking/WaitChoice";
 import { BOOKING_WAIT_CHOICES } from "../../shared/lib/bookingWindow";
+import { ATTEND_NOTICE } from "../../shared/lib/attendance";
 import { getArtistFallbacks } from "../../shared/api/artists";
 import { useEffect, useState } from "react";
 
@@ -250,11 +251,8 @@ export function PublicArtistModal({
                 {bookingSlot && !guest ? (
                   <WaitChoice value={wait} onChange={setWait} who="آرتیست" backups={backups} backup={backup} onBackup={setBackup} />
                 ) : null}
-                {guest ? (
-                  <p className="artistBookingPhoneWarning is-info">
-                    انتخاب‌هات سر جاشه. با «بفرست» یه حساب می‌سازی یا وارد می‌شی و درخواستت همون لحظه می‌ره.
-                  </p>
-                ) : !clientPhone ? (
+                {/* No note for a visitor without an account: «بفرست» opens the sign-up sheet, which says it (owner, 2026-11-04). */}
+                {!guest && !clientPhone ? (
                   <p className="artistBookingPhoneWarning">
                     برای نوبت گرفتن، شماره‌ت رو توی پروفایلت بذار؛ آرتیست برای تأیید باید بتونه بهت زنگ بزنه.{" "}
                     {typeof onEditProfile === "function" ? (
@@ -281,6 +279,8 @@ export function PublicArtistModal({
                   <CalendarCheck size={17} />
                   {bookingBusy ? "یه لحظه…" : bookingSlot ? `بفرست برای ${bookingDay}، ${bookingSlot}` : "یه ساعت انتخاب کن"}
                 </button>
+                {/* The one line every client sees before sending (owner, 2026-11-02); small, under the button since 2026-11-04. */}
+                <p className="artistPublicBookingNote">{ATTEND_NOTICE}</p>
           </ProfileSheet>
 
         </section>

@@ -76,7 +76,8 @@ export function ArtistPublicPageClient({ artist }) {
       try {
         const { ok, status, payload } = await createArtistBooking({ artistUserId: artist.id, service: service.name, bookingDate: day, time, durationMinutes });
         if (ok) {
-          setSent({ service: service.name, day, time });
+          // An artist with «تأیید خودکار» confirms on the spot: the thank-you then says it is settled.
+          setSent({ service: service.name, day, time, confirmed: payload?.data?.booking?.status === "تایید شده" });
           return;
         }
         if (payload?.code === "SLOT_TAKEN" || status === 409) {
@@ -174,12 +175,16 @@ export function ArtistPublicPageClient({ artist }) {
       guest
     />
     <FollowSheet gate={followGate} />
-    <ProfileSheet open={Boolean(sent)} kicker="انجام شد" title="درخواستت رفت" panelClassName="fsSheet" onClose={() => setSent(null)}>
+    <ProfileSheet open={Boolean(sent)} kicker="انجام شد" title={sent?.confirmed ? "نوبتت قطعی شد" : "درخواستت رفت"} panelClassName="fsSheet" onClose={() => setSent(null)}>
       {sent ? (
         <div className="fsDone" role="status">
           <span className="fsDoneMark" aria-hidden="true"><Check size={34} strokeWidth={3} /></span>
           <h3>{sent.service} · {sent.day} ساعت {toPersianDigits(String(sent.time || "").slice(0, 5))}</h3>
-          <p>«{artist.name}» باید تأییدش کنه. جوابش که اومد، توی فرفرو بهت خبر می‌دیم.</p>
+          <p>
+            {sent.confirmed
+              ? `${String(artist.name || "آرتیست").trim().split(/\s+/)[0]} منتظرته. قبلش یادت می‌ندازیم.`
+              : `«${artist.name}» باید تأییدش کنه. جوابش که اومد، توی فرفرو بهت خبر می‌دیم.`}
+          </p>
           <div className="fsDoneActions">
             <a className="fsSubmit" href="/">برو به فرفرو</a>
             <button type="button" className="fsGhost" onClick={() => setSent(null)}>صفحه رو ببینم</button>

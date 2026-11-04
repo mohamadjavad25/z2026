@@ -44,7 +44,6 @@
 .bspDay:focus-visible, .bspTime:focus-visible { outline: 3px solid var(--n-900); outline-offset: 2px; }
 @media (max-width: 360px) { .bspTimes { grid-template-columns: repeat(3, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .bspDay, .bspTime { transition: none; } }
-.artistBookingPhoneWarning.is-info { background: var(--n-50); color: var(--info); }
 
 .bspTimes { max-height: none; overflow: visible; }
 .bspDay.is-disabled { opacity: 0.5; }

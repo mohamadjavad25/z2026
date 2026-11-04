@@ -9,7 +9,7 @@ import { SheetBackHandler } from "../../components/SheetClose";
 import { getPosts } from "../../shared/api/posts";
 import { getSalonServices, getSalonVisitTimes } from "../../shared/api/salons";
 import { getArtist } from "../../shared/api/artists";
-import { artistVisitTimes } from "../booking/artistVisitTimes";
+import { artistFreeTimes } from "../../shared/lib/artistFreeTimes";
 import { formatPersianDateKey, formatPersianDayTitle } from "../../shared/lib/persianCalendar";
 import { isTooSoonToRequest } from "../../shared/lib/bookingWindow";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -445,7 +445,8 @@ function nextDays() {
 /**
  * Free start times for today, tomorrow and the day after, as a client could still request them, for the shortest
  * service. A salon asks the server (the booking rules live there); an artist's times are worked out from the public
- * page's own busy list, break and leaves, the same as its booking page. A closed or hidden page offers nothing.
+ * page's data with the booking sheet's own rule (artistFreeTimes: working hours, workplace salon, busy list, break,
+ * leaves), so the story never offers a time the sheet would not. A closed or hidden page offers nothing.
  */
 export async function loadFreeSlots(profileType, profileId) {
   const days = nextDays();
@@ -471,17 +472,7 @@ export async function loadFreeSlots(profileType, profileId) {
   const shortest = [...list].sort((a, b) => parseServiceDurationMinutes(a.duration) - parseServiceDurationMinutes(b.duration))[0];
   if (!shortest) return days.map((day) => ({ ...day, times: [] }));
   const minutes = parseServiceDurationMinutes(shortest.duration);
-  return days.map((day) => ({
-    ...day,
-    service: shortest.name,
-    times: artistVisitTimes({
-      day: day.key,
-      minutes,
-      bookedSlots: artist.bookedSlots || [],
-      breakTime: artist.breakTime || null,
-      leaves: artist.leaves || []
-    })
-  }));
+  return days.map((day) => ({ ...day, service: shortest.name, times: artistFreeTimes(artist, day.key, minutes) }));
 }
 
 /** Public posts that have a picture, newest first, for the collage and the photo behind the free times. */
