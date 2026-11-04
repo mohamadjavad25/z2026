@@ -43,6 +43,8 @@
 .twToday.is-ok { color: var(--success); }
 .twToday.is-leave { color: var(--warning); }
 .twToday.is-off, .twToday.is-idle { color: var(--n-600); }
+.twToday.is-soon { color: var(--accent); }
+.twToday.is-warn { color: var(--warning); }
 .twTags { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
 .twTag { padding: 1px 10px; border-radius: var(--radius-pill); background: rgb(var(--accent-rgb) / 0.13); color: var(--accent); font-size: 0.68rem; font-weight: 900; }
 .twTag.is-gray { background: var(--n-100); color: var(--n-600); }
@@ -61,19 +63,6 @@
 .twWeek i.is-today { box-shadow: 0 0 0 2px var(--n-0), 0 0 0 3.5px var(--live-fill); }
 .twWeek.is-large { justify-content: space-between; }
 .twWeek.is-large i { width: 38px; height: 38px; font-size: 0.82rem; }
-
-/* «امروز تیم» */
-.twDayView { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--n-150); border-radius: 22px; background: var(--n-0); color: inherit; }
-.twAxis { position: relative; height: 16px; margin-inline-start: 74px; color: var(--n-500); font-size: 0.66rem; font-weight: 800; }
-.twAxis span { position: absolute; transform: translateX(50%); }
-.twTodayRow { display: flex; align-items: center; gap: 8px; width: 100%; padding: 0; border: 0; background: transparent; font: inherit; cursor: pointer; text-align: start; }
-.twTodayName { flex: none; width: 66px; color: var(--n-900); font-size: 0.76rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.twTrack { position: relative; flex: 1; height: 32px; border: 1px solid var(--n-150); border-radius: 11px; background: var(--n-25); overflow: hidden; }
-.twBar { position: absolute; top: 4px; bottom: 4px; display: flex; align-items: center; padding-inline: 9px; border-radius: 8px; background: var(--fill-strong); color: var(--on-primary); font-size: 0.7rem; font-weight: 900; white-space: nowrap; overflow: hidden; }
-.twBar.is-leave { background: repeating-linear-gradient(135deg, var(--warning-bg) 0 6px, transparent 6px 12px); color: var(--warning); }
-.twBar.is-off, .twBar.is-idle { background: var(--n-100); color: var(--n-600); }
-.twNow { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--live-fill); z-index: 2; }
-.twTodayNote { margin: 0; color: var(--n-500); font-size: 0.7rem; font-weight: 700; text-align: center; }
 
 /* ── a member's page ── */
 .tmSeg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 3px; border-radius: var(--radius-pill); background: var(--n-100); }

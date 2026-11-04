@@ -54,7 +54,6 @@ export function ProfilePanelBody() {
     salonWorkspace,
     pendingSalonArtistInvites,
     safeSalonStaffList,
-    salonHoursList,
     joinSalonTeamAsOwner,
     removeSalonStaff,
     openNearbyArtistInvite,
@@ -321,7 +320,6 @@ export function ProfilePanelBody() {
                             refreshSalonSystemData?.();
                           }}
                           staffList={safeSalonStaffList}
-                          salonHours={salonHoursList}
                           onInviteNearby={openNearbyArtistInvite}
                           onCancelInvite={cancelSalonArtistInvite}
                           onManageStaff={setSelectedArtistProfile}

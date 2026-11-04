@@ -1,5 +1,6 @@
 import { formatPersianDateKey, formatPersianDayTitle, formatRelativeBookingDayLabel, getPersianWeekday, persianDateKeyToDate } from "../../shared/lib/persianCalendar";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { getTehranClockMinutes } from "../../shared/lib/time";
 
 /** The week as the app runs it (Saturday first), with the one-letter label the week strips show. */
 export const WEEK_DAYS = [
@@ -77,26 +78,43 @@ export function leaveDayAfter(days, from = new Date()) {
   return date.toISOString().slice(0, 10);
 }
 
+/** "۱۰:۳۰" or "10:30" as minutes from midnight; null when it is not a time. */
+function toMinutes(time) {
+  const m = String(time || "").replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).match(/^(\d{1,2})(?::(\d{2}))?/);
+  return m ? Number(m[1]) * 60 + Number(m[2] || 0) : null;
+}
+
+const hourWord = (time) => toPersianDigits(hourOnly(time));
+
 /**
- * What a member's card says about today. `person.state` is the stored word (فعال / مرخصی / غیرفعال); the words here are
- * only how it is shown (docs/COPY.md).
+ * What a member's card says about today, by the clock (owner's decision 2026-11-04: «سرکاره» only while it is true).
+ * `person.state` is the stored word (فعال / مرخصی / غیرفعال); the words here are only how it is shown (docs/COPY.md).
+ * → { tone, text, today: works some of today, now: at work this minute }.
  */
 export function memberToday(person, week, from = new Date()) {
   const state = person.state || "فعال";
   if (state === "مرخصی") {
     const back = leaveLabel(person.leave_until);
-    return { tone: "leave", text: back ? `مرخصیه، ${back} برمی‌گرده` : "مرخصیه" };
+    return { tone: "leave", text: back ? `مرخصیه، ${back} برمی‌گرده` : "مرخصیه", today: false, now: false };
   }
-  if (state === "غیرفعال") return { tone: "off", text: "کار نمی‌کنه" };
+  if (state === "غیرفعال") return { tone: "off", text: "کار نمی‌کنه", today: false, now: false };
   // The artist's own leave («نمی‌تونم بیام»): all of today, or some hours of it.
   const todayKey = formatPersianDateKey(from);
   const own = (person.leaves || []).find((leave) => leave.from <= todayKey && leave.to >= todayKey);
-  if (own && !own.start) return { tone: "leave", text: "امروز نمی‌تونه بیاد" };
+  if (own && !own.start) return { tone: "leave", text: "امروز نمی‌تونه بیاد", today: false, now: false };
+  if (!week.some((item) => item.on)) return { tone: "warn", text: "ساعت کاریش رو نذاشته", today: false, now: false };
   const today = week.find((item) => item.today);
-  if (!week.some((item) => item.on)) return { tone: "ok", text: "سرکاره" };
-  if (today?.on && own?.start) return { tone: "ok", text: `امروز از ${toPersianDigits(hourOnly(own.start))} تا ${toPersianDigits(hourOnly(own.end))} نیست` };
-  if (today?.on) return { tone: "ok", text: `امروز تا ${toPersianDigits(hourOnly(today.close))} سرکاره` };
-  return { tone: "idle", text: "امروز نمیاد" };
+  if (!today?.on) return { tone: "idle", text: "امروز نمیاد", today: false, now: false };
+  const clock = getTehranClockMinutes(from);
+  const open = toMinutes(today.open) ?? 0;
+  const close = toMinutes(today.close) ?? 1440;
+  if (clock >= close) return { tone: "idle", text: `امروز ${hourWord(today.open)} تا ${hourWord(today.close)} بود؛ تموم شد`, today: true, now: false };
+  if (clock < open) return { tone: "soon", text: `امروز از ${hourWord(today.open)} میاد`, today: true, now: false };
+  if (own?.start) {
+    const away = clock >= (toMinutes(own.start) ?? 0) && clock < (toMinutes(own.end) ?? 0);
+    return { tone: away ? "leave" : "ok", text: `امروز از ${hourWord(own.start)} تا ${hourWord(own.end)} نیست`, today: true, now: !away };
+  }
+  return { tone: "ok", text: `الان سرکاره، تا ${hourWord(today.close)}`, today: true, now: true };
 }
 
 /**
@@ -104,10 +122,7 @@ export function memberToday(person, week, from = new Date()) {
  * ({ day, open, close, active } rows like the ones they come from).
  */
 export function overlapHours(own = [], salon = []) {
-  const toMin = (time) => {
-    const m = String(time || "").replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).match(/^(\d{1,2})(?::(\d{2}))?/);
-    return m ? Number(m[1]) * 60 + Number(m[2] || 0) : null;
-  };
+  const toMin = toMinutes;
   return own.map((mine) => {
     const theirs = salon.find((item) => plain(item.day) === plain(mine.day));
     if (!salon.length) return mine; // the salon never set hours: its days do not limit

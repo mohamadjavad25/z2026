@@ -7,7 +7,6 @@ import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { SalonOwnerTeamCard } from "./SalonOwnerTeamCard";
 import { SalonCollabInbox } from "./SalonCollabInbox";
-import { SalonTeamToday } from "../team/SalonTeamToday";
 import { WeekStrip } from "../team/WeekStrip";
 import { memberToday, weekFromHours } from "../team/teamWeek";
 
@@ -17,9 +16,10 @@ const splitRoles = (role) => String(role || "").split(/[،,]/).map((item) => ite
 
 /**
  * Salon owner — «پرسنل» tab (owner's choice of 2026-10-28, docs/DECISIONS.md): a header with the invite button, artists
- * asking to join (SalonCollabInbox, moved here from «نوبت‌ها» on 2026-10-30), filters
- * that do something, a «لیست | امروز» switch, and one live card per member (their work, today, this week). A card opens
- * the member's own page (SalonStaffProfileModal). No booking or money numbers here (owner's decision 2026-10-25).
+ * asking to join (SalonCollabInbox, moved here from «نوبت‌ها» on 2026-10-30), filters that do something, and one list,
+ * one live card per member (their work, today in words, this week). The «لیست | امروز» switch and its chart went on
+ * 2026-11-04: one thing shown two ways confused the owner. A card opens the member's own page (SalonStaffProfileModal).
+ * No booking or money numbers here (owner's decision 2026-10-25).
  */
 export function SalonStaffWorkspace({
   pendingInvites = [],
@@ -29,7 +29,6 @@ export function SalonStaffWorkspace({
   onDeclineCollab,
   onCollabsChanged,
   staffList = [],
-  salonHours = [],
   onInviteNearby,
   onCancelInvite,
   onManageStaff,
@@ -38,24 +37,25 @@ export function SalonStaffWorkspace({
   onLeaveAsOwner
 }) {
   const [filter, setFilter] = useState("all"); // all | today | leave | waiting
-  const [view, setView] = useState("list"); // list | today
   const ownerMember = staffList.find((person) => person.is_owner) || null;
   // The manager's own card sits at the top (with its switch), so the cards below are the rest of the team.
   const teamList = onJoinAsOwner ? staffList.filter((person) => !person.is_owner) : staffList;
   const now = new Date();
   const rows = teamList.map((person) => {
     const week = weekFromHours(person.hours || [], now);
-    return { person, week, today: memberToday(person, week) };
+    return { person, week, today: memberToday(person, week, now) };
   });
   const everyone = staffList.length;
-  const inToday = staffList.filter((person) => memberToday(person, weekFromHours(person.hours || [], now)).tone === "ok").length;
+  const todays = staffList.map((person) => memberToday(person, weekFromHours(person.hours || [], now), now));
+  const inToday = todays.filter((today) => today.today).length;
+  const atWork = todays.filter((today) => today.now).length;
   const onLeave = staffList.filter((person) => person.state === "مرخصی").length;
-  const shown = rows.filter(({ today }) => (filter === "today" ? today.tone === "ok" : filter === "leave" ? today.tone === "leave" : filter === "waiting" ? false : true));
+  const shown = rows.filter(({ today }) => (filter === "today" ? today.today : filter === "leave" ? today.tone === "leave" : filter === "waiting" ? false : true));
   const showInvites = filter === "all" || filter === "waiting";
-  const summary = !everyone ? "" : inToday ? `${toPersianDigits(everyone)} نفر، ${toPersianDigits(inToday)} نفرشون امروز سرکارن` : `${toPersianDigits(everyone)} نفر`;
+  const summary = !everyone ? "" : `${toPersianDigits(everyone)} نفر · ${atWork ? `الان ${toPersianDigits(atWork)} نفر سرکاره` : "الان کسی سرکار نیست"}`;
   const filters = [
     { key: "all", label: "همه", n: everyone },
-    { key: "today", label: "امروز سرکار", n: inToday },
+    { key: "today", label: "امروز", n: inToday },
     ...(onLeave ? [{ key: "leave", label: "مرخصی", n: onLeave }] : []),
     ...(pendingInvites.length ? [{ key: "waiting", label: "منتظر جواب", n: pendingInvites.length }] : [])
   ];
@@ -81,14 +81,7 @@ export function SalonStaffWorkspace({
         onChanged={onCollabsChanged}
       />
 
-      {everyone > 1 ? (
-        <div className="twSeg" role="group" aria-label="نمایش تیم">
-          <button type="button" className={view === "list" ? "is-on" : ""} aria-pressed={view === "list"} onClick={() => setView("list")}>لیست</button>
-          <button type="button" className={view === "today" ? "is-on" : ""} aria-pressed={view === "today"} onClick={() => setView("today")}>امروز</button>
-        </div>
-      ) : null}
-
-      {view === "list" && (everyone > 1 || pendingInvites.length) ? (
+      {everyone > 1 || pendingInvites.length ? (
         <div className="twFilters" role="group" aria-label="فیلتر تیم">
           {filters.map((item) => (
             <button type="button" key={item.key} className={filter === item.key ? "is-on" : ""} aria-pressed={filter === item.key} onClick={() => setFilter(item.key)}>
@@ -98,10 +91,7 @@ export function SalonStaffWorkspace({
         </div>
       ) : null}
 
-      {view === "today" ? (
-        <SalonTeamToday staffList={staffList} salonHours={salonHours} onOpen={onManageStaff} />
-      ) : (
-        <>
+      <>
           {showInvites && pendingInvites.length ? (
             <section className="twInvites" aria-label="دعوت‌هایی که منتظر جوابن">
               {pendingInvites.map((invite) => (
@@ -191,8 +181,7 @@ export function SalonStaffWorkspace({
               <button type="button" onClick={onInviteNearby}><Link2 size={15} aria-hidden="true" />کد و لینک تیم</button>
             </div>
           ) : null}
-        </>
-      )}
+      </>
     </div>
   );
 }
