@@ -1,0 +1,54 @@
+/* The about page's moving picture (HeroMotion.jsx): light and paper sheets, no frame. Four scenes share a 14s loop, 3.5s each. */
+.heroMotion {
+  --m-ink: var(--brand-ink);
+  --m-pink: var(--brand-pink);
+  --m-violet: var(--brand-violet);
+  --m-paper: var(--brand-white);
+  position: relative;
+  width: min(100%, 400px);
+  aspect-ratio: 4 / 5;
+  margin-inline: auto;
+}
+.heroMotion__glow { position: absolute; border-radius: 50%; filter: blur(46px); opacity: 0.7; }
+.heroMotion__glow.is-pink { width: 62%; aspect-ratio: 1; background: var(--m-pink); top: -4%; inset-inline-start: -6%; animation: motionDriftA 9s ease-in-out infinite; }
+.heroMotion__glow.is-violet { width: 70%; aspect-ratio: 1; background: var(--m-violet); bottom: -8%; inset-inline-end: -10%; animation: motionDriftB 11s ease-in-out infinite; }
+
+.heroMotion__scene { position: absolute; inset: 6% 8%; opacity: 0; animation: motionScene 14s infinite var(--ease-standard); }
+.heroMotion__scene.is-0 { animation-delay: 0s; }
+.heroMotion__scene.is-1 { animation-delay: 3.5s; }
+.heroMotion__scene.is-2 { animation-delay: 7s; }
+.heroMotion__scene.is-3 { animation-delay: 10.5s; }
+
+.heroMotion__sheet { position: absolute; inset: 0; border-radius: 36px; box-shadow: 0 26px 50px rgb(var(--shadow-rgb) / 0.22); }
+.heroMotion__sheet.is-back { transform: rotate(-7deg); background: var(--m-pink); }
+.heroMotion__scene.is-1 .heroMotion__sheet.is-back { background: var(--m-violet); transform: rotate(6deg); }
+.heroMotion__scene.is-2 .heroMotion__sheet.is-back { background: var(--m-pink); transform: rotate(-4deg); }
+.heroMotion__scene.is-3 .heroMotion__sheet.is-back { background: var(--m-violet); transform: rotate(8deg); }
+.heroMotion__sheet.is-front {
+  inset: 3% 3% 0 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px;
+  background: var(--m-paper);
+  color: var(--m-ink);
+  text-align: center;
+  animation: motionFloat 4s ease-in-out infinite;
+}
+.heroMotion__sheet.is-front strong { font-size: clamp(2rem, 7vw, 2.8rem); line-height: 1.2; font-weight: 800; background: var(--brand-blend-deep); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.heroMotion__sheet.is-front span:last-child { font-size: 1.05rem; font-weight: 600; opacity: 0.75; }
+
+@keyframes motionScene {
+  0% { opacity: 0; transform: translate(40px, 60px) rotate(5deg) scale(0.92); }
+  5%, 22% { opacity: 1; transform: none; }
+  27%, 100% { opacity: 0; transform: translate(-30px, -50px) rotate(-4deg) scale(0.96); }
+}
+@keyframes motionFloat { 50% { transform: translateY(-8px); } }
+@keyframes motionDriftA { 50% { transform: translate(50px, 70px) scale(1.2); } }
+@keyframes motionDriftB { 50% { transform: translate(-60px, -60px) scale(0.85); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .heroMotion *, .heroMotion__scene { animation: none !important; }
+  .heroMotion__scene.is-0 { opacity: 1; }
+}

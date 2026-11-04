@@ -283,7 +283,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
 
 .appLanding__note { margin: var(--space-4) 0 0; font-size: 0.82rem; color: var(--l-muted); }
 
-/* Hero art: the silent film (HeroFilm) and the QR card. */
+/* Hero art: the moving picture (HeroMotion, landingMotion.css) and the QR card. */
 .appLanding__heroArt {
   position: relative;
   display: grid;
@@ -291,33 +291,6 @@ html.native-app .webOnlyAppLink { display: none !important; }
   min-height: 0;
 }
 
-.appLanding__film {
-  position: relative;
-  width: min(100%, 380px);
-  aspect-ratio: 9 / 16;
-  border-radius: 28px;
-  overflow: hidden;
-  background: var(--l-ink);
-  box-shadow: 0 50px 90px rgba(91, 63, 214, 0.28), 0 20px 40px rgba(12, 13, 18, 0.22), 0 0 0 1px rgba(12, 13, 18, 0.2);
-}
-.appLanding__film video { width: 100%; height: 100%; object-fit: cover; display: block; }
-.appLanding__filmToggle {
-  position: absolute;
-  inset-inline-start: 14px;
-  bottom: 14px;
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(12, 13, 18, 0.62);
-  color: #fff;
-  cursor: pointer;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-}
-.appLanding__filmToggle:focus-visible { outline: 3px solid var(--l-violet); outline-offset: 2px; }
 
 .appLanding__qr {
   position: absolute;
@@ -734,7 +707,6 @@ html.native-app .webOnlyAppLink { display: none !important; }
 .appLanding__heroText > :nth-child(3) { animation-delay: 0.16s; }
 .appLanding__heroText > :nth-child(4) { animation-delay: 0.24s; }
 .appLanding__heroText > :nth-child(n + 5) { animation-delay: 0.32s; }
-.appLanding__film { animation: landingPop 0.9s 0.15s var(--ease-standard) both; }
 .appLanding__qr { animation: landingPop 0.7s 0.6s var(--ease-standard) both; }
 
 /* Scroll reveal where the browser supports scroll-driven animations; elsewhere it is simply shown. */
@@ -761,7 +733,6 @@ html.native-app .webOnlyAppLink { display: none !important; }
 
 @media (max-width: 720px) {
   .appLanding__heroInner { grid-template-columns: 1fr; gap: var(--space-4); padding-top: var(--space-5); }
-  .appLanding__film { border-radius: 20px; width: min(100%, 320px); }
   .appLanding__qr { display: none; }
   .appLanding__cards, .appLanding__install, .appLanding__promises { grid-template-columns: 1fr; }
   .appLanding__promises div { padding: var(--space-5) var(--space-5); max-width: none; }

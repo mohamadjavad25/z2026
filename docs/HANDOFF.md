@@ -3,7 +3,7 @@
 The owner is away from the PC and works from a laptop through cloud sessions. This PC holds the private status file, the
 deploy script and the server's SSH key, so a cloud session can NOT deploy to the main server (frfro.ir). It can do
 everything else: branch, push, and give the owner the Vercel preview link (every pushed branch gets one; project `z2026`).
-Deploying to the main server waits until the owner is back at this PC (or until a deploy path from the cloud is set up).
+Deploying to the main server waits until the owner is back at this PC, OR uses the GitHub button «Deploy main to the main server» (`.github/workflows/deploy-main.yml`, 2026-11-04): it needs the repo secrets `DEPLOY_HOST` and `DEPLOY_SSH_KEY` (the owner adds them once at this PC). First run it with mode `check` (proves GitHub can reach the Iranian server, changes nothing), then mode `deploy`. If `check` cannot connect, the server blocks foreign addresses: deploy from this PC as before.
 
 ## What is live (main ecb32932, deployed 2026-11-02)
 
