@@ -9,6 +9,7 @@ import { toLatinDigits, toPersianDigits } from "../shared/lib/digits";
  *
  * dayOptions are labels like "یکشنبه ۱۲ مهر" (weekday, day number, month); the first one is today.
  * timeOptions are the free clock times for the selected day.
+ * fullDays are greyed with «پر» but stay tappable: picking one shows `emptyTime` (e.g. «خبرم کن») in place of the hours.
  */
 export function BookingSlotPicker({
   dayOptions = [],
@@ -16,10 +17,12 @@ export function BookingSlotPicker({
   onDayChange,
   disabledDays = [],
   closedDays = [],
+  fullDays = [],
   timeOptions = [],
   timeValue = "",
   onTimeChange,
-  emptyTimeMessage = "این روز ساعت خالی نداره."
+  emptyTimeMessage = "این روز ساعت خالی نداره.",
+  emptyTime = null
 }) {
   const stripRef = useRef(null);
   const activeDayRef = useRef(null);
@@ -44,6 +47,7 @@ export function BookingSlotPicker({
           const selected = label === dayValue;
           const closed = closedDays.includes(label);
           const disabled = closed || disabledDays.includes(label);
+          const full = !disabled && fullDays.includes(label);
           return (
             <button
               type="button"
@@ -52,12 +56,12 @@ export function BookingSlotPicker({
               disabled={disabled}
               key={label}
               ref={selected ? activeDayRef : null}
-              className={`bspDay${selected ? " is-selected" : ""}${disabled ? " is-disabled" : ""}`}
+              className={`bspDay${selected ? " is-selected" : ""}${disabled ? " is-disabled" : ""}${full ? " is-full" : ""}`}
               onClick={() => onDayChange?.(label)}
             >
               <small>{index === 0 ? "امروز" : weekday}</small>
               <b>{dayNumber}</b>
-              <em>{closed ? "تعطیل" : disabled ? "پر" : month.join(" ")}</em>
+              <em>{closed ? "تعطیل" : disabled || full ? "پر" : month.join(" ")}</em>
             </button>
           );
         })}
@@ -81,7 +85,7 @@ export function BookingSlotPicker({
           ))}
         </div>
       ) : (
-        <p className="bspEmpty">{emptyTimeMessage}</p>
+        emptyTime || <p className="bspEmpty">{emptyTimeMessage}</p>
       )}
     </div>
   );
