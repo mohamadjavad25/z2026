@@ -67,10 +67,13 @@ describe("per-address throttles", () => {
   it("limits SMS codes per address so nobody can use up everyone's hourly budget", async () => {
     const ip = freshIp();
     const statuses = [];
+    // Numbers only this test uses (0919…): a random 0912 number another file already registered answers 409 «حساب داره»
+    // (CI red on 871231cc, one of the 40 was not 200).
+    const base = 1000000 + Math.floor(Math.random() * 8000000);
     for (let i = 0; i <= OTP_SEND_PER_IP_HOUR; i += 1) {
-      statuses.push((await createClient().post("/api/auth/otp/send", { phone: uniquePhone(), purpose: "register" }, fromIp(ip))).status);
+      statuses.push((await createClient().post("/api/auth/otp/send", { phone: `0919${base + i}`, purpose: "register" }, fromIp(ip))).status);
     }
-    expect(statuses.slice(0, OTP_SEND_PER_IP_HOUR).every((status) => status === 200)).toBe(true);
+    expect(statuses.slice(0, OTP_SEND_PER_IP_HOUR)).toEqual(Array(OTP_SEND_PER_IP_HOUR).fill(200));
     expect(statuses[OTP_SEND_PER_IP_HOUR]).toBe(429);
   });
 });
