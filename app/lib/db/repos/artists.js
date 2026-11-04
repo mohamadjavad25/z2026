@@ -1187,6 +1187,8 @@ export async function getPublicArtist(userId, viewerUserId = null) {
     isPublic: settings.publicPortfolio !== false,
     // Subscription closed: the page says so up front instead of the booking form failing at the end.
     onlineBookingPaused: Boolean(bookingBlock),
+    // «تأیید خودکار»: a request from her page is confirmed at once, so the client is never asked how long to wait.
+    autoConfirm: Boolean(settings.autoConfirm),
     isFollowing: isFollowingViewer,
     isSaved,
     posts,

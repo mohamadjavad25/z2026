@@ -301,8 +301,8 @@ export function ArtistBookingSettings({ profileSettings, onToggle, bare = false 
       />
       <SettingsToggle
         icon={Briefcase}
-        label="تأیید سریع نوبت"
-        description="نوبت‌های تازه خودشون تأیید بشن"
+        label="تأیید خودکار"
+        description="درخواست‌های صفحه‌ت خودشون قطعی بشن"
         checked={Boolean(profileSettings.autoConfirm)}
         onChange={() => onToggle("autoConfirm")}
       />

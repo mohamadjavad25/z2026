@@ -1,6 +1,6 @@
 import { json, notFound, requireUserRole, withErrorHandling } from "../../../lib/http.js";
 import * as salons from "../../../lib/db/repos/salons.js";
-import { TEAM_URL, notifyConnection } from "../../../lib/connectionNotify.js";
+import { notifyTeamJoin } from "../../../lib/teamNotify.js";
 
 export const runtime = "nodejs";
 
@@ -27,11 +27,7 @@ async function _POST(request) {
     if (result.code === "TERMS_NOT_READY") return json({ error: result.error, code: result.code }, { status: 409 });
     return json({ error: result.error, code: result.code }, { status: 400 });
   }
-  notifyConnection(salonUserId, {
-    title: "یه آرتیست تازه اومد توی تیمت",
-    body: `${auth.user.name || "یه آرتیست"} با کد سالنت اومد توی تیم.`,
-    url: TEAM_URL
-  });
+  notifyTeamJoin({ kind: "joined", toUserId: salonUserId, from: auth.user });
   return json({ data: result }, { status: 201 });
 }
 

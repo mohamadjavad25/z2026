@@ -47,6 +47,7 @@ export function ProfilePanelBody() {
     pendingArtistSalonInvites,
     recentlyExpiredArtistBookings,
     profileSettings,
+    toggleProfileSetting,
     unseenClientBookingCount,
     shareSalonOwnerProfile,
     profileModeRail,
@@ -472,6 +473,12 @@ export function ProfilePanelBody() {
                   onDeclineRequest={declineArtistBookingRequest}
                   onTeam={(artistTeams || []).length > 0}
                   onNotice={setAppToast}
+                  autoConfirm={Boolean(profileSettings.autoConfirm)}
+                  onToggleAutoConfirm={() => {
+                    const on = !profileSettings.autoConfirm;
+                    toggleProfileSetting("autoConfirm");
+                    setAppToast(on ? "تأیید خودکار روشن شد." : "تأیید خودکار خاموش شد.");
+                  }}
                 />
               )}
 

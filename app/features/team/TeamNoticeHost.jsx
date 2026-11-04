@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Phone, UsersRound } from "lucide-react";
+import { Phone, UserPlus, UsersRound } from "lucide-react";
 import { apiFetch } from "../../shared/api/client";
 
 /**
@@ -9,7 +9,7 @@ import { apiFetch } from "../../shared/api/client";
  * the other side sees this card the next time the app is open (or comes back to the front), until «باشه».
  * The push and the SMS go from the server (lib/teamNotify.js); this is the part that never gets lost.
  */
-export function TeamNoticeHost({ profileType }) {
+export function TeamNoticeHost({ profileType, onOpenTeam }) {
   const [notices, setNotices] = useState([]);
   const enabled = profileType === "salon" || profileType === "artist";
 
@@ -39,6 +39,28 @@ export function TeamNoticeHost({ profileType }) {
     setNotices((list) => list.filter((item) => item.id !== notice.id));
     apiFetch("/api/team-notices", { method: "POST", body: JSON.stringify({ ids: [notice.id] }) }).catch(() => {});
   };
+
+  // «اومد توی تیمت» (2026-11-04): the start of a team, same card; its main button opens the team.
+  const joined = notice.kind === "joined";
+  if (joined || notice.kind === "accepted") {
+    const open = () => {
+      close();
+      onOpenTeam?.();
+    };
+    return (
+      <div className="teamNoticeBackdrop" role="presentation">
+        <section className="teamNotice" role="alertdialog" aria-modal="true" aria-labelledby="teamNoticeTitle">
+          <span className="teamNoticeIcon" aria-hidden="true"><UserPlus size={26} /></span>
+          <h3 id="teamNoticeTitle">{joined ? `${notice.fromName} اومد توی تیمت` : `حالا توی تیم ${notice.fromName} هستی`}</h3>
+          <p>{joined ? "از الان نوبت‌ها رو می‌تونی به اسمش ثبت کنی." : "روزها و ساعتت توی «همکاری» هست."}</p>
+          <div className="teamNoticeActions">
+            <button type="button" className="is-main" onClick={open}>{joined ? "ببینمش" : "ببینم"}</button>
+            <button type="button" onClick={close}>باشه</button>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   const gone = notice.kind === "gone";
   const removed = notice.kind === "removed" || gone;

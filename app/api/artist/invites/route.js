@@ -1,6 +1,7 @@
 import { json, notFound, requireUserRole, withErrorHandling } from "../../../lib/http.js";
 import * as salons from "../../../lib/db/repos/salons.js";
 import { TEAM_URL, notifyConnection } from "../../../lib/connectionNotify.js";
+import { notifyTeamJoin } from "../../../lib/teamNotify.js";
 
 export const runtime = "nodejs";
 
@@ -27,14 +28,16 @@ async function _PATCH(request) {
     if (result.code === "NOT_FOUND") return notFound();
     return json({ error: result.error, code: result.code, invite: result.invite || null }, { status: statusCode });
   }
-  const accepted = result.invite?.status === "تایید شد";
-  notifyConnection(result.invite?.salonId, {
-    title: accepted ? "آرتیست اومد توی تیمت" : "آرتیست دعوتت رو نخواست",
-    body: accepted
-      ? `${auth.user.name || "آرتیست"} دعوتت رو قبول کرد و حالا توی تیمته.`
-      : `${auth.user.name || "آرتیست"} فعلاً نمی‌تونه بیاد توی تیمت.`,
-    url: TEAM_URL
-  });
+  if (result.invite?.status === "تایید شد") {
+    // The salon is told like an end of a team: a card, a push, and an SMS when the push missed its app (2026-11-04).
+    notifyTeamJoin({ kind: "joined", toUserId: result.invite.salonId, from: auth.user });
+  } else {
+    notifyConnection(result.invite?.salonId, {
+      title: "آرتیست دعوتت رو نخواست",
+      body: `${auth.user.name || "آرتیست"} فعلاً نمی‌تونه بیاد توی تیمت.`,
+      url: TEAM_URL
+    });
+  }
   return json({
     data: {
       invite: result.invite,

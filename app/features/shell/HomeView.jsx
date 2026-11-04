@@ -401,7 +401,14 @@ export function HomeView() {
           onDelete={createdProfile?.type === "salon" ? deleteSalonService : deleteArtistService}
         />
         <NoticeHost />
-        <TeamNoticeHost profileType={createdProfile?.type || ""} />
+        <TeamNoticeHost
+          profileType={createdProfile?.type || ""}
+          onOpenTeam={() => {
+            goToTab("profile");
+            if (createdProfile?.type === "salon") openSalonWorkspace("staff");
+            else setProfileView("collabs");
+          }}
+        />
 
         <PushSoftAsk />
         {authChecked ? <SiteNotice role={createdProfile?.type || ""} /> : null}

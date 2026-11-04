@@ -137,6 +137,20 @@ export const SMS_TEMPLATES = {
     faraz: (v) => ({ who: v.who }),
     preview: (v) => `فرفرو: ${v.who} حسابش رو پاک کرد و همکاریتون تموم شد. نوبت‌های خودت سر جاشونن.`
   },
+  team_joined: {
+    label: "اومدن آرتیست به تیم (به سالن)",
+    env: "TEAM_JOINED",
+    kavenegar: (v) => ({ token10: v.who }),
+    faraz: (v) => ({ who: v.who }),
+    preview: (v) => `فرفرو: ${v.who} اومد توی تیمت. از الان نوبت‌ها رو می‌تونی به اسمش ثبت کنی.`
+  },
+  team_accepted: {
+    label: "قبول درخواست همکاری (به آرتیست)",
+    env: "TEAM_ACCEPTED",
+    kavenegar: (v) => ({ token10: v.who }),
+    faraz: (v) => ({ who: v.who }),
+    preview: (v) => `فرفرو: ${v.who} درخواستت رو قبول کرد و حالا توی تیمشی.`
+  },
   phone_changed: {
     label: "شمارهٔ حساب عوض شد (به شمارهٔ قبلی)",
     env: "PHONE_CHANGED",

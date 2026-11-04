@@ -4,6 +4,7 @@ import { ensureDb } from "../../lib/db/connection.js";
 import * as artists from "../../lib/db/repos/artists.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import { TEAM_URL, notifyConnection } from "../../lib/connectionNotify.js";
+import { notifyTeamJoin } from "../../lib/teamNotify.js";
 
 export const runtime = "nodejs";
 
@@ -65,7 +66,7 @@ async function _PATCH(request) {
   const collab = result.collab;
   const artistId = collab?.artistId || result.artistUserId;
   if (action === "accept") {
-    notifyConnection(artistId, { title: "سالن پیشنهادت رو قبول کرد", body: `${salonName} پیشنهادت رو قبول کرد؛ حالا توی تیمشی.`, url: TEAM_URL });
+    notifyTeamJoin({ kind: "accepted", toUserId: artistId, from: { id: auth.user.id, name: salonName } });
   } else if (action === "reject") {
     notifyConnection(artistId, { title: "سالن فعلاً پیشنهادت رو نخواست", body: `${salonName} فعلاً پیشنهادت رو نخواست.`, url: TEAM_URL });
   } else if (action === "counter") {

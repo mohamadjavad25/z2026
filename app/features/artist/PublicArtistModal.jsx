@@ -81,7 +81,7 @@ export function PublicArtistModal({
   const pickedName = pickedService?.name || "";
   useEffect(() => {
     let live = true;
-    if (wait !== "hour" || guest || !artist?.id || !bookingSlot || !pickedName) {
+    if (wait !== "hour" || guest || !artist?.id || artist?.autoConfirm || !bookingSlot || !pickedName) {
       setBackups([]);
       return undefined;
     }
@@ -94,7 +94,7 @@ export function PublicArtistModal({
       })
       .catch(() => { if (live) setBackups([]); });
     return () => { live = false; };
-  }, [wait, guest, artist?.id, pickedName, bookingDay, bookingSlot]);
+  }, [wait, guest, artist?.id, artist?.autoConfirm, pickedName, bookingDay, bookingSlot]);
   if (!artist) return null;
 
   const prices = (services || []).map((service) => parseTomanAmount(service.price)).filter(Boolean);
@@ -248,7 +248,8 @@ export function PublicArtistModal({
                   }}
                   onSlotChange={onBookingSlotChange}
                 />
-                {bookingSlot && !guest ? (
+                {/* An auto-confirm artist answers at once: no «اگه آرتیست دیر جواب داد» (owner's decision 2026-11-04). */}
+                {bookingSlot && !guest && !artist.autoConfirm ? (
                   <WaitChoice value={wait} onChange={setWait} who="آرتیست" backups={backups} backup={backup} onBackup={setBackup} />
                 ) : null}
                 {/* No note for a visitor without an account: «بفرست» opens the sign-up sheet, which says it (owner, 2026-11-04). */}
@@ -268,7 +269,7 @@ export function PublicArtistModal({
                   disabled={bookingBusy || !bookingSlot || (!guest && !clientPhone)}
                   onClick={() => {
                     if (bookingBusy || !bookingSlot || (!guest && !clientPhone)) return;
-                    const backupArtist = wait === "hour" && backup ? backups.find((item) => String(item.id) === backup) : null;
+                    const backupArtist = wait === "hour" && backup && !artist.autoConfirm ? backups.find((item) => String(item.id) === backup) : null;
                     onConfirmBooking({
                       waitMinutes: BOOKING_WAIT_CHOICES[wait],
                       ...(backupArtist ? { fallbackArtistUserId: backupArtist.id, fallbackName: backupArtist.name } : {})

@@ -39,7 +39,9 @@ export function ArtistScheduleBoard({
   onApproveRequest,
   onDeclineRequest,
   onTeam = false,
-  onNotice
+  onNotice,
+  autoConfirm = false,
+  onToggleAutoConfirm
 }) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
@@ -69,6 +71,19 @@ export function ArtistScheduleBoard({
     <div className="artistBookingsPage">
       <section className="salonTodaySchedule is-artistSchedule">
         <DayNav items={weekTabs} selectedDay={selectedDay} onSelectDay={onSelectDay} onOpenCalendar={() => setHistoryOpen(true)} />
+        {/* «تأیید خودکار» in sight, not only in settings (owner's decision 2026-11-04). Only for requests from her own page. */}
+        {onToggleAutoConfirm ? (
+          <div className={`plSwitchRow artistAutoConfirm${autoConfirm ? " is-on" : ""}`}>
+            <span>
+              <b>تأیید خودکار</b>
+              <small>
+                {autoConfirm ? "روشنه؛ درخواست‌های صفحه‌ت خودشون قطعی می‌شن." : "خاموشه؛ هر درخواست رو خودت تأیید می‌کنی."}
+                {onTeam ? " نوبت‌هایی که سالن برات می‌گیره رو خود سالن تأیید می‌کنه." : ""}
+              </small>
+            </span>
+            <button type="button" className="plSwitch" role="switch" aria-checked={Boolean(autoConfirm)} aria-label="تأیید خودکار" onClick={onToggleAutoConfirm} />
+          </div>
+        ) : null}
         <PendingOtherDays
           requests={requests.map((request) => ({ id: request.id, dateKey: getBookingDateKey(request.dateKey || request.date) }))}
           visibleIds={dayRows.map((booking) => booking.id)}

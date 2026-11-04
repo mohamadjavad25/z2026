@@ -3,16 +3,18 @@ import { getDb, all, run } from "../connection.js";
 /**
  * «همکاری تموم شد» cards (migrations/050_team_notices.sql): one row per removal from, or departure from, a salon team,
  * for the person on the other side. Shown inside the app until they tap «باشه».
- * kind: "removed" (a salon took this artist off its team) | "left" (an artist left this salon's team) | "gone" (the salon deleted its account).
+ * kind: "removed" (a salon took this artist off its team) | "left" (an artist left this salon's team) | "gone" (the salon deleted its account)
+ *   | "joined" (an artist came into this salon's team) | "accepted" (a salon took this artist's request; 2026-11-04).
  */
 export const REASON_MAX = 120;
+const NOTICE_KINDS = new Set(["removed", "left", "gone", "joined", "accepted"]);
 
 export function cleanReason(value) {
   return String(value || "").replace(/\s+/g, " ").trim().slice(0, REASON_MAX);
 }
 
 export async function addTeamNotice(userId, { kind, fromUserId = null, fromName = "", reason = "" }) {
-  if (!userId || (kind !== "removed" && kind !== "left" && kind !== "gone")) return;
+  if (!userId || !NOTICE_KINDS.has(kind)) return;
   const db = await getDb();
   await run(db, `
     INSERT INTO team_notices (user_id, kind, from_user_id, from_name, reason)
