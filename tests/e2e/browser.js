@@ -23,6 +23,9 @@ export async function closeBrowser() {
  *  default it reads as «فعلاً نه» for the session. */
 export async function newPage({ width = 390, cookie = "", entered = true, dueLater = true } = {}) {
   const context = await (await getBrowser()).newContext({ viewport: { width, height: 820 }, locale: "fa-IR" });
+  // Only the app under test: an outside host (the eNamad badge on the about page, map tiles, fonts) can hang from a CI
+  // runner abroad, and «networkidle» then waits until every test times out (CI red from 2026-10-30, lesson 2026-11-04).
+  await context.route((url) => !["localhost", "127.0.0.1"].includes(url.hostname), (route) => route.abort());
   if (entered) {
     await context.addInitScript({ content: 'try { localStorage.setItem("frfro-entered", "1"); } catch (e) {}' });
   }

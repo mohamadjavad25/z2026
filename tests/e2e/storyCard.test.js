@@ -191,7 +191,10 @@ describe("the story maker (browser)", () => {
       await slide.locator("img, .igStudioNote").first().waitFor({ timeout: 20000 });
     }
     expect(await page.locator(".igStudioSlide").nth(n - 1).locator(".igStudioNote").innerText()).toContain("نمونه‌کار");
-    // On the works look only «ظاهر» is offered.
+    // On the works look only «ظاهر» is offered, and the dot stays on it (the smooth scroll passes the other looks).
+    await expect.poll(() => page.locator(".igStudioTools button").count(), { timeout: 5000 }).toBe(1);
+    await page.waitForTimeout(800);
+    expect(await page.locator(".igLookDot.is-on").getAttribute("class")).toContain("is-works");
     expect(await page.locator(".igStudioTools button").count()).toBe(1);
     expect(problems).toEqual([]);
     await context.close();

@@ -302,7 +302,15 @@ describe("VisitBooker for the salon (browser)", () => {
     const days = page.locator(".vbDay");
     const closed = days.filter({ hasText: "تعطیل" });
     expect(await closed.count()).toBeGreaterThan(0);
-    const before = await page.locator(".vbDay.is-on").innerText();
+    // Late in the day today has no free hour and the form moves itself to the next open day: wait for that first.
+    const onDay = () => page.locator(".vbDay.is-on").innerText();
+    let before = await onDay();
+    for (let still = 0; still < 2;) {
+      await page.waitForTimeout(400);
+      const now = await onDay();
+      still = now === before ? still + 1 : 0;
+      before = now;
+    }
     await closed.first().click({ force: true });
     expect(await closed.first().getAttribute("aria-disabled")).toBe("true");
     // still asking for the day: a closed one does not move on

@@ -527,6 +527,8 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
   const [guide, setGuide] = useState(null);
   const [copied, setCopied] = useState(false);
   const railRef = useRef(null);
+  // While a dot's smooth scroll runs, the rail passes the looks in between; they must not become the look.
+  const goingTo = useRef(null);
   const closeRef = useRef(null);
   // The parent passes a new onClose on every render; read through a ref so the app's regular refresh (every few
   // seconds) does not re-run the load below and throw the drawn pictures away (owner's report 2026-10-30).
@@ -686,6 +688,10 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
     if (!first) return;
     // RTL rails scroll to negative values in Chrome and Safari; the distance is what counts.
     const next = Math.max(0, Math.min(looks.length - 1, Math.round(Math.abs(rail.scrollLeft) / first.offsetWidth)));
+    if (goingTo.current) {
+      if (next === goingTo.current.i || Date.now() > goingTo.current.until) goingTo.current = null;
+      return;
+    }
     if (next !== index) {
       setIndex(next);
       remember({ look: looks[next].id });
@@ -694,6 +700,8 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
   }
 
   function goTo(i) {
+    goingTo.current = { i, until: Date.now() + 1500 };
+    if (looks[i].kind === "works" && tool !== "look") setTool("");
     railRef.current?.children[i]?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
     setIndex(i);
     remember({ look: looks[i].id });

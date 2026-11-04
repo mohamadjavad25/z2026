@@ -12,9 +12,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  # A quick answer in about a minute: lint and the rules guard, apart from the long build and test job.
+  checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,6 +33,19 @@ jobs:
       # CLAUDE.md's hard rules that a machine can check (scripts/guard/rules.mjs): name, colours, «وصل شدن»,
       # downloads switch, app version, migration numbers, signing key. Blocks only what this change adds.
       - run: node scripts/guard/check-rules.mjs --base "${{ github.event.pull_request.base.sha || github.event.before }}"
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
 
       # Browser for the end-to-end tests in tests/e2e (real Chromium against the built app).
       - run: npx playwright install --with-deps chromium

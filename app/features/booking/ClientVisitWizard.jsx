@@ -29,8 +29,10 @@ export function ClientVisitWizard({ title, placeName, state, controller, service
   const bodyRef = useRef(null);
 
   const { dayCounts, times, conflict } = state;
-  // The chosen time went (taken while sending, or gone from the list): the time step asks again.
-  const current = conflict || (step === "confirm" && !state.time && times.status !== "loading") ? "time" : step;
+  // The chosen time went (taken while sending, or gone from the list): the time step asks again. Not while the times
+  // are still to come: a request asked again elsewhere opens on the ticket before its hour is in (lesson 2026-11-04).
+  const timesPending = times.status === "loading" || times.status === "idle";
+  const current = conflict || (step === "confirm" && !state.time && !timesPending) ? "time" : step;
   const index = STEPS.indexOf(current);
   const day = days.find((item) => item.value === state.day);
   const totals = visitTotals(state.picked);
