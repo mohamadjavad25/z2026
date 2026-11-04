@@ -3,7 +3,7 @@
 import { apiFetch } from "../../shared/api/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { normalizeProfile } from "../auth";
-import { compressImageToDataUrl } from "../../shared/lib/imageCompression";
+import { UNREADABLE_PHOTO, compressImageToDataUrl } from "../../shared/lib/imageCompression";
 
 const DEFAULT_PROFILE_SETTINGS = {
   reservationAlerts: true,
@@ -265,7 +265,9 @@ export function useProfileEditor({
     // Downscale + re-encode before it ever becomes a data URL sent to the
     // server -- see imageCompression.js for why (a multi-MB phone photo
     // otherwise gets base64-encoded and POSTed essentially as-is).
-    setProfileEditAvatar(await compressImageToDataUrl(file));
+    const dataUrl = await compressImageToDataUrl(file);
+    if (dataUrl) setProfileEditAvatar(dataUrl);
+    else notify(UNREADABLE_PHOTO);
   }, [notify]);
 
   const [logoSaving, setLogoSaving] = useState(false);
@@ -347,6 +349,7 @@ export function useProfileEditor({
     // happens for the logo/poster position-editor flow.
     const dataUrl = await compressImageToDataUrl(file);
     if (dataUrl) setPending(dataUrl);
+    else notify(UNREADABLE_PHOTO);
   }, [notify]);
 
   const saveProfileLogo = useCallback((event) => {

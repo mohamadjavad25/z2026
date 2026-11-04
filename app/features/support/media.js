@@ -20,7 +20,8 @@ const readAsDataUrl = (blob) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error);
+    // The browser's own words («The requested file could not be read…») would reach the person as the error.
+    reader.onerror = () => reject(new Error("این عکس باز نشد؛ یه عکس دیگه بفرست."));
     reader.readAsDataURL(blob);
   });
 

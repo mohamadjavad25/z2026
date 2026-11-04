@@ -35,13 +35,24 @@ function loadImage(src) {
   });
 }
 
+/** The words a person sees when the phone cannot hand over the photo (callers show it on ""). */
+export const UNREADABLE_PHOTO = "این عکس باز نشد؛ یه عکس دیگه انتخاب کن.";
+
 /** Resolves to a (usually much smaller) data URL. Never rejects -- falls
- *  back to the original file's raw data URL if anything above fails. */
+ *  back to the original file's raw data URL if anything above fails, and
+ *  to "" when the file itself cannot be read (an Android gallery photo that
+ *  is still in the cloud, or was moved: «The requested file could not be
+ *  read», client error of 2026-11-04). */
 export async function compressImageToDataUrl(file, {
   maxDimension = MAX_DIMENSION,
   quality = JPEG_QUALITY
 } = {}) {
-  const original = await readFileAsDataUrl(file);
+  let original = "";
+  try {
+    original = await readFileAsDataUrl(file);
+  } catch {
+    return "";
+  }
   try {
     if (typeof document === "undefined" || typeof Image === "undefined") return original;
     const img = await loadImage(original);
