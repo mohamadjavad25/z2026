@@ -1,14 +1,16 @@
 import Link from "next/link";
 import QRCode from "qrcode";
 import { Check, Palette, Search, Store } from "lucide-react";
-import { ANDROID_APK_URL, ANDROID_APP_VERSION, APP_DOWNLOADS_OPEN, DOWNLOAD_PAGE_URL } from "./constants";
+import { BAZAAR_PAGE } from "../../shared/lib/appUpdate";
+import { ANDROID_APK_URL, APP_DOWNLOADS_OPEN, DOWNLOAD_PAGE_URL } from "./constants";
 import { EnterAppButton } from "./EnterAppButton";
 import { HeroMotion } from "./HeroMotion";
 import { ScanToOpen } from "./ScanToOpen";
 import { ServiceIcon } from "../../components/ServiceIcon";
 
 /**
- * The page about frfro with the app download links. Shown at /download, at "/" on phones
+ * The page about frfro with the app download links: Cafe Bazaar first (it holds the current build and updates it),
+ * the same file straight from this site for phones without Bazaar. Shown at /download, at "/" on phones
  * until the visitor taps «ورود به فرفرو», and on large screens (tablet and desktop) in place
  * of every page but /admin, /terms and /privacy (see LargeScreenGate).
  * Server component: plain content. The hero picture (HeroMotion) and all other motion are CSS.
@@ -77,8 +79,8 @@ const PROMISES = [
 
 const DOWNLOAD_FAQ = [
   {
-    q: "چرا گوشی موقع نصب هشدار می‌ده؟",
-    a: "اندروید برای هر برنامه‌ای که بیرون از فروشگاه نصب بشه هشدار می‌ده. فقط از frfro.ir دانلودش کن."
+    q: "بازار ندارم، چی کار کنم؟",
+    a: "فایل نصبی رو از همین صفحه بگیر. موقع نصب، گوشی هشدار می‌ده؛ برای هر برنامه‌ای که بیرون از فروشگاه نصب بشه همینه."
   },
 ];
 
@@ -121,6 +123,34 @@ function AndroidIcon() {
   );
 }
 
+function BazaarIcon() {
+  return (
+    <span className="appLanding__bazaarIcon" aria-hidden="true">
+      <img src="/brand/bazaar-icon.png" alt="" width="192" height="192" />
+    </span>
+  );
+}
+
+function BazaarButton({ small = false }) {
+  return (
+    <a className={`appLanding__store is-primary${small ? " is-small" : ""}`} href={BAZAAR_PAGE} target="_blank" rel="noreferrer">
+      <BazaarIcon />
+      <span>
+        <small>دریافت از</small>
+        کافه‌بازار
+      </span>
+    </a>
+  );
+}
+
+function DirectDownload() {
+  return (
+    <a className="appLanding__direct" href={ANDROID_APK_URL} download="frfro.apk">
+      بازار نداری؟ فایل نصبی رو مستقیم بگیر
+    </a>
+  );
+}
+
 function AppleIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className="appLanding__storeIcon">
@@ -140,13 +170,7 @@ function DownloadButtons({ tone = "light" }) {
   }
   return (
     <div className={`appLanding__buttons is-${tone}`}>
-      <a className="appLanding__store is-primary" href={ANDROID_APK_URL} download="frfro.apk">
-        <AndroidIcon />
-        <span>
-          <small>دانلود مستقیم برای</small>
-          اندروید
-        </span>
-      </a>
+      <BazaarButton />
       <a className="appLanding__store" href="#iphone">
         <AppleIcon />
         <span>
@@ -154,6 +178,7 @@ function DownloadButtons({ tone = "light" }) {
           آیفون
         </span>
       </a>
+      <DirectDownload />
     </div>
   );
 }
@@ -195,7 +220,7 @@ export async function AppLanding() {
           <a href="#faq">سؤال‌ها</a>
         </nav>
         {APP_DOWNLOADS_OPEN ? (
-          <a className="appLanding__navCta" href={ANDROID_APK_URL} download="frfro.apk">دانلود اپ</a>
+          <a className="appLanding__navCta" href={BAZAAR_PAGE} target="_blank" rel="noreferrer">دانلود اپ</a>
         ) : (
           <span className="appLanding__navCta is-soon">اپ به‌زودی</span>
         )}
@@ -217,9 +242,7 @@ export async function AppLanding() {
             <ScanToOpen />
             <DownloadButtons />
             <EnterAppButton className="appLanding__enter">یا ورود به فرفرو در مرورگر ←</EnterAppButton>
-            <p className="appLanding__note">
-              {APP_DOWNLOADS_OPEN ? `نسخهٔ اندروید ${ANDROID_APP_VERSION} · ` : ""}برای مشتری رایگانه
-            </p>
+            <p className="appLanding__note">برای مشتری رایگانه</p>
           </div>
 
           <div className="appLanding__heroArt">
@@ -241,7 +264,6 @@ export async function AppLanding() {
           <header className="appLanding__head appLanding__reveal">
             <p className="appLanding__kicker">فرفرو چیه</p>
             <h2>یه اپ، برای <em>هر سه طرف</em></h2>
-            
           </header>
           <div className="appLanding__cards">
             {AUDIENCES.map((audience, index) => (
@@ -302,15 +324,12 @@ export async function AppLanding() {
               <article className="appLanding__guide appLanding__reveal">
                 <h3><AndroidIcon /> اندروید</h3>
                 <ol>
-                  <li>دکمهٔ دانلود اندروید رو بزن.</li>
-                  <li>فایل <bdi>frfro.apk</bdi> رو از اعلان دانلود یا فایل‌ها باز کن.</li>
-                  <li>اجازهٔ «نصب برنامه‌های ناشناس» رو بده و دوباره فایل رو باز کن.</li>
-                  <li>«نصب» رو بزن. اگه Play Protect پرسید، «در هر صورت نصب شود» رو بزن.</li>
+                  <li>دکمهٔ کافه‌بازار رو بزن.</li>
+                  <li>توی بازار «نصب» رو بزن.</li>
+                  <li>فرفرو رو باز کن و وارد شو.</li>
                 </ol>
-                <a className="appLanding__store is-primary is-small" href={ANDROID_APK_URL} download="frfro.apk">
-                  <AndroidIcon />
-                  <span>دانلود فایل نصبی</span>
-                </a>
+                <BazaarButton small />
+                <DirectDownload />
               </article>
             ) : (
               <article className="appLanding__guide appLanding__reveal">
@@ -319,7 +338,7 @@ export async function AppLanding() {
                   <li><bdi>frfro.ir</bdi> رو توی Chrome باز کن.</li>
                   <li>منوی سه‌نقطهٔ بالای صفحه رو بزن.</li>
                   <li>«افزودن به صفحهٔ اصلی» یا «نصب برنامه» رو بزن.</li>
-                  <li>حالا فرفرو مثل یک اپ تمام‌صفحه باز می‌شود.</li>
+                  <li>حالا فرفرو مثل یه اپ باز می‌شه.</li>
                 </ol>
                 <p className="appLanding__soon">اپ اندروید به‌زودی.</p>
               </article>
@@ -330,7 +349,7 @@ export async function AppLanding() {
                 <li><bdi>frfro.ir</bdi> رو توی Safari باز کن.</li>
                 <li>دکمهٔ اشتراک‌گذاری رو بزن.</li>
                 <li>«افزودن به صفحهٔ اصلی» رو بزن.</li>
-                <li>حالا فرفرو مثل یک اپ تمام‌صفحه باز می‌شود.</li>
+                <li>حالا فرفرو مثل یه اپ باز می‌شه.</li>
               </ol>
               <p className="appLanding__soon">نسخهٔ App Store به‌زودی.</p>
             </article>
@@ -360,7 +379,6 @@ export async function AppLanding() {
           <img className="appLanding__finaleMascot" src="/brand/mascot/done.webp" alt="" width="641" height="640" loading="lazy" />
           <div>
             <h2>نوبت بعدیت رو با فرفرو بگیر.</h2>
-            
             <DownloadButtons tone="dark" />
             <EnterAppButton className="appLanding__enter">یا ورود به فرفرو در مرورگر ←</EnterAppButton>
           </div>

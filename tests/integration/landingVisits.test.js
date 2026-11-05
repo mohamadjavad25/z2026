@@ -16,6 +16,7 @@ describe("reel link counters (/api/landing-visit)", () => {
       const before = await count("reeltest");
       expect((await client.post("/api/landing-visit", { source: "ReelTest", kind: "open" })).ok).toBe(true);
       expect((await client.post("/api/landing-visit", { source: "reeltest", kind: "open" })).ok).toBe(true);
+      expect((await client.post("/api/landing-visit", { source: "reeltest", kind: "bazaar" })).ok).toBe(true);
       expect((await client.post("/api/landing-visit", { source: "reeltest", kind: "hack" })).status).toBe(400);
       expect((await count("reeltest")) - before).toBe(2);
     } finally {

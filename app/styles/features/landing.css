@@ -37,8 +37,8 @@ html.native-app .webOnlyAppLink { display: none !important; }
   --l-fg: #0c0d12;          /* headings and strong text on light sections */
   --l-text: #2b2e3a;
   --l-muted: #666a78;
-  --l-fill: #0c0d12;        /* main buttons and number dots; pink at night */
-  --l-on-fill: #ffffff;
+  --l-fill: #ff86b8;        /* main buttons and number dots: pink with ink text, day and night (no black buttons) */
+  --l-on-fill: #0c0d12;
   --l-pink-deep: #c42a74;   /* pink for text on white (AA contrast) */
   --l-violet-deep: #5b3fd6; /* violet for text on white (AA contrast) */
   --l-violet-soft: #ece8ff;
@@ -242,7 +242,37 @@ html.native-app .webOnlyAppLink { display: none !important; }
 .appLanding__store small { font-size: 0.72rem; font-weight: 700; opacity: 0.75; }
 .appLanding__storeIcon { width: 26px; height: 26px; flex: none; }
 
-/* On light surfaces: ink primary, ghost secondary. */
+/* Cafe Bazaar's own icon, unchanged, on a white tile so its green stays true on any button colour. */
+.appLanding__bazaarIcon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.08);
+}
+.appLanding__bazaarIcon img { width: 28px; height: 28px; display: block; }
+
+/* The quiet second way: the same app straight from this site, for a phone without Bazaar. */
+.appLanding__direct {
+  flex-basis: 100%;
+  display: inline-block;
+  padding: 6px 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: inherit;
+  opacity: 0.75;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.appLanding__direct:hover { opacity: 1; }
+.appLanding__buttons.is-light .appLanding__direct, .appLanding__guide .appLanding__direct { color: var(--l-fg); }
+.appLanding__buttons.is-dark .appLanding__direct { color: #fff; }
+.appLanding__guide .appLanding__direct { display: block; margin-top: var(--space-3); }
+
+/* On light surfaces: pink primary, ghost secondary. */
 .appLanding__buttons.is-light .appLanding__store, .appLanding__guide .appLanding__store { color: var(--l-fg); border-color: var(--l-fg); }
 .appLanding__buttons.is-light .appLanding__store:hover { background: rgb(var(--ink-rgb) / 0.06); }
 .appLanding__buttons.is-light .appLanding__store.is-primary, .appLanding__guide .appLanding__store.is-primary { background: var(--l-fill); border-color: var(--l-fill); color: var(--l-on-fill); }
@@ -660,7 +690,7 @@ html.native-app .webOnlyAppLink { display: none !important; }
   isolation: isolate;
 }
 
-.appLanding__finale h2 { color: #fff; }
+.appLanding__finale h2 { color: #fff; margin-bottom: var(--space-5); }
 .appLanding__finale p { margin: var(--space-2) 0 var(--space-6); font-size: clamp(0.92rem, 1.3vw, 1.02rem); }
 
 .appLanding__finaleMascot {

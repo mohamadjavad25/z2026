@@ -1,7 +1,7 @@
 import { getDb, all, run } from "../connection.js";
 
 /** Counters for the reel link /go (migrations/067_landing_visits.sql). Counting never breaks the page: errors are swallowed. */
-export const VISIT_KINDS = ["open", "enter", "apk"];
+export const VISIT_KINDS = ["open", "enter", "apk", "bazaar"];
 
 export async function countLandingVisit(source, kind) {
   if (!VISIT_KINDS.includes(kind)) return false;

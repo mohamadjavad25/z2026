@@ -49,8 +49,22 @@
   font-size: 1.15rem;
   text-decoration: none;
 }
-.goPage__enter:focus-visible, .goPage__apk:focus-visible, .goPage__hint button:focus-visible { outline: 3px solid var(--g-violet); outline-offset: 3px; }
-.goPage__apk { color: var(--g-ink); font-weight: 600; opacity: 0.8; }
+.goPage__enter:focus-visible, .goPage__bazaar:focus-visible, .goPage__apk:focus-visible, .goPage__hint button:focus-visible { outline: 3px solid var(--g-violet); outline-offset: 3px; }
+.goPage__bazaar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  border-radius: 20px;
+  border: 1.5px solid var(--g-ink);
+  color: var(--g-ink);
+  font-weight: 800;
+  text-decoration: none;
+}
+.goPage__bazaar img { width: 28px; height: 28px; }
+.goPage__apk { color: var(--g-ink); font-size: 0.9rem; font-weight: 600; opacity: 0.8; }
 .goPage__hint { display: grid; gap: 8px; justify-items: center; }
 .goPage__hint p { font-size: 0.9rem; }
 .goPage__hint button { border: 0; border-radius: 14px; padding: 8px 18px; background: var(--g-ink); color: var(--g-paper); font: inherit; font-weight: 600; cursor: pointer; }

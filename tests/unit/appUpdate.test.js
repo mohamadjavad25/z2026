@@ -71,7 +71,8 @@ describe("updateState", () => {
 // for the update). Pages never shown inside the app are listed here.
 const NOT_IN_APP = new Set([
   "app/admin/ui.jsx",                        // the admin panel's exports, on a computer
-  "app/features/landing/AppLanding.jsx"      // the about page with the APK link, tablets and desktops
+  "app/features/landing/AppLanding.jsx",     // the about page with the APK link, tablets and desktops
+  "app/features/landing/GoScreen.jsx"        // /go, the Instagram link: for people who do not have the app yet
 ]);
 
 function sources(dir, out = []) {

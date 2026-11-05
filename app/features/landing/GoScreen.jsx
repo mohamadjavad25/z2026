@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BAZAAR_PAGE } from "../../shared/lib/appUpdate";
 import { ANDROID_APK_URL, APP_DOWNLOADS_OPEN, DOWNLOAD_PAGE_URL, HOME_LANDING_SKIP_KEY } from "./constants";
 
 /**
  * /go: where the Instagram reel and bio link lead. A visitor is almost always inside Instagram's own browser, which
  * cannot save an APK and has no «افزودن به صفحهٔ اصلی». So the one big button just opens frfro in this same browser
- * (the web app works there); a quiet second line offers the Android file only in a real browser, and inside Instagram
- * a short «open in Chrome» hint with a copy button. Opens, enters and download taps are counted (landing_visits).
+ * (the web app works there). On Android a second button goes to Cafe Bazaar, also inside Instagram because that is only
+ * a link; the Android file is offered only in a real browser. An iPhone inside Instagram gets a short «open in Safari»
+ * hint with a copy button. Opens, enters, Bazaar and download taps are counted (landing_visits).
  */
 function beacon(source, kind) {
   try {
@@ -65,15 +67,22 @@ export function GoScreen() {
         </h1>
         <p>سالن و آرتیست رو با نمونه‌کار واقعی ببین و همون‌جا نوبت بگیر. برای مشتری رایگانه.</p>
         <a className="goPage__enter" href="/" onClick={enter}>ورود به فرفرو</a>
-        {inApp ? (
+        {APP_DOWNLOADS_OPEN && android ? (
+          <a className="goPage__bazaar" href={BAZAAR_PAGE} target="_blank" rel="noreferrer" onClick={() => beacon(source, "bazaar")}>
+            <img src="/brand/bazaar-icon.png" alt="" width="192" height="192" />
+            دریافت از کافه‌بازار
+          </a>
+        ) : null}
+        {APP_DOWNLOADS_OPEN && android && !inApp ? (
+          <a className="goPage__apk" href={ANDROID_APK_URL} download="frfro.apk" onClick={() => beacon(source, "apk")}>
+            بازار نداری؟ فایل نصبی رو مستقیم بگیر
+          </a>
+        ) : null}
+        {inApp && !android ? (
           <div className="goPage__hint">
-            <p>برای نصب اپ، این لینک رو توی Chrome یا Safari باز کن.</p>
+            <p>برای نصب اپ، این لینک رو توی Safari باز کن.</p>
             <button type="button" onClick={copy}>{copied ? "کپی شد" : "کپی لینک"}</button>
           </div>
-        ) : APP_DOWNLOADS_OPEN && android ? (
-          <a className="goPage__apk" href={ANDROID_APK_URL} download="frfro.apk" onClick={() => beacon(source, "apk")}>
-            یا دانلود اپ اندروید
-          </a>
         ) : null}
       </section>
     </main>

@@ -70,6 +70,7 @@
 مهارت `frfro-self-review` ماهی دو بار خودش اجرا می‌شود (کار زمان‌بندی‌شدهٔ «بازبینی خودکار فرفرو»، ۱ و ۱۵ هر ماه): وضعیت main و CI، سایت، کارهای انجام‌شده، درس‌های تکراری و درستی دفترچه‌ها را می‌بیند، چیزهای امن ابزار و دفترچه را روی یک شاخه درست می‌کند و یک صفحه برای صاحب کار می‌سازد. هر بازبینی یک خط اینجا می‌نویسد.
 
 - 2026-11-03: بازبینی اول (دستی، به درخواست صاحب کار). ساخته شد: نگهبان قانون‌ها (`scripts/guard/`، هنگام commit و در CI)، وضعیت CI در گزارش شروع، `scripts/docs/area.mjs` برای دیدن همهٔ تصمیم‌ها و درس‌های یک بخش، شش روال در `.claude/skills/`، و همین بازبینی خودکار. پیدا شد: CI هیچ‌وقت سبز نبود (بدهی ۰)؛ CLAUDE.md می‌گفت دانلود اپ بسته است، در حالی که از ۲۸ اکتبر باز است (درست شد).
+- 2026-11-05: the file on the download page was a build from 2026-10-14 signed with a different key from the Bazaar build, so nobody on it could update. Rule: every store upload also replaces `public/download/frfro.apk`, and the two certificates are compared first.
 
 ## تاریخچه
 

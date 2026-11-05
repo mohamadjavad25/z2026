@@ -36,6 +36,20 @@ describe("first-time phone visitor sees the about page while downloads are open 
     expect(problems).toEqual([]);
     await context.close();
   });
+
+  it("sends Android visitors to Cafe Bazaar with its own icon, and keeps the direct file as the quiet second way", async () => {
+    const { page, context } = await newPage({ entered: false });
+    await page.goto(`${TEST_BASE_URL}/download`, { waitUntil: "networkidle" });
+    const bazaar = page.locator(".appLanding__hero a.appLanding__store.is-primary");
+    expect(await bazaar.getAttribute("href")).toBe("https://cafebazaar.ir/app/ir.frfro.app");
+    expect(await bazaar.innerText()).toContain("کافه‌بازار");
+    const iconLoaded = await bazaar.locator("img").evaluate((img) => img.complete && img.naturalWidth > 0);
+    expect(iconLoaded).toBe(true);
+    expect(await page.locator(".appLanding__hero a.appLanding__direct").getAttribute("href")).toBe("/download/frfro.apk");
+    const file = await page.request.head(`${TEST_BASE_URL}/download/frfro.apk`);
+    expect(file.status()).toBe(200);
+    await context.close();
+  });
 });
 
 describe("auth forms (browser)", () => {
