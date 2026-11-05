@@ -134,11 +134,10 @@ async function main() {
 
   // What we are waiting on (docs/FOLLOWUPS.md, 2026-11-05): every open line, so the owner hears it in any session.
   try {
-    const waiting = readFileSync(join(process.env.CLAUDE_PROJECT_DIR || process.cwd(), "docs", "FOLLOWUPS.md"), "utf8").split(/?
-/).filter((l) => l.startsWith("- [ ]"));
+    const waiting = readFileSync(join(process.env.CLAUDE_PROJECT_DIR || process.cwd(), "docs", "FOLLOWUPS.md"), "utf8").split("\n").filter((l) => l.startsWith("- [ ]"));
     if (waiting.length) {
       lines.push(`Follow-ups (docs/FOLLOWUPS.md, ${waiting.length} open; tell the owner where they stand in your first reply):`);
-      for (const l of waiting) lines.push(`  ${l.slice(6, 220)}`);
+      for (const l of waiting) lines.push(`  ${l.slice(6, 220).trim()}`);
     }
   } catch { /* no follow-ups file on this branch */ }
 
