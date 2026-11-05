@@ -31,10 +31,11 @@ jobs:
     timeout-minutes: 30
     env:
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
       SITE_URL: https://frfro.ir
     steps:
       - name: Secrets are set
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
           if [ -z "$DEPLOY_HOST" ] || [ -z "$DEPLOY_SSH_KEY" ]; then
             echo "::error::DEPLOY_HOST or DEPLOY_SSH_KEY is not set in the repo's Actions secrets. See docs/HANDOFF.md."
@@ -59,6 +60,8 @@ jobs:
           ref: ${{ inputs.mode == 'deploy' && github.sha || github.ref }}
 
       - name: SSH key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
