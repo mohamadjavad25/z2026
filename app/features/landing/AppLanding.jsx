@@ -3,7 +3,7 @@ import QRCode from "qrcode";
 import { Check, Palette, Search, Store } from "lucide-react";
 import { ANDROID_APK_URL, ANDROID_APP_VERSION, APP_DOWNLOADS_OPEN, DOWNLOAD_PAGE_URL } from "./constants";
 import { EnterAppButton } from "./EnterAppButton";
-import { HeroFilm } from "./HeroFilm";
+import { HeroMotion } from "./HeroMotion";
 import { ScanToOpen } from "./ScanToOpen";
 import { ServiceIcon } from "../../components/ServiceIcon";
 
@@ -11,7 +11,7 @@ import { ServiceIcon } from "../../components/ServiceIcon";
  * The page about frfro with the app download links. Shown at /download, at "/" on phones
  * until the visitor taps «ورود به فرفرو», and on large screens (tablet and desktop) in place
  * of every page but /admin, /terms and /privacy (see LargeScreenGate).
- * Server component: plain content; the only client part is the hero film (HeroFilm). Motion is CSS (landing.css).
+ * Server component: plain content. The hero picture (HeroMotion) and all other motion are CSS.
  * While APP_DOWNLOADS_OPEN is off it is shown on large screens only, with «به‌زودی» in place of every
  * download link, and the install section explains adding the site to the home screen instead.
  * The «آموزش» tutorials player (LearnSection) is built but hidden for now (user's decision 2026-10-15).
@@ -35,10 +35,9 @@ const AUDIENCES = [
     tag: "مشتری",
     title: "دنبال سالن خوبی؟",
     points: [
-      "سالن‌ها و آرتیست‌ها رو با نمونه‌کار واقعی ببین.",
-      "از دسته‌ها شروع کن: ناخن، مو، ابرو و مژه، میکاپ، پوست…",
-      "ساعت آزاد رو انتخاب کن و نوبت بگیر.",
-      "سالن رو با شماره یا کد QR پیدا کن و بهش وصل شو."
+      "نمونه‌کار واقعی ببین.",
+      "ساعت آزاد رو انتخاب کن.",
+      "با یه اسکن به سالنت وصل شو."
     ]
   },
   {
@@ -46,10 +45,9 @@ const AUDIENCES = [
     tag: "سالن",
     title: "سالن داری؟",
     points: [
-      "تقویم نوبت‌ها، تأیید و جابه‌جایی، همه توی یه صفحه.",
-      "خدمت‌ها، قیمت‌ها و آرتیست‌هات رو مرتب نگه دار.",
+      "نوبت‌ها یه‌جا، تأیید با یه لمس.",
       "نمونه‌کار بذار تا مشتری تازه پیدات کنه.",
-      "کد QR رو روی میز بذار؛ مشتری با یه اسکن وصل می‌شه."
+      "کد QR رو روی میز بذار."
     ]
   },
   {
@@ -57,52 +55,52 @@ const AUDIENCES = [
     tag: "آرتیست",
     title: "آرتیست هستی؟",
     points: [
-      "صفحهٔ نمونه‌کار خودت، با لینکی که می‌تونی برای هر کسی بفرستی.",
-      "ساعت کاریت رو بچین و مستقیم نوبت بگیر.",
-      "با سالن‌ها همکاری کن و نوبت‌های سالن رو هم بگیر."
+      "صفحهٔ نمونه‌کار خودت، با یه لینک.",
+      "ساعت کاریت رو بچین و نوبت بگیر.",
+      "با سالن‌ها همکاری کن."
     ]
   }
 ];
 
 const STEPS = [
-  { image: "/brand/mascot/find.webp", title: "پیدا کن", text: "از دسته‌ها یا جست‌وجو، سالن و آرتیست پیدا کن." },
-  { image: "/brand/mascot/no-portfolio.webp", title: "ببین", text: "نمونه‌کار، خدمت‌ها و قیمت‌ها رو قبل از رفتن ببین." },
-  { image: "/brand/mascot/booked.webp", title: "نوبت بگیر", text: "ساعت آزاد رو انتخاب کن؛ سالن تأیید می‌کنه و یادآوری برات میاد." },
-  { image: "/brand/mascot/connect.webp", title: "وصل شو", text: "به سالن و آرتیست محبوبت وصل شو تا نمونه‌کار تازه‌شون رو ببینی و نوبت بعدی رو زودتر بگیری." }
+  { image: "/brand/mascot/find.webp", title: "پیدا کن", text: "سالن و آرتیست رو جست‌وجو کن." },
+  { image: "/brand/mascot/no-portfolio.webp", title: "ببین", text: "نمونه‌کار و قیمت‌ها رو قبل از رفتن ببین." },
+  { image: "/brand/mascot/booked.webp", title: "نوبت بگیر", text: "ساعت آزاد رو بگیر؛ یادآوری برات میاد." },
+  { image: "/brand/mascot/connect.webp", title: "وصل شو", text: "به سالن محبوبت وصل شو و خبرهاش رو ببین." }
 ];
 
 const PROMISES = [
-  { title: "رایگان", text: "نصب و استفاده برای مشتری رایگانه." },
-  { title: "بدون پرداخت در اپ", text: "توی اپ پولی نمی‌دی؛ هزینهٔ خدمت رو توی سالن می‌دی." },
-  { title: "دسترسی کم", text: "نه دفترچهٔ تلفن، نه پیامک، نه فایل‌ها؛ دوربین و موقعیت فقط با اجازهٔ تو." }
+  { title: "رایگان", text: "برای مشتری همیشه رایگانه." },
+  { title: "بدون پرداخت در اپ", text: "هزینه رو توی سالن می‌دی." },
+  { title: "دسترسی کم", text: "دوربین و موقعیت فقط با اجازهٔ تو." }
 ];
 
 const DOWNLOAD_FAQ = [
   {
     q: "چرا گوشی موقع نصب هشدار می‌ده؟",
-    a: "اندروید برای هر برنامه‌ای که بیرون از فروشگاه نصب بشه هشدار می‌ده، نه فقط فرفرو. فایل امضای فرفرو رو داره؛ فقط از frfro.ir دانلودش کن."
+    a: "اندروید برای هر برنامه‌ای که بیرون از فروشگاه نصب بشه هشدار می‌ده. فقط از frfro.ir دانلودش کن."
   },
 ];
 
 const SHARED_FAQ = [
   {
     q: "اپ به چی دسترسی داره؟",
-    a: "فقط اینترنت، و با اجازهٔ تو: دوربین (اسکن QR و عکس نمونه‌کار)، موقعیت (پیدا کردن سالن نزدیک) و اعلان (خبر نوبت‌ها). به فهرست مخاطبین، پیامک، تماس و فایل‌هات دسترسی نداره؛ اگه خودت یه مخاطب رو انتخاب کنی، فقط همون یکی رو می‌بینه."
+    a: "فقط با اجازهٔ تو: دوربین، موقعیت و اعلان. به مخاطبین، پیامک و فایل‌هات دسترسی نداره."
   },
   {
     q: "پرداخت داخل اپ هست؟",
-    a: "برای مشتری نه. فرفرو فقط برای پیدا کردن سالن و نوبت گرفتنه؛ هزینهٔ خدمت رو توی سالن می‌دی."
+    a: "برای مشتری نه. هزینهٔ خدمت رو توی سالن می‌دی."
   }
 ];
 
 const IPHONE_FAQ = {
   q: "آیفون چی؟",
-  a: "نسخهٔ App Store در راهه. فعلاً توی Safari بازش کن و «افزودن به صفحهٔ اصلی» رو بزن؛ مثل یه اپ کامل باز می‌شه."
+  a: "نسخهٔ App Store در راهه. فعلاً توی Safari باز کن و «افزودن به صفحهٔ اصلی» رو بزن."
 };
 
 const SOON_FAQ = {
   q: "اپلیکیشن کی میاد؟",
-  a: "اپ اندروید و آیفون به‌زودی میاد. تا اون موقع frfro.ir رو توی مرورگر گوشی باز کن و به صفحهٔ اصلی اضافه‌ش کن؛ مثل یه اپ کامل باز می‌شه."
+  a: "به‌زودی. تا اون موقع frfro.ir رو توی مرورگر گوشی باز کن و به صفحهٔ اصلی اضافه‌ش کن."
 };
 
 const FAQ = APP_DOWNLOADS_OPEN ? [...DOWNLOAD_FAQ, ...SHARED_FAQ, IPHONE_FAQ] : [SOON_FAQ, ...SHARED_FAQ];
@@ -214,18 +212,18 @@ export async function AppLanding() {
               <em>بدرخش</em>
             </h1>
             <p className="appLanding__lead">
-              سالن و آرتیست زیبایی رو پیدا کن، نمونه‌کار واقعی ببین و همون‌جا نوبت بگیر؛ بدون تماس و بدون دفترچه.
+              سالن و آرتیست رو با نمونه‌کار واقعی ببین و همون‌جا نوبت بگیر.
             </p>
             <ScanToOpen />
             <DownloadButtons />
             <EnterAppButton className="appLanding__enter">یا ورود به فرفرو در مرورگر ←</EnterAppButton>
             <p className="appLanding__note">
-              {APP_DOWNLOADS_OPEN ? `نسخهٔ اندروید ${ANDROID_APP_VERSION}، ` : ""}برای مشتری رایگان و بدون پرداخت توی اپ
+              {APP_DOWNLOADS_OPEN ? `نسخهٔ اندروید ${ANDROID_APP_VERSION} · ` : ""}برای مشتری رایگانه
             </p>
           </div>
 
           <div className="appLanding__heroArt">
-            <HeroFilm />
+            <HeroMotion />
             {qrSvg ? (
               <div className="appLanding__qr">
                 <div className="appLanding__qrCode" dangerouslySetInnerHTML={{ __html: qrSvg }} />
@@ -243,7 +241,7 @@ export async function AppLanding() {
           <header className="appLanding__head appLanding__reveal">
             <p className="appLanding__kicker">فرفرو چیه</p>
             <h2>یه اپ، برای <em>هر سه طرف</em></h2>
-            <p>فرفرو مشتری، سالن و آرتیست رو کنار هم میاره: پیدا کردن با نمونه‌کار، نوبت مستقیم و برنامهٔ کاری مرتب.</p>
+            
           </header>
           <div className="appLanding__cards">
             {AUDIENCES.map((audience, index) => (
@@ -266,7 +264,7 @@ export async function AppLanding() {
         <div className="appLanding__section">
           <header className="appLanding__head appLanding__reveal">
             <p className="appLanding__kicker">چطور کار می‌کنه</p>
-            <h2>از دیدن تا نشستن روی صندلی سالن، در <em>چهار قدم</em></h2>
+            <h2>چهار قدم تا <em>صندلی سالن</em></h2>
           </header>
           <ol className="appLanding__steps">
             {STEPS.map((step) => (
@@ -362,7 +360,7 @@ export async function AppLanding() {
           <img className="appLanding__finaleMascot" src="/brand/mascot/done.webp" alt="" width="641" height="640" loading="lazy" />
           <div>
             <h2>نوبت بعدیت رو با فرفرو بگیر.</h2>
-            <p>برای مشتری رایگانه و توی اپ پولی نمی‌دی.</p>
+            
             <DownloadButtons tone="dark" />
             <EnterAppButton className="appLanding__enter">یا ورود به فرفرو در مرورگر ←</EnterAppButton>
           </div>

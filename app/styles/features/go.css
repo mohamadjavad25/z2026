@@ -1,0 +1,59 @@
+/* /go: the reel link's one screen. Paper sheets and soft light behind a single card, in the brand's ink, pink and violet. */
+.goPage {
+  --g-ink: var(--brand-ink);
+  --g-pink: var(--brand-pink);
+  --g-violet: var(--brand-violet);
+  --g-paper: var(--brand-white);
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: max(24px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  overflow: hidden;
+  background: var(--g-ink);
+  color: var(--g-paper);
+  font-family: Vazirmatn, Tahoma, sans-serif;
+  text-align: center;
+}
+.goPage__glow { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.75; }
+.goPage__glow--pink { width: 300px; height: 300px; background: var(--g-pink); top: -90px; inset-inline-start: -90px; animation: goDrift 9s ease-in-out infinite; }
+.goPage__glow--violet { width: 340px; height: 340px; background: var(--g-violet); bottom: -120px; inset-inline-end: -110px; animation: goDrift 11s ease-in-out infinite reverse; }
+.goPage__sheet { position: absolute; width: min(78vw, 360px); height: min(70vh, 460px); border-radius: 36px; opacity: 0.9; box-shadow: 0 24px 50px rgb(var(--shadow-rgb) / 0.35); }
+.goPage__sheet--back { background: var(--g-pink); transform: rotate(-9deg); animation: goSheet 7s ease-in-out infinite; }
+.goPage__sheet--mid { background: var(--g-violet); transform: rotate(6deg); animation: goSheet 8s ease-in-out infinite reverse; }
+.goPage__card {
+  position: relative;
+  width: min(100%, 360px);
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 28px 22px 24px;
+  border-radius: 32px;
+  background: var(--g-paper);
+  color: var(--g-ink);
+  box-shadow: 0 30px 60px rgb(var(--shadow-rgb) / 0.4);
+}
+.goPage__mascot { width: 120px; height: 120px; object-fit: contain; }
+.goPage h1 { margin: 0; font-size: 2.2rem; line-height: 1.3; font-weight: 800; }
+.goPage h1 em { font-style: normal; background: var(--brand-blend-deep); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.goPage p { margin: 0; line-height: 1.9; color: var(--g-ink); opacity: 0.75; }
+.goPage__enter {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  border-radius: 20px;
+  background: var(--g-pink);
+  color: var(--g-ink);
+  font-weight: 800;
+  font-size: 1.15rem;
+  text-decoration: none;
+}
+.goPage__enter:focus-visible, .goPage__apk:focus-visible, .goPage__hint button:focus-visible { outline: 3px solid var(--g-violet); outline-offset: 3px; }
+.goPage__apk { color: var(--g-ink); font-weight: 600; opacity: 0.8; }
+.goPage__hint { display: grid; gap: 8px; justify-items: center; }
+.goPage__hint p { font-size: 0.9rem; }
+.goPage__hint button { border: 0; border-radius: 14px; padding: 8px 18px; background: var(--g-ink); color: var(--g-paper); font: inherit; font-weight: 600; cursor: pointer; }
+@keyframes goDrift { 50% { transform: translate(60px, 90px) scale(1.2); } }
+@keyframes goSheet { 50% { transform: rotate(-3deg) translateY(14px); } }
+@media (prefers-reduced-motion: reduce) { .goPage * { animation: none !important; } }

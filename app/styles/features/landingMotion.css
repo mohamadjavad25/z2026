@@ -1,0 +1,67 @@
+/* The about page's moving picture (HeroMotion.jsx): six glossy service cards drawn straight on the page, no frame.
+   Sizes are in cqw (the .heroMotion container) so it scales. Each card's pose is set from script (transform and opacity). */
+.heroMotion {
+  --cw: 40cqw;
+  --ch: 54cqw;
+  position: relative;
+  container-type: inline-size;
+  width: min(100%, 460px);
+  aspect-ratio: 4 / 5;
+  margin-inline: auto;
+}
+.heroMotion i, .heroMotion span { display: block; }
+
+.hmGlow { position: absolute; border-radius: 50%; filter: blur(48px); opacity: 0.55; pointer-events: none; }
+.hmGlow.is-pink { width: 62%; aspect-ratio: 1; background: var(--brand-pink); top: -2%; inset-inline-start: -8%; animation: hmGlowA 12s ease-in-out infinite; }
+.hmGlow.is-violet { width: 68%; aspect-ratio: 1; background: var(--brand-violet); bottom: -6%; inset-inline-end: -10%; animation: hmGlowB 12s ease-in-out infinite; }
+@keyframes hmGlowA { 50% { transform: translate(8cqw, 10cqw) scale(1.15); } }
+@keyframes hmGlowB { 50% { transform: translate(-8cqw, -8cqw) scale(0.9); } }
+
+/* ── the card ── */
+.hmCard {
+  position: relative;
+  width: var(--cw);
+  height: var(--ch);
+  border-radius: 7cqw;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  color: var(--brand-ink);
+  box-shadow: 0 3cqw 8cqw rgb(var(--shadow-rgb) / 0.22), inset 0 0 0 0.35cqw rgb(var(--on-photo-rgb) / 0.55);
+  backface-visibility: hidden;
+}
+.hmCard.is-blend { background: var(--brand-blend); }
+.hmCard.is-white { background: var(--brand-white); }
+.hmCard.is-ink { background: radial-gradient(120% 90% at 30% 20%, var(--violet-deep), var(--brand-ink) 62%); }
+.hmCard.is-violet { background: linear-gradient(160deg, var(--brand-violet), var(--violet-deep)); }
+.hmCard.is-soft { background: linear-gradient(160deg, var(--pink-soft), var(--brand-pink)); }
+.hmCard.is-mist { background: linear-gradient(160deg, var(--violet-soft), var(--brand-white)); }
+.hmHalo {
+  position: absolute;
+  width: 78%;
+  aspect-ratio: 1;
+  top: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(var(--on-photo-rgb) / 0.62), rgb(var(--on-photo-rgb) / 0.12) 68%, transparent 71%);
+  box-shadow: inset 0 0 0 0.35cqw rgb(var(--on-photo-rgb) / 0.5);
+}
+.hmCard.is-white .hmHalo, .hmCard.is-mist .hmHalo { background: radial-gradient(circle, var(--pink-soft), var(--violet-soft) 68%, transparent 71%); box-shadow: none; }
+.hmIcon { position: relative; margin-top: -10cqw; filter: drop-shadow(0 1.6cqw 2.4cqw rgb(var(--shadow-rgb) / 0.25)); }
+.hmDots { position: absolute; bottom: 7%; inset-inline: 0; display: flex; justify-content: center; gap: 2.2cqw; }
+.hmDots i { width: 3cqw; height: 3cqw; border-radius: 50%; background: rgb(var(--on-photo-rgb) / 0.75); }
+.hmDots i:nth-child(2) { background: rgb(var(--on-photo-rgb) / 0.45); }
+.hmDots i:nth-child(3) { background: rgb(var(--on-photo-rgb) / 0.25); }
+.hmCard.is-white .hmDots i, .hmCard.is-mist .hmDots i { background: var(--brand-pink); }
+.hmCard.is-white .hmDots i:nth-child(2), .hmCard.is-mist .hmDots i:nth-child(2) { background: var(--brand-violet); opacity: 0.7; }
+.hmCard.is-white .hmDots i:nth-child(3), .hmCard.is-mist .hmDots i:nth-child(3) { background: var(--n-300); }
+.hmSheen { position: absolute; inset: 0; background: linear-gradient(115deg, rgb(var(--on-photo-rgb) / 0.4), transparent 38%, transparent 70%, rgb(var(--on-photo-rgb) / 0.12)); pointer-events: none; }
+
+/* ── the scene: cards sit at the centre of a 3D world and are moved by script ── */
+.hmScene { position: absolute; inset: 0; perspective: 1100px; perspective-origin: 50% 38%; }
+.hmWorld { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; }
+.hmWorld .hmCard { position: absolute; left: calc(var(--cw) / -2); top: calc(var(--ch) / -2); will-change: transform, opacity; }
+.hmFloor { position: absolute; left: 14%; right: 14%; bottom: 3%; height: 7%; border-radius: 50%; background: radial-gradient(rgb(var(--shadow-rgb) / 0.3), transparent 70%); filter: blur(8px); opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hmGlow { animation: none !important; }
+}
