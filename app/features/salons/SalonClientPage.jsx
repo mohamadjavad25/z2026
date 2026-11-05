@@ -20,6 +20,7 @@ import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { ServicesOnPage } from "../../components/ServicesOnPage";
 import { bundleServices } from "../../shared/lib/serviceBundle";
+import { trackAction, trackScreen } from "../../shared/lib/activity";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { SalonClientGallery } from "./SalonClientGallery";
@@ -81,6 +82,7 @@ export function SalonClientPage({
   const [postsBy, setPostsBy] = useState("all");
   const salonKey = selectedSalon?.id ?? "";
   useEffect(() => { setBookWith(null); setPostsBy("all"); }, [salonKey]);
+  useEffect(() => { if (selectedSalon?.id) trackScreen("public_salon", Number(selectedSalon.id)); }, [selectedSalon?.id]);
   const services = selectedSalon ? getVisibleServices(selectedSalon) : [];
   // Opened from a category on «سالن و آرتیست من»: show the services menu as soon as the services have loaded.
   const focus = selectedSalon?.focusServices || null;
@@ -291,7 +293,11 @@ export function SalonClientPage({
             <button
               type="button"
               className={`spvBarBook${servicesOpen ? " is-open" : ""}`}
-              onClick={() => { setBookWith(null); setServicesOpen((open) => !open); }}
+              onClick={() => {
+                if (!servicesOpen) trackAction("book_tap", Number(selectedSalon.id));
+                setBookWith(null);
+                setServicesOpen((open) => !open);
+              }}
               aria-expanded={servicesOpen}
               aria-haspopup="dialog"
             >

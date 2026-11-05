@@ -1,5 +1,6 @@
 import { PageIcon } from "../../components/PageIcon";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { trackScreen } from "../../shared/lib/activity";
 
 /**
  * The tab row under a salon's or artist's profile header. Both roles get the same names in the same
@@ -49,6 +50,7 @@ export function ProfileModeRail({
           aria-current={tab.on ? "page" : undefined}
           onClick={() => {
             tab.go();
+            trackScreen(`rail:${tab.id}`);
             // Deferred one frame: the view swap is a React state update, and scrolling in the same
             // tick can get lost on some mobile browsers before the new view's layout commits.
             requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));

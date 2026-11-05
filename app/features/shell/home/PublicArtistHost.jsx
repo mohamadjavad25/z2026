@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { parseServiceDurationMinutes } from "../../../shared/lib/time";
+import { trackScreen } from "../../../shared/lib/activity";
 import { PublicArtistModal } from "../../artist";
 import { useHome } from "../HomeContext";
 
@@ -35,6 +37,10 @@ export function PublicArtistHost() {
     toggleSavePublicArtist,
     toggleFollowPublicArtist
   } = useHome();
+
+  useEffect(() => {
+    if (selectedPublicArtist?.id) trackScreen("public_artist", Number(selectedPublicArtist.id));
+  }, [selectedPublicArtist?.id]);
 
   return (
     <PublicArtistModal

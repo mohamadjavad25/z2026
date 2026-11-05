@@ -3,6 +3,7 @@
 import { apiFetch } from "../../shared/api/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { deleteAccount as apiDeleteAccount, login as apiLogin, logout as apiLogout, register as apiRegister } from "../../shared/api/auth";
+import { endActivityVisit, forgetActivityPhone, trackAction } from "../../shared/lib/activity";
 import { AUTH_SESSION_KEY, normalizeProfile, readAuthSession, writeAuthSession } from "./constants";
 import { stopAppPush } from "../../shared/lib/nativePush";
 import { stopWebPush } from "../../shared/lib/webPush";
@@ -305,6 +306,8 @@ export function useAuthSession({
     } catch {
       // ignore
     }
+    trackAction("logout");
+    endActivityVisit();
     clearAuthSession();
     // The session is already cleared client-side at this point -- show the
     // toast right away instead of waiting on onLoggedOut's cleanup/refetch
@@ -329,6 +332,7 @@ export function useAuthSession({
       const plan = payload?.data?.plan;
       return { ok: false, error: payload?.error || "حسابت پاک نشد؛ دوباره بزن.", ...(plan ? { plan, code: payload.code } : {}) };
     }
+    forgetActivityPhone();
     clearAuthSession();
     await onLoggedOutRef.current?.();
     onShellNoticeRef.current?.("حسابت برای همیشه پاک شد.");

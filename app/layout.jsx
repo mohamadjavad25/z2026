@@ -6,6 +6,7 @@ import { ViewportHeightFix } from "./components/ViewportHeightFix.jsx";
 import { KeyboardSuggestionsOff } from "./components/KeyboardSuggestionsOff.jsx";
 import { PortraitLock } from "./components/PortraitLock.jsx";
 import { ClientErrorReporter } from "./components/ClientErrorReporter.jsx";
+import { ActivityTracker } from "./components/ActivityTracker.jsx";
 import { PullToRefresh } from "./components/PullToRefresh.jsx";
 import { AppUpdateHost } from "./features/appUpdate/AppUpdateHost.jsx";
 import { getSiteUrl } from "./lib/siteUrl.js";
@@ -155,6 +156,7 @@ try {
         <KeyboardSuggestionsOff />
         <PortraitLock />
         <ClientErrorReporter />
+        <ActivityTracker />
         <PullToRefresh />
         <AppUpdateHost />
         <LargeScreenGate landing={<AppLanding />}>{children}</LargeScreenGate>

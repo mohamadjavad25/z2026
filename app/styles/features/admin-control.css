@@ -328,6 +328,16 @@
 .admFunnel li { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 0 14px; border-radius: 14px; background: var(--a-card2); overflow: hidden; font-weight: 750; }
 .admFunnel li::before { content: ""; position: absolute; inset-block: 0; inset-inline-start: 0; width: var(--w); background: linear-gradient(90deg, color-mix(in srgb, var(--a-s1) 30%, transparent), color-mix(in srgb, var(--a-s2) 30%, transparent)); transition: width 0.6s ease; }
 .admFunnel li > * { position: relative; }
+.admFunnel li.is-drop::before { background: color-mix(in srgb, var(--a-s2) 55%, transparent); }
+.admFootprint { display: grid; gap: var(--space-3); }
+.admFootprintPage { margin: 0; font-weight: 700; }
+.admVisit { display: grid; gap: 8px; padding: 12px 14px; border-radius: 14px; background: var(--a-card2); }
+.admVisit header { display: grid; gap: 2px; }
+.admVisit header small { color: var(--a-muted); }
+.admVisit ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.admVisit li { display: grid; grid-template-columns: 48px 1fr; gap: 8px; color: var(--a-muted); }
+.admVisit li.is-action { color: inherit; font-weight: 700; }
+.admVisit time { font-variant-numeric: tabular-nums; }
 .admFunnel b { font-size: 1.15rem; font-weight: 900; }
 .admFunnel b small { color: var(--a-muted); font-size: var(--text-sm); font-weight: 700; }
 .admReadyBar { height: 10px; margin-bottom: var(--space-3); border-radius: 999px; background: var(--a-card2); overflow: hidden; }

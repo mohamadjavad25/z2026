@@ -6,6 +6,7 @@ import { toPersianDigits } from "../shared/lib/digits";
 import { Button } from "../components/ui";
 import { BOOKING_TONE, TYPE_LABEL, ago, num } from "./format";
 import { Bars } from "./Dashboard";
+import { ActivityReport } from "./ActivityReport";
 import { PageHead } from "./PageHead";
 import { Card, ErrorNote, Loading, Segmented, useAdminData } from "./ui";
 
@@ -96,6 +97,8 @@ export function ReportsTab({ onGo }) {
           </ul>
         </Card>
       </div>
+
+      <ActivityReport days={days} />
 
       <Card title="ساعت‌های ثبت رزرو" icon={Clock3}>
         <Heatmap cells={data.heat} />

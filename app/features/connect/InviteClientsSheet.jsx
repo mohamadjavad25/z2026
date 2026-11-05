@@ -7,6 +7,7 @@ import { ProfileSheet } from "../profile/ProfileSheet";
 import { useQrCode } from "../../shared/hooks/useQrCode";
 import { buildClientInviteText } from "../../shared/lib/inviteSms";
 import { ScanFlow } from "./ScanFlow";
+import { trackAction } from "../../shared/lib/activity";
 
 /**
  * «دعوت مشتری» for salons and artists (customers page): every way to bring the customers they already
@@ -35,6 +36,7 @@ export function InviteClientsSheet({ open, url = "", name = "", viewerType, onCh
   }
 
   async function share() {
+    trackAction("share_link");
     if (typeof navigator.share === "function") {
       try {
         await navigator.share({ title: name || "فرفرو", text });

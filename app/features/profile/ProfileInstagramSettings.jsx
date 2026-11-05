@@ -8,6 +8,7 @@ import { InstagramGlyph } from "../../components/InstagramFolder";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { INSTAGRAM_INVALID_MESSAGE, normalizeInstagram } from "../../shared/lib/instagram";
 import { InstagramStorySheet, loadFreeSlots, loadWorks } from "./InstagramStorySheet";
+import { trackAction } from "../../shared/lib/activity";
 
 // Toasts are one line: short.
 const BIO_COPIED = "کپی شد. حالا بذارش تو بیو اینستاگرامت.";
@@ -94,6 +95,7 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", av
   }
 
   async function copyLink() {
+    trackAction("share_link");
     try {
       await navigator.clipboard.writeText(publicUrl);
       setCopied(true);

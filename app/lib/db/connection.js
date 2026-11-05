@@ -177,6 +177,11 @@ export async function run(runner, sql, params = []) {
  * call sites throughout app/api and app/lib/db/repos don't all need to
  * change.
  */
+/** True while requests are queueing for a connection: anything optional should step aside. */
+export function databaseIsBusy() {
+  return Boolean(pool && pool.waitingCount > 0);
+}
+
 export async function ensureDb() {
   return getPool();
 }

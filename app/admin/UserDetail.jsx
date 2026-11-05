@@ -10,9 +10,11 @@ import { CopyButton, ErrorNote, Loading, confirmAction, toastResult } from "./ui
 import { CannedReplies } from "./CannedReplies";
 import { AccountBilling } from "./BillingAdmin";
 import { ActionMenu, Dialog } from "./ActionMenu";
+import { UserFootprint } from "./UserFootprint";
 
 const PANES = [
   ["overview", "خلاصه"],
+  ["footprint", "رد پا"],
   ["history", "فعالیت"],
   ["billing", "اشتراک"]
 ];
@@ -251,6 +253,8 @@ export function UserDetail({ userId, onChanged, onGo, onClose }) {
       ) : null}
 
       {pane === "billing" && user.type !== "client" ? <AccountBilling userId={user.id} name={user.name} onGo={onGo} /> : null}
+
+      {pane === "footprint" ? <UserFootprint userId={user.id} provider={user.type !== "client"} /> : null}
 
       {pane === "history" ? (
         detail.history.length ? (

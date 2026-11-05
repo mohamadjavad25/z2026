@@ -1,4 +1,5 @@
 import { apiFetch, apiJson } from "./client";
+import { trackAction } from "../lib/activity";
 
 // 100 pages of 100: a directory past 10,000 needs a real "load more" screen, which this app does not have yet.
 const DIRECTORY_MAX_PAGES = 100;
@@ -39,10 +40,13 @@ export async function getArtistMe() {
  * - { kind: "collab", … } → { data: { collab } } 201
  */
 export async function createArtistMe(body) {
-  return apiFetch("/api/artist/me", {
+  const result = await apiFetch("/api/artist/me", {
     method: "POST",
     body: JSON.stringify(body)
   });
+  if (result.ok && !body?.kind) trackAction("add_service");
+  if (result.ok && body?.kind === "booking") trackAction("add_booking_manual");
+  return result;
 }
 
 /** PATCH /api/artist/me → update service { data: { service } } */
@@ -60,10 +64,12 @@ export async function updateArtistMe(body) {
  * (services), dispatched by `kind`, mirroring the POST multiplex.
  */
 export async function updateArtistBooking(body) {
-  return apiFetch("/api/artist/me", {
+  const result = await apiFetch("/api/artist/me", {
     method: "PATCH",
     body: JSON.stringify({ kind: "booking", ...body })
   });
+  if (result.ok) trackAction("answer_booking");
+  return result;
 }
 
 /**

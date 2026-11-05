@@ -281,7 +281,7 @@ export async function clearClientErrors() {
 
 /* ───────────────────────── system health ───────────────────────── */
 
-const WATCHED_TABLES = ["users", "posts", "salon_bookings", "artist_bookings", "support_tickets", "support_messages", "sessions", "push_subscriptions", "sms_log", "rate_limit_hits", "admin_actions", "client_errors"];
+const WATCHED_TABLES = ["users", "posts", "salon_bookings", "artist_bookings", "support_tickets", "support_messages", "sessions", "push_subscriptions", "sms_log", "rate_limit_hits", "admin_actions", "client_errors", "activity_visits", "activity_events"];
 
 /** Database, jobs and delivery numbers for the health page. No user content is read. */
 export async function getSystemHealth() {

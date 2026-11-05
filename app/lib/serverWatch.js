@@ -3,6 +3,7 @@ import { statfs, readFile } from "node:fs/promises";
 import { getDb, get } from "./db/connection.js";
 import * as store from "./db/repos/adminNews.js";
 import { alertAdmins, tehranClock } from "./adminNews.js";
+import { activityBytes } from "./db/repos/activity.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
 
 /**
@@ -14,7 +15,7 @@ import { toPersianDigits } from "../shared/lib/digits.js";
  * uptime monitor (docs/OPERATIONS.md).
  */
 
-export const LIMITS = { cpu: 0.8, slowMs: 2000, disk: 0.8, memoryFree: 0.1, smsFailures: 3, appErrors: 30, strikes: 2 };
+export const LIMITS = { cpu: 0.8, slowMs: 2000, disk: 0.8, memoryFree: 0.1, smsFailures: 3, appErrors: 30, strikes: 2, activityBytes: 2 * 1024 ** 3 };
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 const pct = (ratio) => `${toPersianDigits(String(Math.round(ratio * 100)))}٪`;
@@ -78,8 +79,8 @@ async function answerMs(origin) {
 
 export async function readServer(origin) {
   const cores = os.availableParallelism?.() || os.cpus().length || 1;
-  const [disk, memoryFree, sms, ms, crashes] = await Promise.all([diskUsedRatio(), memoryFreeRatio(), smsFailures(), answerMs(origin), appErrors()]);
-  return { cpu: os.loadavg()[1] / cores, disk, memoryFree, smsFailures: sms, answerMs: ms, appErrors: crashes };
+  const [disk, memoryFree, sms, ms, crashes, footprint] = await Promise.all([diskUsedRatio(), memoryFreeRatio(), smsFailures(), answerMs(origin), appErrors(), activityBytes().catch(() => 0)]);
+  return { cpu: os.loadavg()[1] / cores, disk, memoryFree, smsFailures: sms, answerMs: ms, appErrors: crashes, activityBytes: footprint };
 }
 
 /**
@@ -127,6 +128,16 @@ export function judge(reading, state = {}, now = new Date()) {
       key: "app-errors",
       title: "برنامه روی گوشی‌ها خطا می‌ده",
       body: `۱۵ دقیقهٔ گذشته ${toPersianDigits(String(reading.appErrors))} خطا از گوشی کاربرا اومد. صفحهٔ سلامت سامانه رو ببین؛ اگه تازه نسخهٔ جدید رفته، شاید اون خرابش کرده.`
+    });
+  }
+
+  // The owner keeps the footprint for good (2026-11-05: «حکم طلا رو دارن»), so this only says when to decide about space.
+  if (reading.activityBytes >= LIMITS.activityBytes) {
+    alerts.push({
+      key: "activity-size",
+      gapMs: 30 * DAY,
+      title: "رد پای کاربرها جای زیادی گرفته",
+      body: `رد پا الان ${toPersianDigits((reading.activityBytes / 1024 ** 3).toFixed(1))} گیگه. چیزی پاک نشده؛ وقتشه تصمیم بگیری دیسک بزرگ‌تر بگیریم یا جزئیات قدیمی رو خلاصه کنیم.`
     });
   }
 

@@ -10,6 +10,7 @@ import { ServicesOnPage } from "../../components/ServicesOnPage";
 import { WeeklyHours } from "../../components/WeeklyHours";
 import { ConnectToggle } from "../connect/ConnectToggle";
 import { bundleServices } from "../../shared/lib/serviceBundle";
+import { trackAction } from "../../shared/lib/activity";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { DEFAULT_PERSON_AVATAR } from "../../shared/lib/defaultAvatar";
@@ -208,7 +209,10 @@ export function PublicArtistModal({
               <button
                 type="button"
                 className={`spvBarBook${servicesOpen ? " is-open" : ""}`}
-                onClick={() => setServicesOpen((open) => !open)}
+                onClick={() => {
+                  if (!servicesOpen) trackAction("book_tap", Number(artist.id));
+                  setServicesOpen((open) => !open);
+                }}
                 aria-expanded={servicesOpen}
                 aria-haspopup="dialog"
               >

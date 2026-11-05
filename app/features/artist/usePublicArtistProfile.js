@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { openInAppHref, rememberPendingOpen } from "../../shared/lib/appHandoff";
 import { createArtistBooking, getArtist, toggleFollow } from "../../shared/api/artists";
 import { toggleSave } from "../../shared/api/saves";
+import { trackAction } from "../../shared/lib/activity";
 import { getApiErrorMessage } from "../../shared/lib/apiNotify";
 import { parseServiceDurationMinutes } from "../../shared/lib/time";
 import { mapSharedPost } from "../posts/mappers";
@@ -410,6 +411,7 @@ export function usePublicArtistProfile({
 
   const shareArtistProfile = useCallback(async () => {
     if (!selectedPublicArtist) return;
+    trackAction("share_link", Number(selectedPublicArtist.id));
     const name = selectedPublicArtist.name || "آرتیست";
     const shareText = `صفحهٔ «${name}» توی فرفرو`;
     const artistId = selectedPublicArtist.id;

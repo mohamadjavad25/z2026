@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { trackAction } from "../../shared/lib/activity";
 import { TRIO, TUTORIAL_SLIDES, picturesOf, tutorialPicture } from "./slides";
 
 const SCREEN_RATIO = 1266 / 585;
@@ -109,7 +110,15 @@ export function OnboardingSlides({ flow, onDone }) {
 
   if (!data || !slide || typeof document === "undefined") return null;
 
-  const next = () => (isLast ? onDone?.() : go(index + 1));
+  const next = () => {
+    if (!isLast) return go(index + 1);
+    if (flow !== "welcome") trackAction("tutorial_done");
+    return onDone?.();
+  };
+  const skip = () => {
+    if (flow !== "welcome") trackAction(`tutorial_skip:${index + 1}`);
+    onDone?.();
+  };
 
   return createPortal(
     <div className="onbRoot" role="dialog" aria-modal="true" aria-label={flow === "welcome" ? "خوش‌آمد فرفرو" : "آموزش فرفرو"}>
@@ -126,7 +135,7 @@ export function OnboardingSlides({ flow, onDone }) {
           }}
         >
           <span className="onbCount">{toPersianDigits(index + 1)} از {toPersianDigits(slides.length)}</span>
-          {isLast ? null : <button type="button" className="onbSkip" onClick={onDone}>رد شدن</button>}
+          {isLast ? null : <button type="button" className="onbSkip" onClick={skip}>رد شدن</button>}
 
           {slide.trio ? (
             <div className="onbTrio">

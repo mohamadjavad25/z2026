@@ -13,11 +13,15 @@ import { cleanPendingServices, parseOpenParam, peekPendingOpen, rememberPendingO
 import { notify } from "../../shared/notice/noticeStore";
 import { pushNotificationsSupported, subscribeToPushNotifications } from "./homeAppHelpers";
 import { appPushAvailable, startAppPush } from "../../shared/lib/nativePush";
+import { trackScreen } from "../../shared/lib/activity";
 import { useHomeChrome } from "./useHomeChrome";
 import { useHomeWorkspaces } from "./useHomeWorkspaces";
 
 export function useHomeApp() {
   const [activeTab, setActiveTab] = useState("profile");
+  useEffect(() => {
+    trackScreen(`tab:${activeTab}`);
+  }, [activeTab]);
 
   // Capture ?join={salonId} from a /join-salon/[id] QR/link redirect (guest
   // branch — see JoinSalonPageClient) before the auth gate renders, so the

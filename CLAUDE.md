@@ -66,7 +66,7 @@ For any question or change about how something looks or reads, first look at tha
 
 ## Area index (each has a section in `docs/PROJECT_NOTES.md`)
 
-Brand and logo · Android/iOS shell and downloads · public website · colour system · service icons · subscriptions and billing · connecting and invites · «کجاست؟» location · hosting and server moves · migrations · Android push and the admin app · names · app release · how Claude works here.
+Brand and logo · Android/iOS shell and downloads · public website · colour system · service icons · subscriptions and billing · connecting and invites · «کجاست؟» location · hosting and server moves · migrations · Android push and the admin app · names · app release · how Claude works here · footprint «رد پا».
 
 <!-- BEGIN:nextjs-agent-rules -->
 
