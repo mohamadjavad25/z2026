@@ -15,6 +15,8 @@
 .admInbox li:hover { background: var(--a-card2); }
 .admInbox li.is-selected { background: var(--a-accent-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--a-accent) 35%, transparent); }
 .admInbox li.is-closed .admInboxBody { opacity: 0.6; }
+.admInbox li.is-answered .admInboxSubject { color: var(--a-muted); font-weight: 650; }
+.admInboxTurn { justify-self: start; margin-top: 5px; }
 .admInbox button { position: relative; display: flex; align-items: flex-start; gap: 11px; width: 100%; padding: 11px 10px; border: 0; border-radius: 14px; background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer; }
 .admInboxAvatar { position: relative; flex: 0 0 auto; }
 .admInboxAvatar .admAvatar { width: 40px; height: 40px; border-radius: 14px; }
@@ -33,6 +35,7 @@
 /* ---- conversation ---- */
 .admChatMain { display: flex; flex-direction: column; border-radius: var(--a-radius); background: var(--a-card); box-shadow: inset 0 0 0 1px var(--a-line); overflow: hidden; }
 .admChatPad { padding: var(--space-4); }
+.admConvTurn { display: none; }
 .admChatBlank { flex: 1; display: grid; align-content: center; justify-items: center; gap: 8px; padding: var(--space-6); text-align: center; }
 .admChatBlank b { font-size: var(--text-md); font-weight: 850; }
 .admChatBlank p { margin: 0 0 var(--space-2); max-width: 44ch; color: var(--a-muted); font-weight: 600; line-height: 2; }
@@ -153,6 +156,9 @@
   .admConvTitle b { font-size: var(--text-md); }
   .admConvTitle small { font-size: 0.72rem; }
   .admConvHead .admTurn, .admConvTools, .admConvTabs { display: none; }
+  .admConvTitle small.admConvTurn { display: block; font-weight: 750; }
+  .admConvTurn.is-you { color: var(--a-warn); }
+  .admConvTurn.is-them { color: var(--a-good); }
   .admConvMenu { display: block; position: relative; }
   .admConvInfoBtn { display: inline-grid; }
   .admConvInfoBtn.is-on { background: var(--a-accent-soft); color: var(--a-accent); }

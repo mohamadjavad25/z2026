@@ -85,7 +85,7 @@
 
 /* ---- conversation ---- */
 .admTurn.is-you { background: var(--a-warn-soft); color: var(--a-warn); box-shadow: none; }
-.admTurn.is-them { background: color-mix(in srgb, var(--a-s1) 16%, transparent); color: var(--a-s1); box-shadow: none; }
+.admTurn.is-them { background: var(--a-good-soft); color: var(--a-good); box-shadow: none; }
 .admTurn.is-closed { background: var(--a-card); color: var(--a-faint); }
 .admInboxMeta { flex: 0 0 auto; display: grid; justify-items: end; gap: 4px; }
 .admDetail .admRowActions { flex-wrap: wrap; }

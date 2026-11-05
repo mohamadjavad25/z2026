@@ -95,7 +95,7 @@ export function ArtistPublicPageClient({ artist }) {
     };
     const viewer = followGate.viewer;
     if (viewer === undefined) {
-      setMessage("یه لحظه صبر کن و دوباره «بفرست» رو بزن.");
+      setMessage("یه لحظه صبر کن و دوباره دکمه رو بزن.");
       return;
     }
     if (viewer && viewer.type !== "client") {

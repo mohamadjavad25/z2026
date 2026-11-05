@@ -50,10 +50,10 @@ export async function newPage({ width = 390, cookie = "", entered = true, dueLat
 
 /**
  * The client's step form (ClientVisitWizard), from its day step: «زودترین وقت خالی» → the ticket, with who does what
- * and a «بفرست …» button that is ready.
+ * and a «درخواست نوبت» button that is ready.
  */
 export async function clientToTicket(page) {
   await page.locator(".vbSoonest").click();
   await page.locator(".vbTicket .vbPlanRow").first().waitFor();
-  await page.getByRole("button", { name: /^بفرست/ }).waitFor();
+  await page.getByRole("button", { name: /^درخواست نوبت/ }).waitFor();
 }

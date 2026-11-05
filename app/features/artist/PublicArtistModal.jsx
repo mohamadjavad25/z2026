@@ -11,8 +11,7 @@ import { WeeklyHours } from "../../components/WeeklyHours";
 import { ConnectToggle } from "../connect/ConnectToggle";
 import { bundleServices } from "../../shared/lib/serviceBundle";
 import { trackAction } from "../../shared/lib/activity";
-import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
-import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
+import { toLatinDigits } from "../../shared/lib/digits";
 import { DEFAULT_PERSON_AVATAR } from "../../shared/lib/defaultAvatar";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
 import { PublicArtistBookingPanel } from "./PublicArtistBookingPanel";
@@ -98,13 +97,6 @@ export function PublicArtistModal({
   }, [wait, guest, artist?.id, artist?.autoConfirm, pickedName, bookingDay, bookingSlot]);
   if (!artist) return null;
 
-  const prices = (services || []).map((service) => parseTomanAmount(service.price)).filter(Boolean);
-  const fromPrice = prices.length ? Math.min(...prices) : 0;
-  // On the bottom bar: how many services and the lowest price, e.g. «۸ خدمت، قیمت از ۴ تومان».
-  const barNote = [
-    (services || []).length ? `${toPersianDigits((services || []).length)} خدمت` : "",
-    fromPrice ? `قیمت از ${formatTomanNumber(fromPrice)} تومان` : ""
-  ].filter(Boolean).join("، ");
   const weekHours = Array.isArray(artist.hours) ? artist.hours : [];
   const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
   function startBooking(picked) {
@@ -217,9 +209,8 @@ export function PublicArtistModal({
                 aria-haspopup="dialog"
               >
                 {artist.onlineBookingPaused ? <Scissors size={19} /> : <CalendarCheck size={19} />}
-                {servicesOpen ? "بستن" : artist.onlineBookingPaused ? "خدمات و قیمت‌ها" : "رزرو"}
-                {barNote && !servicesOpen ? <small>{barNote}</small> : null}
-                <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
+                {servicesOpen ? "بستن" : artist.onlineBookingPaused ? "خدمات و قیمت‌ها" : "نوبت بگیر"}
+                {servicesOpen ? <ChevronUp size={18} className="spvBarChevron is-open" aria-hidden="true" /> : null}
               </button>
             </nav>
             </>
@@ -256,7 +247,7 @@ export function PublicArtistModal({
                 {bookingSlot && !guest && !artist.autoConfirm ? (
                   <WaitChoice value={wait} onChange={setWait} who="آرتیست" backups={backups} backup={backup} onBackup={setBackup} />
                 ) : null}
-                {/* No note for a visitor without an account: «بفرست» opens the sign-up sheet, which says it (owner, 2026-11-04). */}
+                {/* No note for a visitor without an account: «درخواست نوبت» opens the sign-up sheet, which says it (owner, 2026-11-04). */}
                 {!guest && !clientPhone ? (
                   <p className="artistBookingPhoneWarning">
                     برای نوبت گرفتن، شماره‌ت رو توی پروفایلت بذار؛ آرتیست برای تأیید باید بتونه بهت زنگ بزنه.{" "}
@@ -282,7 +273,7 @@ export function PublicArtistModal({
                   }}
                 >
                   <CalendarCheck size={17} />
-                  {bookingBusy ? "یه لحظه…" : bookingSlot ? `بفرست برای ${bookingDay}، ${bookingSlot}` : "یه ساعت انتخاب کن"}
+                  {bookingBusy ? "یه لحظه…" : bookingSlot ? (artist.autoConfirm ? "نوبت رو ثبت کن" : "درخواست نوبت") : "یه ساعت انتخاب کن"}
                 </button>
                 {/* The one line every client sees before sending (owner, 2026-11-02); small, under the button since 2026-11-04. */}
                 <p className="artistPublicBookingNote">{ATTEND_NOTICE}</p>

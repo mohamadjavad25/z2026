@@ -18,7 +18,7 @@ export function UserFootprint({ userId, provider }) {
       {visits.length ? (
         <p className="admMuted">{num(totals.visits)} بار اومده، روی هم {durationLabel(totals.seconds)}.{totals.visits > visits.length ? ` ${num(visits.length)} بار آخر این پایینه.` : ""}</p>
       ) : <p className="admMuted">هنوز رد پایی ثبت نشده.</p>}
-      {provider ? <p className="admFootprintPage">صفحهٔ عمومیش: {num(page.viewers)} نفر دیدن، {num(page.book_taps)} نفر «رزرو» رو زدن.</p> : null}
+      {provider ? <p className="admFootprintPage">صفحهٔ عمومیش: {num(page.viewers)} نفر دیدن، {num(page.book_taps)} نفر «نوبت بگیر» رو زدن.</p> : null}
       {visits.map((visit) => (
         <article key={visit.id} className="admVisit">
           <header>

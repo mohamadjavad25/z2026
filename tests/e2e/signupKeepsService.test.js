@@ -24,10 +24,10 @@ async function guestPicksThenSignsUp(page, salonId, { beforeAccount } = {}) {
   await page.goto(`${TEST_BASE_URL}/salons/${salonId}`, { waitUntil: "networkidle" });
   await page.locator(".spvBarBook").click();
   await page.locator(".sduItem", { hasText: SERVICE }).click();
-  await page.getByRole("button", { name: `رزرو «${SERVICE}»` }).click();
+  await page.locator(".sduConfirm").click();
   await page.locator(".visitBookerSheet").waitFor();
   await clientToTicket(page);
-  await page.getByRole("button", { name: /^بفرست/ }).click();
+  await page.getByRole("button", { name: /^درخواست نوبت/ }).click();
   await page.locator("[name=phone]").waitFor();
   await page.fill("[name=phone]", uniquePhone());
   await page.getByRole("button", { name: "ادامه", exact: true }).click();

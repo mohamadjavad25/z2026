@@ -156,9 +156,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                 ) : null}
                 <button type="button" className="sduConfirm" disabled={!picked.length} onClick={() => picked.length && onConfirm(picked)}>
                   <CalendarCheck size={18} />
-                  {picked.length > 1
-                    ? `رزرو ${toPersianDigits(picked.length)} خدمت`
-                    : picked.length ? `رزرو «${picked[0].name}»` : "یه کار انتخاب کن"}
+                  {picked.length ? "ادامه" : "یه کار انتخاب کن"}
                   {totalAmount ? <small>{formatTomanNumber(totalAmount)} تومان</small> : null}
                 </button>
               </div>

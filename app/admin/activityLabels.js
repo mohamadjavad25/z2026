@@ -29,7 +29,7 @@ const ACTION = {
   save_hours: "ساعت کاری رو ذخیره کرد",
   edit_profile: "پروفایل رو ویرایش کرد",
   share_link: "لینکش رو فرستاد",
-  book_tap: "«رزرو» رو زد",
+  book_tap: "«نوبت بگیر» رو زد",
   book_sent: "نوبت فرستاد",
   add_booking_manual: "نوبت دستی ثبت کرد",
   answer_booking: "به درخواست نوبت جواب داد",
