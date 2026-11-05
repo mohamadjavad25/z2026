@@ -1,5 +1,6 @@
 "use client";
 
+import { isPickedImage, noteUnreadablePhoto } from "../../shared/lib/imageCompression";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /** Pictures and voice notes for the support chat, on the browser side. The server checks everything again (app/lib/supportMedia.js). */
@@ -21,7 +22,10 @@ const readAsDataUrl = (blob) =>
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
     // The browser's own words («The requested file could not be read…») would reach the person as the error.
-    reader.onerror = () => reject(new Error("این عکس باز نشد؛ یه عکس دیگه بفرست."));
+    reader.onerror = () => {
+      noteUnreadablePhoto(blob, reader.error);
+      reject(new Error("این عکس باز نشد؛ یه عکس دیگه بفرست."));
+    };
     reader.readAsDataURL(blob);
   });
 
@@ -30,7 +34,7 @@ const readAsDataUrl = (blob) =>
  * at a few hundred KB. A GIF is sent as is (it may move). Rejects anything that is not a picture.
  */
 export async function prepareImage(file) {
-  if (!file?.type?.startsWith("image/")) throw new Error("فقط عکس می‌شه فرستاد.");
+  if (!isPickedImage(file)) throw new Error("فقط عکس می‌شه فرستاد.");
   if (file.type === "image/gif") {
     if (file.size > 3 * 1024 * 1024) throw new Error("این GIF خیلی بزرگه.");
     return readAsDataUrl(file);

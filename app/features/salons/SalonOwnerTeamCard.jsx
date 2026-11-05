@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, Check, ImagePlus, PencilLine, Settings, Store, UserRoundPlus } from "lucide-react";
 import { salonArtistRoleOptions } from "../../shared/constants/roles";
 import { getSalonOwnerProfile } from "../../shared/api/salons";
-import { UNREADABLE_PHOTO, compressImageToDataUrl } from "../../shared/lib/imageCompression";
+import { UNREADABLE_PHOTO, compressImageToDataUrl, isPickedImage } from "../../shared/lib/imageCompression";
 import { ServiceIcon } from "../../components/ServiceIcon";
 
 const DEFAULT_AVATAR = "/profile-icon.svg";
@@ -184,7 +184,7 @@ function OwnerProfileForm({ initialName, initialRoles, profile, joining, busy, o
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
+    if (!isPickedImage(file)) {
       setPhotoError("این فایل عکس نیست.");
       return;
     }

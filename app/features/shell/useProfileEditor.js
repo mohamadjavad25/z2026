@@ -3,7 +3,7 @@
 import { apiFetch } from "../../shared/api/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { normalizeProfile } from "../auth";
-import { UNREADABLE_PHOTO, compressImageToDataUrl } from "../../shared/lib/imageCompression";
+import { MAX_PICKED_PHOTO_BYTES, PHOTO_TOO_BIG, UNREADABLE_PHOTO, compressImageToDataUrl, isPickedImage } from "../../shared/lib/imageCompression";
 
 const DEFAULT_PROFILE_SETTINGS = {
   reservationAlerts: true,
@@ -251,15 +251,14 @@ export function useProfileEditor({
 
   const handleProfileAvatarUpload = useCallback(async (event) => {
     const file = event.target.files?.[0];
+    event.target.value = ""; // so picking the same photo again after a failure still does something
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
+    if (!isPickedImage(file)) {
       notify("فقط عکس می‌شه.");
-      event.target.value = "";
       return;
     }
-    if (file.size > 4 * 1024 * 1024) {
-      notify("عکس باید کمتر از ۴ مگ باشه.");
-      event.target.value = "";
+    if (file.size > MAX_PICKED_PHOTO_BYTES) {
+      notify(PHOTO_TOO_BIG);
       return;
     }
     // Downscale + re-encode before it ever becomes a data URL sent to the
@@ -335,12 +334,12 @@ export function useProfileEditor({
 
   const stageProfileImage = useCallback(async (file, setPending) => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
+    if (!isPickedImage(file)) {
       notify("فقط عکس می‌شه.");
       return;
     }
-    if (file.size > 4 * 1024 * 1024) {
-      notify("عکس باید کمتر از ۴ مگ باشه.");
+    if (file.size > MAX_PICKED_PHOTO_BYTES) {
+      notify(PHOTO_TOO_BIG);
       return;
     }
     // Same downscale-before-upload as handleProfileAvatarUpload above --

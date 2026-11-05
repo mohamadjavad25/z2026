@@ -14,7 +14,7 @@ import { toPersianDigits } from "../shared/lib/digits.js";
  * uptime monitor (docs/OPERATIONS.md).
  */
 
-export const LIMITS = { cpu: 0.8, slowMs: 2000, disk: 0.8, memoryFree: 0.1, smsFailures: 3, strikes: 2 };
+export const LIMITS = { cpu: 0.8, slowMs: 2000, disk: 0.8, memoryFree: 0.1, smsFailures: 3, appErrors: 30, strikes: 2 };
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 const pct = (ratio) => `${toPersianDigits(String(Math.round(ratio * 100)))}٪`;
@@ -54,6 +54,17 @@ async function smsFailures() {
   }
 }
 
+/** Crashes from people's phones in the last 15 minutes; a photo we told them about ("handled") is not a crash. */
+async function appErrors() {
+  try {
+    const db = await getDb();
+    const row = await get(db, "SELECT COUNT(*)::int AS count FROM client_errors WHERE created_at >= NOW() - INTERVAL '15 minutes' AND source <> 'handled'");
+    return Number(row?.count || 0);
+  } catch {
+    return 0;
+  }
+}
+
 /** How long the site's own health check takes from inside the machine, in ms (Infinity when it does not answer). */
 async function answerMs(origin) {
   const started = Date.now();
@@ -67,8 +78,8 @@ async function answerMs(origin) {
 
 export async function readServer(origin) {
   const cores = os.availableParallelism?.() || os.cpus().length || 1;
-  const [disk, memoryFree, sms, ms] = await Promise.all([diskUsedRatio(), memoryFreeRatio(), smsFailures(), answerMs(origin)]);
-  return { cpu: os.loadavg()[1] / cores, disk, memoryFree, smsFailures: sms, answerMs: ms };
+  const [disk, memoryFree, sms, ms, crashes] = await Promise.all([diskUsedRatio(), memoryFreeRatio(), smsFailures(), answerMs(origin), appErrors()]);
+  return { cpu: os.loadavg()[1] / cores, disk, memoryFree, smsFailures: sms, answerMs: ms, appErrors: crashes };
 }
 
 /**
@@ -109,6 +120,13 @@ export function judge(reading, state = {}, now = new Date()) {
       key: "sms",
       title: "پیامک‌ها نمی‌رن",
       body: `۱۵ دقیقهٔ گذشته ${toPersianDigits(String(reading.smsFailures))} پیامک نرفت و هیچ‌کدوم نرفت. اعتبار و خط فراز رو چک کن؛ بدون پیامک کسی ثبت‌نام نمی‌کنه.`
+    });
+  }
+  if (reading.appErrors >= LIMITS.appErrors) {
+    alerts.push({
+      key: "app-errors",
+      title: "برنامه روی گوشی‌ها خطا می‌ده",
+      body: `۱۵ دقیقهٔ گذشته ${toPersianDigits(String(reading.appErrors))} خطا از گوشی کاربرا اومد. صفحهٔ سلامت سامانه رو ببین؛ اگه تازه نسخهٔ جدید رفته، شاید اون خرابش کرده.`
     });
   }
 

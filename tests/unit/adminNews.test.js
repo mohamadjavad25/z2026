@@ -101,6 +101,9 @@ describe("server watch", () => {
 
   it("says nothing when all is calm", () => {
     expect(judge(calm, {}, now).alerts).toEqual([]);
+    // A wave of crashes on people's phones is told at once; a few are not.
+    expect(judge({ ...calm, appErrors: 29 }, {}, now).alerts).toEqual([]);
+    expect(judge({ ...calm, appErrors: 30 }, {}, now).alerts.map((alert) => alert.key)).toEqual(["app-errors"]);
   });
 
   it("needs two busy checks in a row (10 minutes)", () => {

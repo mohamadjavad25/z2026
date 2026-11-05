@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowUp, ImagePlus, Mic, Plus, Send, Square, Trash2, X } from "lucide-react";
 import { VoicePlayer } from "./Attachments";
 import { MAX_IMAGES, canRecordVoice, duration, loadVoiceEncoder, prepareImage, useVoiceRecorder } from "./media";
+import { isPickedImage } from "../../shared/lib/imageCompression";
 
 /** Whether this device can record; if so the MP3 encoder starts loading now, so the first tap records at once. */
 function useCanVoice() {
@@ -19,7 +20,7 @@ function useCanVoice() {
 /** Turns picked or pasted files into ready-to-send pictures, keeping at most MAX_IMAGES. */
 async function addImages(files, current, setImages, setError) {
   const room = MAX_IMAGES - current.length;
-  const list = [...files].filter((file) => file.type?.startsWith("image/"));
+  const list = [...files].filter(isPickedImage);
   if (!list.length) return;
   if (list.length > room) setError("توی هر پیام حداکثر ۴ تا عکس می‌شه فرستاد.");
   const ready = [];

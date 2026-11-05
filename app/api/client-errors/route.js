@@ -16,6 +16,19 @@ const MAX_PER_MINUTE = 300;
 // One address can no longer use up the shared budget and hide everyone else's crashes.
 const MAX_PER_MINUTE_PER_IP = 20;
 
+// A wave of crashes must not take database connections from bookings: past the budget this copy of the app answers
+// from memory, before any query.
+let windowStart = 0;
+let windowCount = 0;
+function overLocalBudget(now = Date.now()) {
+  if (now - windowStart >= 60 * 1000) {
+    windowStart = now;
+    windowCount = 0;
+  }
+  windowCount += 1;
+  return windowCount > MAX_PER_MINUTE;
+}
+
 const schema = z.object({
   message: z.string().max(500),
   stack: z.string().max(4000).optional(),
@@ -25,6 +38,7 @@ const schema = z.object({
 });
 
 async function _POST(request) {
+  if (overLocalBudget()) return NextResponse.json({ ok: false }, { status: 429 });
   const perIp = await checkIpRateLimit(request, "client-errors", MAX_PER_MINUTE_PER_IP, 60 * 1000);
   const limited = perIp.ok ? await checkRateLimit("client-errors", MAX_PER_MINUTE, 60 * 1000) : perIp;
   if (!limited.ok) return NextResponse.json({ ok: false }, { status: 429 });

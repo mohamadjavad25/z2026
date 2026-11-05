@@ -1,5 +1,6 @@
 "use client";
 
+import { UNREADABLE_PHOTO, isPickedImage, noteUnreadablePhoto } from "../../shared/lib/imageCompression";
 import { Spinner } from "../../components/Spinner";
 import { useEffect, useRef, useState } from "react";
 import { Camera, Check, ChevronDown, Crop, Globe, ImagePlus, Lock, Pin, Store, Trash2, Upload } from "lucide-react";
@@ -126,7 +127,7 @@ export function ProfilePostComposer({
 
   async function acceptFile(file) {
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
+    if (!isPickedImage(file)) {
       onNotify?.("فقط عکس می‌تونی بذاری.");
       if (startedFromPicker.current) onClose?.();
       return;
@@ -134,8 +135,9 @@ export function ProfilePostComposer({
     setPreparing(true);
     try {
       setCropSrc(await prepareSource(file));
-    } catch {
-      onNotify?.("این عکس باز نشد؛ یه عکس دیگه انتخاب کن.");
+    } catch (failure) {
+      noteUnreadablePhoto(file, failure);
+      onNotify?.(UNREADABLE_PHOTO);
       if (startedFromPicker.current) onClose?.();
     } finally {
       setPreparing(false);

@@ -14,6 +14,8 @@
  * failure -- a slow upload is a UX problem, a broken one is worse, so
  * compression is a best-effort optimization, never a hard requirement.
  */
+import { reportClientError } from "./reportClientError";
+
 const MAX_DIMENSION = 1024;
 const JPEG_QUALITY = 0.82;
 
@@ -38,6 +40,22 @@ function loadImage(src) {
 /** The words a person sees when the phone cannot hand over the photo (callers show it on ""). */
 export const UNREADABLE_PHOTO = "این عکس باز نشد؛ یه عکس دیگه انتخاب کن.";
 
+/** The biggest photo we try to shrink. A phone photo is often 4-8MB; it leaves the phone at a few hundred KB. */
+export const MAX_PICKED_PHOTO_BYTES = 15 * 1024 * 1024;
+export const PHOTO_TOO_BIG = "عکس باید کمتر از ۱۵ مگ باشه.";
+
+/** Some Android galleries hand over a photo with no type at all; the picker only offers images, so that one counts. */
+export const isPickedImage = (file) => Boolean(file) && (!file.type || file.type.startsWith("image/"));
+
+/**
+ * The person is told in Persian, so nothing is thrown; this keeps us told as well, with what the phone said and what it
+ * handed over. The health page shows these under the source "handled".
+ */
+export function noteUnreadablePhoto(file, failure) {
+  const size = Math.round((Number(file?.size) || 0) / 1024);
+  reportClientError(new Error(`photo unreadable: ${failure?.name || "unknown"}, type "${file?.type || ""}", ${size} KB`), "handled");
+}
+
 /** Resolves to a (usually much smaller) data URL. Never rejects -- falls
  *  back to the original file's raw data URL if anything above fails, and
  *  to "" when the file itself cannot be read (an Android gallery photo that
@@ -50,7 +68,8 @@ export async function compressImageToDataUrl(file, {
   let original = "";
   try {
     original = await readFileAsDataUrl(file);
-  } catch {
+  } catch (failure) {
+    noteUnreadablePhoto(file, failure);
     return "";
   }
   try {

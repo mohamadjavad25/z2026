@@ -22,4 +22,12 @@ describe("reportClientError", () => {
     reportClientError(new TypeError("x is undefined"));
     expect(sendBeacon).toHaveBeenCalledTimes(1);
   });
+
+  it("sends one message once and stops after ten, so a bad release cannot flood the server", () => {
+    const sendBeacon = stubBeacon();
+    for (let round = 0; round < 3; round += 1) {
+      for (let i = 0; i < 30; i += 1) reportClientError(new Error(`flood ${i}`));
+    }
+    expect(sendBeacon.mock.calls.length).toBeLessThanOrEqual(10);
+  });
 });
