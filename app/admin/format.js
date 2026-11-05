@@ -3,6 +3,13 @@ import { toPersianDigits } from "../shared/lib/digits";
 export const TYPE_LABEL = { client: "مشتری", artist: "آرتیست", salon: "سالن" };
 export const PAGE = 25;
 
+/** Whose turn a support conversation is: the one thing an admin wants to read on every row. */
+export function turnOf(ticket) {
+  if (ticket.status === "closed") return { key: "closed", label: "بسته" };
+  if (ticket.last_actor === "user") return { key: "you", label: "منتظر پاسخ تو" };
+  return { key: "them", label: ticket.from_admin ? "پیام دادی" : "جواب دادی" };
+}
+
 export const ACTION_LABEL = {
   suspend: "مسدود شد",
   unsuspend: "رفع مسدودی",

@@ -10,7 +10,7 @@ import { ClaudeMark, askClaude, setClaudeContext } from "./ClaudeConnect";
 import { MessageAttachments } from "../features/support/Attachments";
 import { AttachmentField } from "../features/support/Composer";
 import { canRecordVoice } from "../features/support/media";
-import { CATEGORY_LABEL, PAGE, REASON_LABEL, RESOLUTION_LABEL, ago, fmtDate } from "./format";
+import { CATEGORY_LABEL, PAGE, REASON_LABEL, RESOLUTION_LABEL, ago, fmtDate, turnOf } from "./format";
 import { PageHead } from "./PageHead";
 import { EmptyState, ErrorNote, Loading, Pager, Segmented, Skeleton, confirmAction, toast, useAdminData, withQuery } from "./ui";
 
@@ -24,12 +24,6 @@ const dayTitle = (value) => {
   if (key === dayKey(Date.now() - 86400000)) return "دیروز";
   return new Intl.DateTimeFormat("fa-IR", { weekday: "long", month: "long", day: "numeric", ...TEHRAN }).format(new Date(value));
 };
-
-/** Plain words about whose turn it is: the thing an admin actually wants to know at a glance. */
-function turnOf(ticket) {
-  if (ticket.status === "closed") return { key: "closed", label: "بسته" };
-  return ticket.last_actor === "user" ? { key: "you", label: "منتظر پاسخ تو" } : { key: "them", label: "منتظر کاربر" };
-}
 
 function TurnPill({ ticket }) {
   const turn = turnOf(ticket);
@@ -181,6 +175,7 @@ function Conversation({ id, onChanged, onGo, onBack }) {
         <div className="admConvTitle">
           <b>{ticket.user_name || "مهمان (بدون حساب)"}</b>
           <small>{title} • {labelOf(ticket)}</small>
+          <small className={`admConvTurn is-${turnOf(ticket).key}`}>{turnOf(ticket).label}</small>
         </div>
         <TurnPill ticket={ticket} />
         <button type="button" className={`admIconBtn admConvInfoBtn${tab === "info" ? " is-on" : ""}`} aria-label="اطلاعات و یادداشت" aria-pressed={tab === "info"} onClick={() => setTab((value) => (value === "info" ? "chat" : "info"))}><Info size={18} aria-hidden="true" /></button>
@@ -368,7 +363,7 @@ function NewChat({ onClose, onCreated }) {
 
 const VIEWS = [
   ["admin", "منتظر من"],
-  ["user", "منتظر کاربر"],
+  ["user", "جواب دادم"],
   ["closed", "بسته"],
   ["all", "همه"]
 ];
@@ -389,14 +384,19 @@ export function SupportTab({ intent = {}, onChanged, onGo, setParam }) {
   useEffect(() => {
     setParam?.("id", selected);
   }, [selected, setParam]);
+  /** Coming back from a conversation always shows the list as it is now, never as it was when the conversation was opened. */
+  const leave = useCallback(() => {
+    setSelected(null);
+    reload();
+  }, [reload]);
   useEffect(() => {
     if (!selected) return undefined;
     const onKey = (event) => {
-      if (event.key === "Escape" && !event.defaultPrevented && !["INPUT", "TEXTAREA"].includes(event.target.tagName)) setSelected(null);
+      if (event.key === "Escape" && !event.defaultPrevented && !["INPUT", "TEXTAREA"].includes(event.target.tagName)) leave();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selected]);
+  }, [selected, leave]);
 
   const changed = () => {
     reload();
@@ -438,13 +438,14 @@ export function SupportTab({ intent = {}, onChanged, onGo, setParam }) {
                 {tickets.map((ticket) => {
                   const turn = turnOf(ticket);
                   return (
-                    <li key={ticket.id} className={`${ticket.status === "closed" ? "is-closed" : ""}${selected === ticket.id ? " is-selected" : ""}${turn.key === "you" ? " is-waiting" : ""}`}>
+                    <li key={ticket.id} className={`${ticket.status === "closed" ? "is-closed" : ""}${selected === ticket.id ? " is-selected" : ""}${turn.key === "you" ? " is-waiting" : ""}${turn.key === "them" ? " is-answered" : ""}`}>
                       <button type="button" onClick={() => setSelected(ticket.id)} aria-current={selected === ticket.id} aria-label={`${ticket.subject || "بدون موضوع"} — ${ticket.user_name || ticket.phone || "مهمان"} — ${turn.label}`}>
                         <span className="admInboxAvatar"><Avatar name={ticket.user_name} phone={ticket.phone} />{ticket.kind === "report" ? <i className="admInboxKind" aria-hidden="true"><Flag size={10} /></i> : null}</span>
                         <span className="admInboxBody">
                           <span className="admInboxTop"><b>{ticket.user_name || "مهمان"}</b><time dateTime={ticket.last_message_at}>{ago(ticket.last_message_at)}</time></span>
                           <span className="admInboxSubject">{ticket.subject || labelOf(ticket)}</span>
-                          <small>{ticket.last_body ? ticket.last_body.slice(0, 70) : labelOf(ticket)}</small>
+                          <small>{ticket.last_body ? `${ticket.last_actor === "admin" ? "تو: " : ""}${ticket.last_body.slice(0, 70)}` : labelOf(ticket)}</small>
+                          <span className={`admPill admTurn admInboxTurn is-${turn.key}`}>{turn.label}</span>
                         </span>
                         {turn.key === "you" ? <span className="admInboxDot" aria-hidden="true" /> : null}
                       </button>
@@ -459,7 +460,7 @@ export function SupportTab({ intent = {}, onChanged, onGo, setParam }) {
 
         <section className="admChatMain" aria-label="گفتگو">
           {selected ? (
-            <Conversation key={selected} id={selected} onChanged={changed} onGo={onGo} onBack={() => setSelected(null)} />
+            <Conversation key={selected} id={selected} onChanged={changed} onGo={onGo} onBack={leave} />
           ) : (
             <div className="admChatBlank">
               <span className="admEmptyIcon"><MessageSquare size={26} aria-hidden="true" /></span>
