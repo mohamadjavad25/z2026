@@ -231,14 +231,14 @@ html.native-app .webOnlyAppLink { display: none !important; }
 .appLanding__bazaarIcon {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   flex: none;
-  border-radius: 11px;
+  border-radius: 12px;
   background: #fff;
   box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.08);
 }
-.appLanding__bazaarIcon img { width: 28px; height: 28px; display: block; }
+.appLanding__bazaarIcon img { width: 24px; height: 24px; display: block; transform: translateY(3px); }
 
 /* The quiet second way: the same app straight from this site, for a phone without Bazaar. */
 .appLanding__direct {
