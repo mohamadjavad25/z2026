@@ -18,6 +18,9 @@ const tomorrowKey = () => formatPersianDateKey(new Date(Date.now() + DAY_MS));
 async function complete(api, extra = {}) {
   const res = await api.post("/api/profile", { data: { avatar: PNG, service: "مو", area: "تهران، خیابان گلستان", geo: { lat: 35.7219, lng: 51.3347 }, ...extra } });
   expect(res.ok).toBe(true);
+  // These tests need tomorrow open, and a new account is closed on Fridays: every Thursday afternoon they failed (2026-11-05).
+  const path = (await api.get("/api/salon-hours")).ok ? "/api/salon-hours" : "/api/artist-hours";
+  expect((await api.patch(path, { hours: [{ day: "جمعه", open_time: "۰۹:۰۰", close_time: "۲۱:۰۰", active: true }] })).ok).toBe(true);
 }
 
 /** Free start times a client could still request, for one day, straight from the server. */
