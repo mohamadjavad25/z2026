@@ -13,6 +13,10 @@ The owner builds frfro alone with Claude and never touches code: they report wha
 - `docs/PRIORITIES.md` is the owner's standing order (2026-11-04): the brief prints its first open items; continue the first one unless the owner asks for something else, then name it in one sentence at the end.
 - `scripts/guard/` checks the hard rules below on every `git commit` and in CI. A red main (the session brief says so) is told to the owner and fixed before new work.
 
+## Follow-ups (owner, 2026-11-05)
+
+`docs/FOLLOWUPS.md` lists what we are waiting on. In your first reply of every session, in any area, tell the owner in a sentence or two where those stand. When a result comes in, change that line in the same session.
+
 ## Which server (owner's rule, 2026-10-20)
 
 Two servers: the main server (Iranian, frfro.ir, real data, gets code only from `main`) and Vercel (project `z2026`, a test copy; every pushed branch gets a preview). Before any important or complex change (migrations, payments, login/SMS, bookings, deploy or server config) ask «اول روی ورسل تست کنیم یا مستقیم روی سرور اصلی؟». "Vercel first": push a branch, give the preview link, merge into `main` and deploy only after the owner says it works. Small safe changes (text, style, docs) need no question, but say where they go. Finished work is merged into `main` (2026-10-21) so the next main-server deploy carries it.
