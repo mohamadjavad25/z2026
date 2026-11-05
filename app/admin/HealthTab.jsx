@@ -44,6 +44,7 @@ function ErrorGroup({ group }) {
       {open ? (
         <div className="admErrMore">
           <p className="admMuted">اولین بار {fmtDate(group.first_at)} • آخرین بار {fmtDate(group.last_at)}</p>
+          {group.people ? <p className="admMuted">{num(group.people)} حساب • آخرینش {group.last_user_name || "بی‌نام"} (شماره {num(group.last_user_id)})</p> : <p className="admMuted">از کسی که وارد نشده بود.</p>}
           {group.user_agent ? <p className="admMuted" dir="ltr">{group.user_agent}</p> : null}
           {group.stack ? <pre dir="ltr">{group.stack}</pre> : <p className="admMuted">ردپایی (stack) فرستاده نشده.</p>}
           <ClaudeButton seed={{ kind: "bug", note: "این خطا روی گوشی کاربرها می‌افتد؛ علتش را پیدا و درستش کن.", details: [`خطا: ${group.message}`, `منبع: ${group.source || "?"}${group.url ? `، آدرس ${group.url}` : ""}`, `${group.count} بار، آخرین بار ${group.last_at}`, group.user_agent ? `مرورگر: ${group.user_agent}` : "", group.stack ? `ردپا:\n${String(group.stack).slice(0, 1200)}` : ""].filter(Boolean) }} />

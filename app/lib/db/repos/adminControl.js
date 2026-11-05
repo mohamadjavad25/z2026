@@ -232,13 +232,13 @@ export async function listBroadcasts(limit = 30) {
 const KEEP_ERRORS = 2000;
 
 /** Keeps a browser crash for the health page. Only the newest few thousand are kept. Never throws. */
-export async function recordClientError({ message, source = "", url = "", userAgent = "", stack = "" }) {
+export async function recordClientError({ message, source = "", url = "", userAgent = "", stack = "", userId = null }) {
   try {
     await ensureControlTables();
     const db = await getDb();
     const row = await get(db, `
-      INSERT INTO client_errors (message, source, url, user_agent, stack) VALUES ($1, $2, $3, $4, $5) RETURNING id
-    `, [String(message).slice(0, 500), String(source).slice(0, 60), String(url).slice(0, 300), String(userAgent).slice(0, 300), String(stack).slice(0, 4000)]);
+      INSERT INTO client_errors (message, source, url, user_agent, stack, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id
+    `, [String(message).slice(0, 500), String(source).slice(0, 60), String(url).slice(0, 300), String(userAgent).slice(0, 300), String(stack).slice(0, 4000), userId]);
     if (row && row.id % 100 === 0) await run(db, "DELETE FROM client_errors WHERE id <= $1", [row.id - KEEP_ERRORS]);
   } catch {
     // the log line in /api/client-errors is the fallback
@@ -252,11 +252,15 @@ export async function listClientErrors({ days = 7, limit = 30 } = {}) {
   const window = clamp(days, 1, 90, 7);
   const [groups, recent, totals] = await Promise.all([
     all(db, `
-      SELECT message, source, COUNT(*)::int AS count, MAX(created_at) AS last_at, MIN(created_at) AS first_at,
-             (ARRAY_AGG(url ORDER BY id DESC))[1] AS url, (ARRAY_AGG(stack ORDER BY id DESC))[1] AS stack,
-             (ARRAY_AGG(user_agent ORDER BY id DESC))[1] AS user_agent
-      FROM client_errors WHERE created_at >= NOW() - $1::int * INTERVAL '1 day'
-      GROUP BY message, source ORDER BY count DESC, last_at DESC LIMIT $2
+      SELECT e.message, e.source, COUNT(*)::int AS count, MAX(e.created_at) AS last_at, MIN(e.created_at) AS first_at,
+             (ARRAY_AGG(e.url ORDER BY e.id DESC))[1] AS url, (ARRAY_AGG(e.stack ORDER BY e.id DESC))[1] AS stack,
+             (ARRAY_AGG(e.user_agent ORDER BY e.id DESC))[1] AS user_agent,
+             COUNT(DISTINCT e.user_id)::int AS people,
+             (ARRAY_AGG(e.user_id ORDER BY e.id DESC) FILTER (WHERE e.user_id IS NOT NULL))[1] AS last_user_id,
+             (ARRAY_AGG(u.name ORDER BY e.id DESC) FILTER (WHERE e.user_id IS NOT NULL))[1] AS last_user_name
+      FROM client_errors e LEFT JOIN users u ON u.id = e.user_id
+      WHERE e.created_at >= NOW() - $1::int * INTERVAL '1 day'
+      GROUP BY e.message, e.source ORDER BY count DESC, last_at DESC LIMIT $2
     `, [window, clamp(limit, 1, 100, 30)]),
     all(db, "SELECT id, message, source, url, user_agent, created_at FROM client_errors ORDER BY id DESC LIMIT 15"),
     get(db, `

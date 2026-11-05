@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { getUserFromRequest } from "../../lib/auth.js";
 import { logger } from "../../lib/logger.js";
 import { checkIpRateLimit, checkRateLimit } from "../../lib/rateLimit.js";
 import { withErrorHandling } from "../../lib/http.js";
@@ -51,8 +52,10 @@ async function _POST(request) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ ok: false }, { status: 400 });
   logger.error("client error", { source: parsed.data.source || "window", clientError: parsed.data });
+  // The account comes from the session, never from the report, so nobody can pin a crash on someone else.
+  const user = await getUserFromRequest(request).catch(() => null);
   // Also kept (the newest few thousand) for the admin panel's health page.
-  await recordClientError({ ...parsed.data, source: parsed.data.source || "window" });
+  await recordClientError({ ...parsed.data, source: parsed.data.source || "window", userId: user?.id ?? null });
   return NextResponse.json({ ok: true });
 }
 
