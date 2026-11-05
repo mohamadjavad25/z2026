@@ -230,7 +230,6 @@ export async function AppLanding() {
         <div className="appLanding__aurora" aria-hidden="true" />
         <div className="appLanding__heroInner">
           <div className="appLanding__heroText">
-            <p className="appLanding__eyebrow">فرفرو · شبکهٔ اجتماعی زیبایی بانوان</p>
             <h1>
               نمونه‌کار ببین،
               <br />

@@ -188,20 +188,6 @@ html.native-app .webOnlyAppLink { display: none !important; }
   padding: clamp(40px, 6vw, 88px) 0 clamp(56px, 7vw, 96px);
 }
 
-.appLanding__eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin: 0 0 var(--space-4);
-  padding: 5px 14px;
-  border: 1px solid var(--l-line);
-  border-radius: var(--radius-pill);
-  background: var(--l-glass);
-  color: var(--l-fg);
-  font-weight: 800;
-  font-size: 0.84rem;
-}
-
 .appLanding__hero h1 {
   margin: 0;
   font-weight: 900;
