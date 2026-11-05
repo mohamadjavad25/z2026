@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Ban, CalendarDays, ExternalLink, FileText, KeyRound, LogOut, MessageSquarePlus, MoreHorizontal, Pencil, Phone, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { Button, Field } from "../components/ui";
 import { api } from "./adminFetch";
-import { Avatar } from "./Avatar";
+import { UserGallery, UserPhoto, UserPlace, UserPoster, UserServices } from "./UserProfile";
 import { ACTION_LABEL, BOOKING_TONE, STATUS_LABEL, TYPE_LABEL, ago, fmtDate, fmtKey, fmtTime, num } from "./format";
 import { CopyButton, ErrorNote, Loading, confirmAction, toastResult } from "./ui";
 import { CannedReplies } from "./CannedReplies";
@@ -130,8 +130,9 @@ export function UserDetail({ userId, onChanged, onGo, onClose }) {
 
   return (
     <div className="admDetail">
+      <UserPoster user={user} />
       <header className="admDetailHead">
-        <Avatar name={user.name} phone={user.phone} />
+        <UserPhoto user={user} />
         <div>
           <h2>{user.name || "بدون نام"}</h2>
           <p className="admMuted admDetailSub">
@@ -173,6 +174,9 @@ export function UserDetail({ userId, onChanged, onGo, onClose }) {
             <li><span>عضویت</span><b>{fmtDate(user.created_at)}</b></li>
             <li><span>آخرین بازدید</span><b>{user.last_seen_at ? ago(user.last_seen_at) : "—"}</b></li>
             <li><span>منطقه و خدمت</span><b>{[user.area, user.service].filter(Boolean).join(" • ") || "—"}</b></li>
+            {user.experience_years ? <li><span>سابقه</span><b>{user.experience_years}</b></li> : null}
+            {user.manager_name ? <li><span>مدیر</span><b>{user.manager_name}</b></li> : null}
+            {user.instagram ? <li><span>اینستاگرام</span><b dir="ltr"><a className="admLink" href={`https://instagram.com/${encodeURIComponent(String(user.instagram).replace(/^@/, ""))}`} target="_blank" rel="noreferrer">{user.instagram}</a></b></li> : null}
             {user.email ? <li><span>ایمیل</span><b dir="ltr">{user.email}</b></li> : null}
             {user.type !== "client" ? <li><span>لغو توسط سالن</span><b>{num(user.provider_cancel_count || 0)} بار (نوبت تأییدشده را خودش لغو کرده؛ فقط شمارش)</b></li> : null}
             <li><span>نشست فعال</span><b>{num(detail.activeSessions)} دستگاه</b></li>
@@ -190,6 +194,9 @@ export function UserDetail({ userId, onChanged, onGo, onClose }) {
               </ul>
             </section>
           ) : null}
+
+          {user.type !== "client" ? <UserPlace user={user} /> : null}
+          <UserServices services={detail.services} />
 
           {[["report", "گزارش‌ها دربارهٔ این حساب یا از طرف او"], ["other", "پشتیبانی"]].map(([which, title]) => {
             const rows = detail.tickets.filter((ticket) => (which === "report") === (ticket.kind === "report"));
@@ -227,6 +234,7 @@ export function UserDetail({ userId, onChanged, onGo, onClose }) {
           {detail.posts.length ? (
             <section>
               <h3>آخرین پست‌ها</h3>
+              <UserGallery posts={detail.posts} onOpen={(post) => onGo("content", { q: post.title })} />
               <ul className="admRows">
                 {detail.posts.map((post) => (
                   <li key={post.id}>

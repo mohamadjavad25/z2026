@@ -28,7 +28,7 @@ import { NoticeHost } from "../../shared/notice/NoticeHost";
 import { ClientBookingTracker } from "../client/ClientBookingTracker";
 import { BottomNav } from "./BottomNav";
 import { SupportHost } from "../support";
-import { TutorialHost } from "../onboarding";
+import { SurveyHost, TutorialHost } from "../onboarding";
 import { useHome } from "./HomeContext";
 import { PublicArtistHost } from "./home/PublicArtistHost";
 import { ScheduleMenuHost } from "./home/ScheduleMenuHost";
@@ -433,6 +433,7 @@ export function HomeView() {
         />
         {createdProfile ? <SupportHost /> : null}
         {createdProfile ? <TutorialHost /> : null}
+        {createdProfile ? <SurveyHost /> : null}
         <PublicArtistHost />
         <PostPreviewModal
           post={selectedPost}

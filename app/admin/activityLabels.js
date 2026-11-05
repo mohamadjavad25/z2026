@@ -33,7 +33,9 @@ const ACTION = {
   book_sent: "نوبت فرستاد",
   add_booking_manual: "نوبت دستی ثبت کرد",
   answer_booking: "به درخواست نوبت جواب داد",
-  tutorial_done: "آموزش رو تا آخر دید"
+  tutorial_done: "آموزش رو تا آخر دید",
+  survey_done: "نظرسنجی رو جواب داد",
+  survey_later: "نظرسنجی رو گذاشت برای بعد"
 };
 
 const DEVICE = { "android-app": "برنامهٔ اندروید", "ios-app": "برنامهٔ آیفون", "android-web": "مرورگر اندروید", "ios-web": "مرورگر آیفون", desktop: "کامپیوتر" };

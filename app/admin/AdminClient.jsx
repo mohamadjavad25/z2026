@@ -19,6 +19,7 @@ import { SupportTab } from "./SupportTab";
 import { BroadcastTab } from "./BroadcastTab";
 import { ResetsTab } from "./ResetsTab";
 import { ReportsTab } from "./ReportsTab";
+import { SurveysTab } from "./SurveysTab";
 import { HealthTab } from "./HealthTab";
 import { SettingsTab } from "./SettingsTab";
 import { SecurityTab } from "./SecurityTab";
@@ -105,6 +106,7 @@ const PAGES = {
   broadcast: BroadcastTab,
   resets: ResetsTab,
   reports: ReportsTab,
+  surveys: SurveysTab,
   health: HealthTab,
   settings: SettingsTab,
   security: SecurityTab,

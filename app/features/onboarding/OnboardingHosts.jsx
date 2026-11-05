@@ -3,9 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useHome } from "../shell/HomeContext";
 import { OnboardingSlides } from "./OnboardingSlides";
+import { WelcomeSurvey } from "./WelcomeSurvey";
 import { OPEN_TUTORIAL_EVENT, WELCOME_SEEN_KEY } from "./slides";
 import { ENTER_APP_EVENT } from "../landing/constants";
 import { peekPendingOpen } from "../../shared/lib/appHandoff";
+import { apiFetch } from "../../shared/api/client";
+import { trackAction } from "../../shared/lib/activity";
 
 /**
  * This visit came with a purpose: a salon's or artist's link to book (`?open=`, or the place a public page's
@@ -111,6 +114,71 @@ export function TutorialHost() {
         if (pending) toggleProfileSetting?.("tutorialPending");
         // No move: a new account is already on its home (the «کامل کردن صفحه» steps of a salon or artist), and
         // a replay from Settings goes back to Settings.
+      }}
+    />
+  );
+}
+
+const SURVEY_ENDED_KEY = "frfro-survey-ended";
+function surveyEnded(id) {
+  try {
+    return window.localStorage.getItem(SURVEY_ENDED_KEY) === String(id);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The welcome survey: the server says whether it is this person's time, a moment after the app opens. In the browser
+ * and in the Android app alike. Never over the tutorial, or over someone who came to book or to join a team.
+ */
+export function SurveyHost() {
+  const { createdProfile, profileSettings, arrivalIntent, goToTab, openProfileEdit } = useHome();
+  const id = createdProfile?.id;
+  const pending = Boolean(profileSettings?.tutorialPending);
+  const [survey, setSurvey] = useState(null);
+  const asked = useRef(null);
+
+  useEffect(() => {
+    if (!id || pending || arrivalIntent || asked.current === id || surveyEnded(id) || cameWithPurpose()) return undefined;
+    let alive = true;
+    let timer = null;
+    const check = () => {
+      if (asked.current === id || !document.documentElement.classList.contains("skip-landing")) return;
+      asked.current = id;
+      timer = window.setTimeout(async () => {
+        const result = await apiFetch("/api/welcome-survey").catch(() => null);
+        if (alive && result?.ok && result.payload?.data?.survey) setSurvey(result.payload.data.survey);
+      }, 2000);
+    };
+    check();
+    window.addEventListener(ENTER_APP_EVENT, check);
+    return () => {
+      alive = false;
+      window.clearTimeout(timer);
+      window.removeEventListener(ENTER_APP_EVENT, check);
+      if (asked.current === id && !survey) asked.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, pending, arrivalIntent]);
+
+  if (!survey) return null;
+  return (
+    <WelcomeSurvey
+      survey={survey}
+      onLater={() => {
+        setSurvey(null);
+        trackAction("survey_later");
+        apiFetch("/api/welcome-survey", { method: "POST", body: JSON.stringify({ action: "later" }) }).catch(() => null);
+      }}
+      onAnswered={() => {
+        try { window.localStorage.setItem(SURVEY_ENDED_KEY, String(id)); } catch { /* the server still knows */ }
+      }}
+      onClose={() => setSurvey(null)}
+      onGo={(step) => {
+        setSurvey(null);
+        goToTab("profile");
+        if (step.go === "edit") openProfileEdit();
       }}
     />
   );

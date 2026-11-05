@@ -103,3 +103,15 @@
 .admSheet .is-danger { color: var(--a-bad); }
 .admSheet section.admDanger { margin-top: var(--space-2); }
 .admIconBtn { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 10px; background: var(--a-card2); color: inherit; cursor: pointer; }
+
+/* One account's real profile (UserProfile.jsx): photo, banner, map pin, pictures of their work. */
+.admAvatarPhoto { object-fit: cover; }
+.admPoster { display: block; width: 100%; height: 130px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: var(--space-3); }
+.admPlace h3 { display: flex; align-items: center; gap: 6px; }
+.admPlace p { margin: 0 0 8px; }
+.admPlace .admLink { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; }
+.admMapBox { height: 220px; border-radius: var(--radius-md); overflow: hidden; background: var(--line); isolation: isolate; }
+.admMapPin { box-sizing: border-box; border-radius: 50%; background: var(--violet-deep); border: 3px solid var(--brand-white); box-shadow: var(--shadow-xs); }
+.admGallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: var(--space-3); }
+.admGallery button { padding: 0; border: 0; background: var(--line); border-radius: var(--radius-sm); overflow: hidden; aspect-ratio: 1; cursor: pointer; }
+.admGallery img { display: block; width: 100%; height: 100%; object-fit: cover; }

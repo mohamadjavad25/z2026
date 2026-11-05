@@ -16,12 +16,14 @@ export async function getUserDetail(id) {
   const db = await getDb();
   const user = await get(db, `
     SELECT id, name, phone, email, type, area, service, manager_name, experience_years, created_at, updated_at, last_seen_at, suspended_at, provider_cancel_count,
-           (avatar <> '' OR COALESCE(avatar_url, '') <> '') AS has_avatar
+           address_detail, instagram, geo_lat, geo_lng,
+           (avatar <> '' OR COALESCE(avatar_url, '') <> '') AS has_avatar,
+           (poster <> '' OR COALESCE(poster_url, '') <> '') AS has_poster
     FROM users WHERE id = $1
   `, [Number(id)]);
   if (!user) return null;
   await Promise.all([ensureSupportTables(), ensureUserNotes()]);
-  const [counts, sessions, bookings, posts, tickets, note, history, setup, devices] = await Promise.all([
+  const [counts, sessions, bookings, posts, tickets, note, history, setup, devices, services] = await Promise.all([
     get(db, `
       SELECT
         (SELECT COUNT(*)::int FROM posts WHERE owner_user_id = $1) AS posts,
@@ -49,7 +51,12 @@ export async function getUserDetail(id) {
         (SELECT COUNT(*)::int FROM salon_staff WHERE salon_user_id = $1) AS staff,
         ((SELECT COUNT(*) FROM salon_hours WHERE salon_user_id = $1 AND active) + (SELECT COUNT(*) FROM artist_hours WHERE artist_user_id = $1 AND active))::int AS open_days
     `, [user.id]).catch(() => null),
-    get(db, "SELECT ((SELECT COUNT(*) FROM push_subscriptions WHERE user_id = $1) + (SELECT COUNT(*) FROM native_push_tokens WHERE user_id = $1))::int AS count", [user.id]).catch(() => ({ count: 0 }))
+    get(db, "SELECT ((SELECT COUNT(*) FROM push_subscriptions WHERE user_id = $1) + (SELECT COUNT(*) FROM native_push_tokens WHERE user_id = $1))::int AS count", [user.id]).catch(() => ({ count: 0 })),
+    user.type === "client" ? [] : all(db, `
+      SELECT id, name, price, duration FROM artist_services WHERE user_id = $1
+      UNION ALL SELECT id, name, price, duration FROM salon_services WHERE salon_user_id = $1
+      ORDER BY id LIMIT 60
+    `, [user.id]).catch(() => [])
   ]);
   return {
     user,
@@ -58,6 +65,7 @@ export async function getUserDetail(id) {
     pushDevices: devices?.count || 0,
     recentBookings: bookings,
     posts,
+    services,
     tickets,
     history,
     setup: setup || null,

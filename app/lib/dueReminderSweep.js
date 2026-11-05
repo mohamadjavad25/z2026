@@ -23,7 +23,7 @@ const TEHRAN_OFFSET_MINUTES = 3 * 60 + 30;
 const SEND_FROM = 10 * 60;
 const SEND_UNTIL = 20 * 60;
 
-function tehranDaytime(now) {
+export function tehranDaytime(now) {
   const minutes = (((now.getUTCHours() * 60 + now.getUTCMinutes() + TEHRAN_OFFSET_MINUTES) % 1440) + 1440) % 1440;
   return minutes >= SEND_FROM && minutes < SEND_UNTIL;
 }

@@ -4,6 +4,7 @@ import { ensureDb } from "../../../lib/db/connection.js";
 import { sweepBookingReminders } from "../../../lib/bookingReminders.js";
 import { sweepDueReminders } from "../../../lib/dueReminderSweep.js";
 import { sweepWaitlist } from "../../../lib/waitlist.js";
+import { sweepWelcomeSurvey } from "../../../lib/welcomeSurveySweep.js";
 import { withErrorHandling } from "../../../lib/http.js";
 
 export const runtime = "nodejs";
@@ -29,7 +30,9 @@ async function _POST(request) {
   const due = await sweepDueReminders(now).catch(() => ({ candidates: 0, sent: 0, failed: true }));
   // «خبرم کن» too: catches what no cancel announced (new working hours, a team artist added).
   const waitlist = await sweepWaitlist(now).catch(() => ({ days: 0, told: 0, failed: true }));
-  return NextResponse.json({ data: { ...reminders, due, waitlist } });
+  // The welcome survey's one push.
+  const survey = await sweepWelcomeSurvey(now).catch(() => ({ candidates: 0, sent: 0, failed: true }));
+  return NextResponse.json({ data: { ...reminders, due, waitlist, survey } });
 }
 
 export const POST = withErrorHandling(_POST);

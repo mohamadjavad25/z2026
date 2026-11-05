@@ -1,5 +1,5 @@
 import {
-  Activity, BarChart3, CalendarCheck, CreditCard, Image as ImageIcon, KeyRound, LayoutDashboard, LifeBuoy, Megaphone, ScrollText, Settings2, ShieldCheck, Users
+  Activity, BarChart3, CalendarCheck, CreditCard, Image as ImageIcon, KeyRound, LayoutDashboard, LifeBuoy, Megaphone, MessageSquareHeart, ScrollText, Settings2, ShieldCheck, Users
 } from "lucide-react";
 
 /**
@@ -32,6 +32,7 @@ export const SECTIONS = [
     label: "گزارش و پایش",
     items: [
       { id: "reports", label: "گزارش‌ها", desc: "پرکارترین‌ها، ساعت‌های شلوغ، قیف مشتری و سالن‌ها و آرتیست‌هایی که هنوز آماده نیستند", icon: BarChart3, key: "r" },
+      { id: "surveys", label: "نظرسنجی", desc: "کاربرها بعد از شروع کار چی گفتن: راحت بود یا سخت، کجاش گیرشون انداخت و چی می‌خوان", icon: MessageSquareHeart, key: "n" },
       { id: "health", label: "سلامت سامانه", desc: "پایگاه داده، تنظیمات سرور، پیامک، اعلان و خطاهای اپ روی گوشی کاربران", icon: Activity, key: "h" }
     ]
   },
