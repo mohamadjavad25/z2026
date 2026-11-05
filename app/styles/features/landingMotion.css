@@ -1,54 +1,115 @@
-/* The about page's moving picture (HeroMotion.jsx): light and paper sheets, no frame. Four scenes share a 14s loop, 3.5s each. */
+/* The about page's moving picture (HeroMotion.jsx): six glossy service cards drawn straight on the page, no frame.
+   Sizes are in cqw (the .heroMotion container) so it scales; every loop is seamless. */
 .heroMotion {
-  --m-ink: var(--brand-ink);
-  --m-pink: var(--brand-pink);
-  --m-violet: var(--brand-violet);
-  --m-paper: var(--brand-white);
+  --cw: 40cqw;
+  --ch: 54cqw;
   position: relative;
-  width: min(100%, 400px);
+  container-type: inline-size;
+  width: min(100%, 440px);
   aspect-ratio: 4 / 5;
   margin-inline: auto;
 }
-.heroMotion__glow { position: absolute; border-radius: 50%; filter: blur(46px); opacity: 0.7; }
-.heroMotion__glow.is-pink { width: 62%; aspect-ratio: 1; background: var(--m-pink); top: -4%; inset-inline-start: -6%; animation: motionDriftA 9s ease-in-out infinite; }
-.heroMotion__glow.is-violet { width: 70%; aspect-ratio: 1; background: var(--m-violet); bottom: -8%; inset-inline-end: -10%; animation: motionDriftB 11s ease-in-out infinite; }
+.heroMotion i, .heroMotion span { display: block; }
 
-.heroMotion__scene { position: absolute; inset: 6% 8%; opacity: 0; animation: motionScene 14s infinite var(--ease-standard); }
-.heroMotion__scene.is-0 { animation-delay: 0s; }
-.heroMotion__scene.is-1 { animation-delay: 3.5s; }
-.heroMotion__scene.is-2 { animation-delay: 7s; }
-.heroMotion__scene.is-3 { animation-delay: 10.5s; }
+.hmGlow { position: absolute; border-radius: 50%; filter: blur(48px); opacity: 0.55; pointer-events: none; }
+.hmGlow.is-pink { width: 62%; aspect-ratio: 1; background: var(--brand-pink); top: -2%; inset-inline-start: -8%; animation: hmGlowA 12s ease-in-out infinite; }
+.hmGlow.is-violet { width: 68%; aspect-ratio: 1; background: var(--brand-violet); bottom: -6%; inset-inline-end: -10%; animation: hmGlowB 12s ease-in-out infinite; }
+@keyframes hmGlowA { 50% { transform: translate(8cqw, 10cqw) scale(1.15); } }
+@keyframes hmGlowB { 50% { transform: translate(-8cqw, -8cqw) scale(0.9); } }
 
-.heroMotion__sheet { position: absolute; inset: 0; border-radius: 36px; box-shadow: 0 26px 50px rgb(var(--shadow-rgb) / 0.22); }
-.heroMotion__sheet.is-back { transform: rotate(-7deg); background: var(--m-pink); }
-.heroMotion__scene.is-1 .heroMotion__sheet.is-back { background: var(--m-violet); transform: rotate(6deg); }
-.heroMotion__scene.is-2 .heroMotion__sheet.is-back { background: var(--m-pink); transform: rotate(-4deg); }
-.heroMotion__scene.is-3 .heroMotion__sheet.is-back { background: var(--m-violet); transform: rotate(8deg); }
-.heroMotion__sheet.is-front {
-  inset: 3% 3% 0 0;
+/* ── the card ── */
+.hmCard {
+  position: relative;
+  width: var(--cw);
+  height: var(--ch);
+  border-radius: 7cqw;
+  overflow: hidden;
   display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 8px;
-  padding: 24px;
-  background: var(--m-paper);
-  color: var(--m-ink);
-  text-align: center;
-  animation: motionFloat 4s ease-in-out infinite;
+  place-items: center;
+  color: var(--brand-ink);
+  box-shadow: 0 3cqw 8cqw rgb(var(--shadow-rgb) / 0.22), inset 0 0 0 0.35cqw rgb(var(--on-photo-rgb) / 0.55);
+  backface-visibility: hidden;
 }
-.heroMotion__sheet.is-front strong { font-size: clamp(2rem, 7vw, 2.8rem); line-height: 1.2; font-weight: 800; background: var(--brand-blend-deep); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.heroMotion__sheet.is-front span:last-child { font-size: 1.05rem; font-weight: 600; opacity: 0.75; }
+.hmCard.is-blend { background: var(--brand-blend); }
+.hmCard.is-white { background: var(--brand-white); }
+.hmCard.is-ink { background: radial-gradient(120% 90% at 30% 20%, var(--violet-deep), var(--brand-ink) 62%); }
+.hmCard.is-violet { background: linear-gradient(160deg, var(--brand-violet), var(--violet-deep)); }
+.hmCard.is-soft { background: linear-gradient(160deg, var(--pink-soft), var(--brand-pink)); }
+.hmCard.is-mist { background: linear-gradient(160deg, var(--violet-soft), var(--brand-white)); }
+.hmHalo {
+  position: absolute;
+  width: 78%;
+  aspect-ratio: 1;
+  top: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(var(--on-photo-rgb) / 0.62), rgb(var(--on-photo-rgb) / 0.12) 68%, transparent 71%);
+  box-shadow: inset 0 0 0 0.35cqw rgb(var(--on-photo-rgb) / 0.5);
+}
+.hmCard.is-white .hmHalo, .hmCard.is-mist .hmHalo { background: radial-gradient(circle, var(--pink-soft), var(--violet-soft) 68%, transparent 71%); box-shadow: none; }
+.hmIcon { position: relative; margin-top: -10cqw; filter: drop-shadow(0 1.6cqw 2.4cqw rgb(var(--shadow-rgb) / 0.25)); }
+.hmDots { position: absolute; bottom: 7%; inset-inline: 0; display: flex; justify-content: center; gap: 2.2cqw; }
+.hmDots i { width: 3cqw; height: 3cqw; border-radius: 50%; background: rgb(var(--on-photo-rgb) / 0.75); }
+.hmDots i:nth-child(2) { background: rgb(var(--on-photo-rgb) / 0.45); }
+.hmDots i:nth-child(3) { background: rgb(var(--on-photo-rgb) / 0.25); }
+.hmCard.is-white .hmDots i, .hmCard.is-mist .hmDots i { background: var(--brand-pink); }
+.hmCard.is-white .hmDots i:nth-child(2), .hmCard.is-mist .hmDots i:nth-child(2) { background: var(--brand-violet); opacity: 0.7; }
+.hmCard.is-white .hmDots i:nth-child(3), .hmCard.is-mist .hmDots i:nth-child(3) { background: var(--n-300); }
+.hmSheen { position: absolute; inset: 0; background: linear-gradient(115deg, rgb(var(--on-photo-rgb) / 0.4), transparent 38%, transparent 70%, rgb(var(--on-photo-rgb) / 0.12)); pointer-events: none; }
 
-@keyframes motionScene {
-  0% { opacity: 0; transform: translate(40px, 60px) rotate(5deg) scale(0.92); }
-  5%, 22% { opacity: 1; transform: none; }
-  27%, 100% { opacity: 0; transform: translate(-30px, -50px) rotate(-4deg) scale(0.96); }
+/* ── ring: a turning ring of cards in 3D, one turn in 30 s ── */
+.hmStage { position: absolute; inset: 0; perspective: 1100px; perspective-origin: 50% 38%; }
+.hmRing { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; transform: rotateX(-8deg); }
+.hmSpin { position: absolute; inset: 0; transform-style: preserve-3d; animation: hmSpin 30s linear infinite; }
+.is-ring .hmCard { position: absolute; left: calc(var(--cw) / -2); top: calc(var(--ch) / -2); transform: rotateY(calc(var(--i) * 60deg)) translateZ(40cqw); }
+@keyframes hmSpin { to { transform: rotateY(-360deg); } }
+.hmFloor { position: absolute; left: 14%; right: 14%; bottom: 3%; height: 7%; border-radius: 50%; background: radial-gradient(rgb(var(--shadow-rgb) / 0.3), transparent 70%); filter: blur(8px); }
+
+/* ── deck: a fanned stack; the front card leaves and comes back at the back (12 s, a card every 2 s) ── */
+.is-deck { --cw: 50cqw; --ch: 67cqw; }
+.is-deck .hmStage { perspective: none; }
+.is-deck .hmCard {
+  position: absolute;
+  left: calc(50% - var(--cw) / 2 + 7cqw);
+  top: calc(50% - var(--ch) / 2 + 5cqw);
+  animation: hmDeck 12s infinite cubic-bezier(0.65, 0, 0.25, 1);
+  animation-delay: calc(var(--i) * -2s);
 }
-@keyframes motionFloat { 50% { transform: translateY(-8px); } }
-@keyframes motionDriftA { 50% { transform: translate(50px, 70px) scale(1.2); } }
-@keyframes motionDriftB { 50% { transform: translate(-60px, -60px) scale(0.85); } }
+@keyframes hmDeck {
+  0%      { opacity: 0; z-index: 1; transform: translate(-30%, -25%) rotate(-17.5deg) scale(0.75); }
+  4%      { opacity: 1; z-index: 1; transform: translate(-30%, -25%) rotate(-17.5deg) scale(0.75); }
+  16.67%  { z-index: 1; transform: translate(-30%, -25%) rotate(-17.5deg) scale(0.75); }
+  21.2%   { z-index: 2; transform: translate(-24%, -20%) rotate(-14deg) scale(0.8); }
+  33.33%  { z-index: 2; transform: translate(-24%, -20%) rotate(-14deg) scale(0.8); }
+  37.9%   { z-index: 3; transform: translate(-18%, -15%) rotate(-10.5deg) scale(0.85); }
+  50%     { z-index: 3; transform: translate(-18%, -15%) rotate(-10.5deg) scale(0.85); }
+  54.5%   { z-index: 4; transform: translate(-12%, -10%) rotate(-7deg) scale(0.9); }
+  66.67%  { z-index: 4; transform: translate(-12%, -10%) rotate(-7deg) scale(0.9); }
+  71.2%   { z-index: 5; transform: translate(-6%, -5%) rotate(-3.5deg) scale(0.95); }
+  83.33%  { z-index: 5; transform: translate(-6%, -5%) rotate(-3.5deg) scale(0.95); }
+  87.9%   { z-index: 6; opacity: 1; transform: none; }
+  95%     { z-index: 6; opacity: 1; transform: none; }
+  100%    { z-index: 7; opacity: 0; transform: translate(62%, 28%) rotate(16deg) scale(1.04); }
+}
+
+/* ── drift: two columns of cards moving opposite ways, faded at top and bottom ── */
+.hmCols {
+  position: absolute;
+  inset: -6% 4%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4cqw;
+  transform: rotate(-7deg);
+  mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent);
+  overflow: hidden;
+}
+.hmTrack { animation: hmUp 28s linear infinite; }
+.hmTrack.is-1 { animation-direction: reverse; margin-top: -22cqw; }
+.hmTrack .hmCard { width: 100%; height: auto; aspect-ratio: 3 / 4; margin-bottom: 4cqw; }
+@keyframes hmUp { to { transform: translateY(-50%); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .heroMotion *, .heroMotion__scene { animation: none !important; }
-  .heroMotion__scene.is-0 { opacity: 1; }
+  .heroMotion *, .heroMotion *::before { animation: none !important; }
+  .is-ring .hmRing { transform: rotateX(-8deg) rotateY(-24deg); }
+  .is-deck .hmCard { opacity: 1; }
+  .is-deck .hmCard:nth-child(1) { transform: none; z-index: 6; }
 }
