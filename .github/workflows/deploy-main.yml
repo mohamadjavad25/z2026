@@ -1,0 +1,95 @@
+name: Deploy main to the main server
+
+# The «ببر روی سرور اصلی» button (Actions -> this workflow -> Run workflow), so the owner can deploy from any device.
+# Runs deploy/deploy.sh (build here, ship to the server over SSH, migrate, switch over, roll back if /api/health fails).
+#
+#   mode = check   only proves the connection works (SSH to the server, then the live site's health). Changes nothing.
+#   mode = deploy  puts `main` on the server. Refused unless this run is on `main` and CI is green on that commit.
+#
+# Secrets (repo Settings -> Secrets and variables -> Actions): DEPLOY_HOST (the server's address) and
+# DEPLOY_SSH_KEY (the private half of the deploy key). Until both are set, the run stops with a plain message.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "check = only test the connection, deploy = put main on the server"
+        type: choice
+        options: [check, deploy]
+        default: check
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      SITE_URL: https://frfro.ir
+    steps:
+      - name: Secrets are set
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          if [ -z "$DEPLOY_HOST" ] || [ -z "$DEPLOY_SSH_KEY" ]; then
+            echo "::error::DEPLOY_HOST or DEPLOY_SSH_KEY is not set in the repo's Actions secrets. See docs/HANDOFF.md."
+            exit 1
+          fi
+
+      - name: Only main, only green
+        if: inputs.mode == 'deploy'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Run this workflow on the main branch (it is on $GITHUB_REF)."
+            exit 1
+          fi
+          state="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --commit "$GITHUB_SHA" --json conclusion --jq '[.[].conclusion] | if length == 0 then "none" elif all(. == "success") then "green" else "red" end')"
+          echo "CI on $GITHUB_SHA: $state"
+          [ "$state" = "green" ] || { echo "::error::CI is not green on this commit ($state). Fix it first."; exit 1; }
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.mode == 'deploy' && github.sha || github.ref }}
+
+      - name: SSH key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf 'Host *\n  IdentityFile ~/.ssh/id_ed25519\n  ConnectTimeout 20\n  ServerAliveInterval 15\n' > ~/.ssh/config
+
+      - name: Connection check
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new "deploy@$DEPLOY_HOST" 'echo "ssh ok on $(hostname)"; readlink -f /opt/frfro/current; curl -fsS http://127.0.0.1:3000/api/health'
+          echo
+          curl -fsS --max-time 20 "$SITE_URL/api/health" && echo "  <- $SITE_URL answers from the runner"
+
+      - uses: actions/setup-node@v4
+        if: inputs.mode == 'deploy'
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Deploy
+        if: inputs.mode == 'deploy'
+        run: |
+          npm ci
+          bash deploy/deploy.sh
+
+      - name: Prove it is live
+        if: inputs.mode == 'deploy'
+        run: |
+          sleep 5
+          ssh "deploy@$DEPLOY_HOST" 'echo "release: $(readlink -f /opt/frfro/current)"'
+          curl -fsS --max-time 30 "$SITE_URL/api/health" && echo
+          echo "deployed ${GITHUB_SHA::8}"
