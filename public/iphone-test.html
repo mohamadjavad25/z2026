@@ -7,7 +7,7 @@
 <title>فرفرو روی آیفون</title>
 <style>
 @font-face{font-family:"Vazirmatn";src:url("/fonts/vazirmatn-arabic-wght-normal.woff2") format("woff2");font-weight:100 900;font-display:swap}
-/* Layout: one task per screen, huge text, two huge answer buttons; a message to send at the end */
+/* Layout: one phone task per screen with a picture of what to see, two answer buttons; the last screen copies all answers */
 :root{
   --bg:#fbf8fd; --ink:#241d2e; --muted:#6c6178; --line:#e4dbec; --card:#ffffff;
   --violet:#6d3fd1; --on-violet:#ffffff; --pink:#f3a6c8; --on-pink:#241d2e; --look:#fde9f2;
@@ -27,18 +27,23 @@ main{max-width:520px;min-height:100%;margin:0 auto;box-sizing:border-box;padding
 .bar{height:8px;background:var(--line);border-radius:8px;overflow:hidden}
 .bar i{display:block;height:100%;background:var(--violet);border-radius:8px;transition:width .3s}
 h1{font-size:1.8rem;font-weight:900;line-height:1.4;margin:0;text-wrap:balance}
-.do{font-size:1.35rem;font-weight:700;margin:0}
+.do{font-size:1.2rem;font-weight:700;margin:0}
 .do b{background:var(--look);padding:0 6px;border-radius:6px;white-space:nowrap}
 .look{background:var(--look);border-radius:16px;padding:16px 18px;margin:0}
 .look small{display:block;font-size:1rem;color:var(--muted);font-weight:700}
 .warn{font-size:1.1rem;font-weight:700;margin:0}
 .btns{margin-top:auto;display:flex;flex-direction:column;gap:12px}
+.answer{position:sticky;bottom:0;margin:auto -16px -32px;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:2px solid var(--line);flex-direction:row}
+.answer button{font-size:1.05rem;padding:16px 8px}
 button{font:inherit;font-size:1.3rem;font-weight:900;border:0;border-radius:18px;padding:20px;cursor:pointer;width:100%}
 .yes{background:var(--violet);color:var(--on-violet)}
 .no{background:var(--pink);color:var(--on-pink)}
-.ig{display:block;text-align:center;text-decoration:none;font-size:1.3rem;font-weight:900;border-radius:18px;padding:20px}
+.open{display:block;box-sizing:border-box;width:100%;text-align:center;text-decoration:none;font-size:1.15rem;font-weight:900;border:2px solid var(--violet);color:var(--ink);background:transparent;border-radius:18px;padding:14px}
+.shot{display:block;height:min(36vh,300px);width:auto;max-width:100%;margin:0 auto;border:2px solid var(--line);border-radius:18px}
+.draw{display:block;width:100%;max-width:340px;height:auto;margin:0 auto}
+.ico{width:1.1em;height:1.1em;vertical-align:-.15em}
 .ghost{background:transparent;color:var(--muted);font-size:1rem;font-weight:700;padding:10px}
-button:focus-visible,textarea:focus-visible{outline:3px solid var(--violet);outline-offset:3px}
+button:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:3px}
 textarea{font:inherit;font-size:1.1rem;width:100%;box-sizing:border-box;min-height:110px;border:2px solid var(--line);border-radius:14px;padding:12px;background:var(--card);color:var(--ink)}
 .msg{white-space:pre-wrap;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:14px;font-size:1.05rem;user-select:all;-webkit-user-select:all}
 .done{font-size:1rem;color:var(--muted);text-align:center;margin:0;min-height:1.7em}
@@ -48,23 +53,56 @@ textarea{font:inherit;font-size:1.1rem;width:100%;box-sizing:border-box;min-heig
 <body>
 <main id="app"></main>
 <script>
+const SALON = 'https://frfro.ir/salons/4444';
+const SHARE_ICON = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4M7 11H5v10h14V11h-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const STEPS = [
-  { do: 'توی <b>سافاری</b> برو به <b>frfro.ir</b> و صفحه رو با انگشت تا ته پایین بکش.',
-    look: 'همه‌چی توی صفحه جا شده. هیچ چیزی از بغل صفحه بیرون نزده.' },
-  { do: 'بالای صفحه، روی <b>قیمت‌ها</b> بزن.',
-    look: 'نوشته <b>۷ روز رایگان</b>.' },
-  { do: 'برگرد صفحهٔ اول. روی <b>ورود</b> بزن. شماره‌ت رو تایپ کن. کیبورد رو نبند.',
-    look: 'دکمهٔ <b>ادامه</b> رو می‌بینی و زیر کیبورد قایم نشده.',
-    warn: 'لازم نیست ادامه بدی.' },
-  { do: 'لینکی که برات فرستادم رو باز کن. یه کار انتخاب کن. بعد یه روز و یه ساعت.',
-    look: 'آخرش به دکمهٔ <b>بفرست</b> می‌رسی و راحت می‌بینیش.',
-    warn: 'بفرست رو نزن!' },
-  { do: 'همون لینک رو توی <b>اینستاگرام</b> برای یکی دایرکت کن، بعد از توی همون دایرکت روش بزن.',
-    look: 'همون صفحه درست باز می‌شه.' },
-  { do: 'توی سافاری، frfro.ir رو باز کن. پایین صفحه دکمهٔ <b>اشتراک‌گذاری</b> (مربع با فلش رو به بالا) رو بزن. بعد <b>Add to Home Screen</b> رو بزن.',
-    look: 'یه آیکون فرفرو روی صفحهٔ گوشی اومد و با زدنش فرفرو باز می‌شه.' }
+  { do: 'دکمهٔ پایین رو بزن و صفحه رو نگاه کن. بعد با فلش برگشت سافاری بیا همین‌جا.',
+    open: { href: '/', label: 'صفحهٔ اول فرفرو رو باز کن' },
+    img: 'home.jpg', alt: 'صفحهٔ اول فرفرو با سه گزینهٔ مشتری، سالن و آرتیست',
+    look: 'بالا اسم فرفرو، پایینش سه تا گزینه: <b>مشتری</b>، <b>سالن</b>، <b>آرتیست</b>. همه‌چی توی صفحه جا شده و چیزی از بغل بیرون نزده.' },
+  { do: 'صفحهٔ قیمت‌ها رو باز کن و با انگشت تا ته پایین بکش. بعد با فلش برگشت بیا همین‌جا.',
+    open: { href: '/pricing', label: 'صفحهٔ قیمت‌ها رو باز کن' },
+    img: 'pricing.jpg', alt: 'صفحهٔ قیمت‌های فرفرو',
+    look: 'بالای صفحه نوشته <b>۷ روز رایگان</b>. نوشته‌ها از بغل صفحه بیرون نزده.' },
+  { do: 'صفحهٔ اول رو باز کن و <b>مشتری</b> رو بزن. بعد روی کادر شماره بزن تا کیبورد باز بشه.',
+    open: { href: '/', label: 'صفحهٔ اول فرفرو رو باز کن' },
+    img: 'signup.jpg', alt: 'قدم اول ثبت‌نام مشتری با کادر شماره و دکمهٔ کد بفرست',
+    look: 'کیبورد بازه و دکمهٔ <b>کد بفرست</b> رو هنوز می‌بینی. زیر کیبورد قایم نشده.',
+    warn: 'کد بفرست رو نزن. بعد با فلش برگشت بیا همین‌جا.' },
+  { do: 'صفحهٔ یه سالن نمونه رو باز کن و تا ته پایین بکش. بعد <b>نوبت بگیر</b> رو بزن.',
+    open: { href: SALON, label: 'صفحهٔ سالن نمونه رو باز کن' },
+    img: 'salon.jpg', alt: 'صفحهٔ یه سالن با دکمهٔ صورتی نوبت بگیر در پایین صفحه',
+    look: 'دکمهٔ صورتی <b>نوبت بگیر</b> کامل پیداست و زیر نوار پایین سافاری نرفته. وقتی می‌زنیش یه کادر از پایین باز می‌شه.',
+    warn: 'اسم سالن با عکس فرق داره؛ مهم نیست. این سالن هنوز خدمتی نداره و کادر همین رو می‌گه.' },
+  { do: 'لینک سالن رو کپی کن. توی <b>اینستاگرام</b> برای یه نفر دایرکت کن و همون‌جا روی لینک بزن.',
+    copy: SALON,
+    img: 'salon.jpg', alt: 'صفحهٔ سالن که باید توی اینستاگرام باز بشه',
+    look: 'صفحهٔ سالن توی خود اینستاگرام درست باز می‌شه و دکمهٔ <b>نوبت بگیر</b> پیداست.' },
+  { do: 'توی سافاری فرفرو رو باز کن. دکمهٔ <b>اشتراک‌گذاری</b> ' + SHARE_ICON + ' رو بزن. بعد <b>Add to Home Screen</b> یا <b>افزودن به صفحهٔ اصلی</b> رو بزن.',
+    open: { href: '/', label: 'صفحهٔ اول فرفرو رو باز کن' },
+    draw: true,
+    look: 'یه آیکون فرفرو روی صفحهٔ گوشی اومد و با زدنش فرفرو باز می‌شه.',
+    warn: 'اگه دکمهٔ اشتراک‌گذاری رو نمی‌بینی، اول سه‌نقطهٔ پایین سافاری رو بزن.' }
 ];
-const KEY = 'frfro-iphone-check-v2';
+const DRAW = `<svg class="draw" viewBox="0 0 320 150" role="img" aria-label="پایین سافاری دکمهٔ اشتراک‌گذاری، بعد گزینهٔ افزودن به صفحهٔ اصلی">
+  <g transform="translate(168 0)">
+  <rect x="1" y="1" width="150" height="148" rx="16" fill="var(--card)" stroke="var(--line)" stroke-width="2"/>
+  <rect x="14" y="76" width="124" height="20" rx="10" fill="var(--line)"/>
+  <path d="M30 130l-6-6 6-6M46 118l6 6-6 6M112 118h14v14h-14z" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="79" cy="124" r="18" fill="var(--look)" stroke="var(--violet)" stroke-width="2"/>
+  <path d="M79 127v-12M75 119l4-4 4 4M74 122h-3v10h16v-10h-3" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <path d="M164 75h-14m5-5l-5 5 5 5" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(-174 0)">
+  <rect x="175" y="1" width="144" height="148" rx="16" fill="var(--card)" stroke="var(--line)" stroke-width="2"/>
+  <rect x="187" y="18" width="120" height="16" rx="8" fill="var(--line)"/>
+  <rect x="187" y="44" width="120" height="16" rx="8" fill="var(--line)"/>
+  <rect x="185" y="70" width="124" height="34" rx="10" fill="var(--look)" stroke="var(--violet)" stroke-width="2"/>
+  <text x="247" y="92" text-anchor="middle" font-size="12" font-weight="800" fill="var(--ink)" style="direction:ltr">Add to Home Screen</text>
+  <rect x="187" y="116" width="120" height="16" rx="8" fill="var(--line)"/>
+  </g>
+</svg>`;
+const KEY = 'frfro-iphone-check-v3';
 let s = { i: -1, answers: [], noteFor: null };
 try { const saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved && Array.isArray(saved.answers)) s = { ...s, ...saved, noteFor: null }; } catch {}
 function save(){ try { localStorage.setItem(KEY, JSON.stringify({ i: s.i, answers: s.answers })); } catch {} }
@@ -77,7 +115,8 @@ function render(){
     app.innerHTML = `
       <h1>سلام! می‌خوایم ببینیم فرفرو روی آیفون درست کار می‌کنه.</h1>
       <p class="do">${fa(STEPS.length)} تا کار کوچیکه. هر بار فقط یکی رو نشونت می‌دم.</p>
-      <p class="look">هر بار فقط بگو <b>آره</b> یا <b>نه</b>. آخرش یه پیام آماده می‌شه که برام بفرستی.</p>
+      <p class="look">این صفحه رو با <b>سافاری</b> روی آیفون باز کن. هر بار فقط بگو <b>آره</b> یا <b>نه</b>. آخرش با یه دکمه همهٔ جواب‌ها کپی می‌شه و هر جا خواستی برام می‌فرستی.</p>
+      <p class="warn">اگه وسط کار گم شدی، همین لینک رو دوباره باز کن. از همون‌جا ادامه می‌دی.</p>
       <div class="btns"><button class="yes" id="go">شروع کنیم</button></div>`;
     document.getElementById('go').onclick = () => { s.i = 0; render(); };
     return;
@@ -92,7 +131,7 @@ function render(){
       <h1>چی دیدی؟</h1>
       <p class="do">با چند کلمه بنویس چی فرق داشت. اگه حوصله نداری، خالی بذار.</p>
       <textarea id="note" placeholder="مثلاً: دکمه زیر کیبورد بود"></textarea>
-      <p class="look">یه عکس از صفحهٔ گوشی هم بگیر (دکمهٔ کنار + دکمهٔ بالا بردن صدا با هم). آخرش با پیام بفرستش.</p>
+      <p class="look">یه عکس از صفحهٔ گوشی هم بگیر و آخرش با جواب‌ها بفرستش.</p>
       <div class="btns"><button class="yes" id="next">بعدی</button></div>`;
     document.getElementById('next').onclick = () => {
       s.answers[s.i] = { ok: false, note: document.getElementById('note').value.trim() };
@@ -102,15 +141,25 @@ function render(){
   }
   app.innerHTML = head + `
     <p class="do">${st.do}</p>
+    ${st.open ? `<a class="open" href="${st.open.href}">${st.open.label}</a>` : ''}
+    ${st.copy ? '<button class="open" id="copylink">لینک سالن رو کپی کن</button><p class="done" id="linkcopied" aria-live="polite"></p>' : ''}
+    ${st.img ? `<img class="shot" src="iphone-test/${st.img}" alt="${st.alt}">` : ''}
+    ${st.draw ? DRAW : ''}
     <p class="look"><small>باید اینو ببینی:</small>${st.look}</p>
     ${st.warn ? `<p class="warn">${st.warn}</p>` : ''}
-    <div class="btns">
+    ${s.i > 0 ? '<button class="ghost" id="back">برگرد کار قبلی</button>' : ''}
+    <div class="btns answer">
       <button class="yes" id="ok">آره، همین بود</button>
-      <button class="no" id="bad">نه، یه چیز دیگه بود</button>
-      ${s.i > 0 ? '<button class="ghost" id="back">برگرد کار قبلی</button>' : ''}
+      <button class="no" id="bad">نه، فرق داشت</button>
     </div>`;
   document.getElementById('ok').onclick = () => { s.answers[s.i] = { ok: true }; s.i++; render(); };
   document.getElementById('bad').onclick = () => { s.noteFor = s.i; render(); };
+  const cl = document.getElementById('copylink');
+  if (cl) cl.onclick = async () => {
+    const out = document.getElementById('linkcopied');
+    try { await navigator.clipboard.writeText(st.copy); out.textContent = 'کپی شد. حالا برو اینستاگرام.'; }
+    catch { out.textContent = st.copy; }
+  };
   const back = document.getElementById('back');
   if (back) back.onclick = () => { s.i--; render(); };
   scrollTo(0, 0);
@@ -122,7 +171,7 @@ function message(){
     if (!a) return `${fa(k + 1)}: زده نشد`;
     return a.ok ? `${fa(k + 1)}: درست بود` : `${fa(k + 1)}: درست نبود${a.note ? ' (' + a.note + ')' : ''}`;
   });
-  return 'تست فرفرو روی آیفون\n' + lines.join('\n');
+  return 'تست فرفرو روی آیفون\n' + lines.join('\n') + '\nگوشی: ' + navigator.userAgent;
 }
 
 function renderEnd(){
@@ -130,20 +179,19 @@ function renderEnd(){
   app.innerHTML = `
     <div class="bar"><i style="width:100%"></i></div>
     <h1>تموم شد. مرسی!</h1>
-    <p class="do">اول <b>پیام رو کپی کن</b> رو بزن. بعد <b>برو به دایرکت فرفرو</b> رو بزن و اونجا پیام رو بچسبون و بفرست.</p>
+    <p class="do"><b>جواب‌ها رو کپی کن</b> رو بزن. بعد هر جا راحتی بچسبون و برام بفرست.</p>
     ${bad ? '<p class="warn">عکس‌هایی که گرفتی رو هم بفرست.</p>' : ''}
     <div class="msg" id="msg"></div>
     <div class="btns">
-      <button class="yes" id="copy">پیام رو کپی کن</button>
+      <button class="yes" id="copy">جواب‌ها رو کپی کن</button>
       <p class="done" id="copied" aria-live="polite"></p>
-      <a class="no ig" href="https://ig.me/m/frfro_app">برو به دایرکت فرفرو</a>
       <button class="ghost" id="again">از اول</button>
     </div>`;
   const text = message();
   document.getElementById('msg').textContent = text;
   document.getElementById('copy').onclick = async () => {
     const out = document.getElementById('copied');
-    try { await navigator.clipboard.writeText(text); out.textContent = 'کپی شد. حالا دکمهٔ صورتی رو بزن.'; }
+    try { await navigator.clipboard.writeText(text); out.textContent = 'کپی شد. حالا هر جا راحتی بچسبون و بفرست.'; }
     catch {
       const r = document.createRange(); r.selectNodeContents(document.getElementById('msg'));
       const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
