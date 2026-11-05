@@ -1,13 +1,15 @@
 # Screenshots of the app (docs/screens)
 
 One picture per screen people see, for every role (guest, client, salon, artist), taken on a phone-sized
-screen (390 × 844) with sample people: **سارا احمدی** and **مریم رضایی** (clients), **سالن رز** (salon),
-**نگار کاشی** (artist on سالن رز's team) and **مینا میکاپ** (independent artist). سارا has one confirmed
-booking tomorrow and one request waiting; مریم has one request and one cancelled booking.
+screen (390 × 844) with sample people: **پریسا کریمی** and **آیدا مرادی** (clients), **سالن نیلوفر** (salon),
+**الهام نوری** (artist on سالن نیلوفر's team) and **ترانه میکاپ** (independent artist). پریسا has one confirmed
+booking tomorrow and one request waiting; آیدا has one request and one cancelled booking.
 
 - `guest/`, `client/`, `salon/`, `artist/`: the pictures, `<id>.jpg`.
 - `index.json`: for each id its role, a Persian title, the day it was taken, the visible text of the screen
   (for copy reviews) and any step that did not work when it was taken.
+
+Sample names are made up: never a name the owner used for an account they created (owner, 2026-11-05).
 
 ## How Claude uses them (owner's rule, 2026-10-23)
 

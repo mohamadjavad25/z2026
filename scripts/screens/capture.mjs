@@ -24,11 +24,11 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const OUT = process.env.SCREENS_OUT || path.join(ROOT, "docs/screens"); // SCREENS_OUT: write somewhere else (a night review set, say)
 const PASSWORD = "screens-pass-123";
 const PEOPLE = {
-  salon: { phone: "09121111111", type: "salon", name: "سالن رز" },
-  artist: { phone: "09122222222", type: "artist", name: "نگار کاشی" },
-  artist2: { phone: "09123333333", type: "artist", name: "مینا میکاپ" },
-  client: { phone: "09124444444", type: "client", name: "سارا احمدی" },
-  client2: { phone: "09125555555", type: "client", name: "مریم رضایی" }
+  salon: { phone: "09121111111", type: "salon", name: "سالن نیلوفر" },
+  artist: { phone: "09122222222", type: "artist", name: "الهام نوری" },
+  artist2: { phone: "09123333333", type: "artist", name: "ترانه میکاپ" },
+  client: { phone: "09124444444", type: "client", name: "پریسا کریمی" },
+  client2: { phone: "09125555555", type: "client", name: "آیدا مرادی" }
 };
 
 function api(cookie = "") {
@@ -116,7 +116,7 @@ const STORY_OPEN = async (p) => { await p.locator(".igSettingsStory").first().cl
 const fill = (selector, value) => async (p) => { await p.locator(selector).fill(value, { timeout: 4000 }); };
 // Sample works for the screens: our own pictures in scripts/screens/samples (the old AI photos in public/brand/photos are retired, owner 2026-10-29).
 const sample = async (file) => `data:image/jpeg;base64,${(await fs.promises.readFile(new URL(`./samples/${file}`, import.meta.url))).toString("base64")}`;
-/** Two posts of نگار's (made once), so her card on سالن رز's page has pictures. */
+/** Two posts of الهام's (made once), so her card on سالن نیلوفر's page has pictures. */
 async function artistPosts({ sessions }) {
   const mine = (await sessions.artist.get("/api/posts")).payload?.data?.posts || [];
   if (mine.length) return;
@@ -125,7 +125,7 @@ async function artistPosts({ sessions }) {
     await sessions.artist.post("/api/posts", { title, tag, image });
   }
 }
-/** Three of سالن رز's own works (made once), for the screens that show its gallery. */
+/** Three of سالن نیلوفر's own works (made once), for the screens that show its gallery. */
 async function salonPosts({ sessions }) {
   const mine = (await sessions.salon.get("/api/salon-portfolio")).payload?.data?.portfolio || [];
   if (mine.length) return;
@@ -142,7 +142,7 @@ const instagram = (salonPage, artistPage = salonPage) => async ({ sessions }) =>
   await sessions.salon.post("/api/profile", { data: { instagram: salonPage, ...SALON_LOCATION } });
   await sessions.artist.post("/api/profile", { data: { instagram: artistPage, area: "تهران، یوسف‌آباد", geo: { lat: 35.7342, lng: 51.4069 } } });
 };
-const IG_SET = instagram("salon.roz", "negar.kashi");
+const IG_SET = instagram("salon.niloofar", "elham.noori");
 const IG_NONE = instagram("");
 const toInstagram = async (p) => { await p.locator(".igSettings").first().scrollIntoViewIfNeeded({ timeout: 4000 }); await p.evaluate(() => globalThis.scrollBy(0, -120)); await p.waitForTimeout(500); };
 const IG_OPEN = css(".igSettings .profileLocationRow");
@@ -197,8 +197,8 @@ const scrollTo = (selector) => async (p) => { await p.locator(selector).first().
 function placeScreens() {
   const artistOpen = (ids) => `/?open=artist-${ids.artist}`;
   const direct = async (ctx) => { await placeState({ at: "salon" })(ctx); await makeDirectBooking(ctx); };
-  const staffSheet = [css(".profileModeRail button, [role=tab], button", "پرسنل"), tap(/^نگار کاشی،/), scrollTo(".plSwitchRow")];
-  // Tomorrow: one of نگار's own clients at her own place (18:30), then she works at سالن رز and one comes there (13:30).
+  const staffSheet = [css(".profileModeRail button, [role=tab], button", "پرسنل"), tap(/^الهام نوری،/), scrollTo(".plSwitchRow")];
+  // Tomorrow: one of الهام's own clients at her own place (18:30), then she works at سالن نیلوفر and one comes there (13:30).
   const teamDay = async (ctx) => {
     await placeState({})(ctx);
     const { client2 } = ctx.sessions;
@@ -206,7 +206,7 @@ function placeScreens() {
     await placeState({ at: "salon" })(ctx);
     await ctx.sessions.client.post("/api/artist/bookings", { artistUserId: ctx.ids.artist, service: "لاک ژل", bookingDate: dateKeyAfter(1), time: "۱۳:۳۰" });
   };
-  // نگار at her own place with one of her clients tomorrow, before she turns سالن رز on.
+  // الهام at her own place with one of her clients tomorrow, before she turns سالن نیلوفر on.
   const switchList = async (ctx) => {
     await placeState({})(ctx);
     await ctx.sessions.client.post("/api/artist/bookings", { artistUserId: ctx.ids.artist, service: "لاک ژل", bookingDate: dateKeyAfter(1), time: "۱۵:۰۰" });
@@ -223,14 +223,14 @@ function placeScreens() {
     { id: "client-artist-booking-place", role: "client", title: "جزئیات نوبت آرتیست توی سالن", setup: direct, steps: [tap(/لاک ژل/)] },
     { id: "salon-staff-direct-switch", role: "salon", title: "مدیریت آرتیست، کلید نوبت مستقیم", setup: direct, steps: staffSheet },
     { id: "salon-staff-direct-off", role: "salon", title: "مدیریت آرتیست، نوبت مستقیم بسته", setup: placeState({ at: "salon", switchOn: false }), steps: staffSheet },
-    { id: "salon-day-team-client", role: "salon", title: "برنامهٔ فردای سالن با «مشتری نگار» و «نگار سرش شلوغه»", setup: teamDay, steps: [tap("روز بعد"), async (p) => { await p.locator(".plTeamRow").first().waitFor({ timeout: 35000 }).catch(() => {}); }, scrollTo(".todayScheduleList")] },
+    { id: "salon-day-team-client", role: "salon", title: "برنامهٔ فردای سالن با «مشتری الهام» و «الهام سرش شلوغه»", setup: teamDay, steps: [tap("روز بعد"), async (p) => { await p.locator(".plTeamRow").first().waitFor({ timeout: 35000 }).catch(() => {}); }, scrollTo(".todayScheduleList")] },
     // Last: the second salon stays in the sample database from here on.
     { id: "artist-place-two", role: "artist", title: "دو سالن، کارت‌های کشویی، جابه‌جایی از هفتهٔ بعد", setup: async (ctx) => { await withSecondSalon(ctx); await placeState({ at: "salon", next: "second" })(ctx); }, steps: [COLLAB], full: true }
   ];
 }
 
 /* ---------- team and collaboration (owner's choice 2026-10-28): the salon's «پرسنل» tab and the artist's «همکاری» details ---------- */
-/** Two artists on سالن رز's team (مینا joins), مینا on leave for three days, and نگار's posts: one on the page, one waiting. */
+/** Two artists on سالن نیلوفر's team (ترانه joins), ترانه on leave for three days, and الهام's posts: one on the page, one waiting. */
 async function teamWorld(ctx) {
   const { sessions, ids } = ctx;
   await placeState({ at: "salon" })(ctx);
@@ -249,8 +249,8 @@ async function teamWorld(ctx) {
   if (posts[0]) await sessions.salon.post("/api/salon-team-posts", { postId: posts[0].id, action: "approve" });
 }
 const STAFF_TAB = css(".profileModeRail button, [role=tab], button", "پرسنل");
-const openNegar = tap(/^نگار کاشی،/);
-const openMina = async (p) => { const card = p.locator(".twCard", { hasText: "مینا" }).first(); await card.scrollIntoViewIfNeeded({ timeout: 4000 }); await p.evaluate(() => globalThis.scrollBy(0, 200)); await card.click({ timeout: 4000 }); await p.waitForTimeout(900); };
+const openNegar = tap(/^الهام نوری،/);
+const openMina = async (p) => { const card = p.locator(".twCard", { hasText: "ترانه" }).first(); await card.scrollIntoViewIfNeeded({ timeout: 4000 }); await p.evaluate(() => globalThis.scrollBy(0, 200)); await card.click({ timeout: 4000 }); await p.waitForTimeout(900); };
 function teamScreens() {
   return [
     { id: "salon-staff", role: "salon", title: "پرسنل، فهرست تیم", setup: teamWorld, steps: [STAFF_TAB], full: true },
@@ -280,11 +280,11 @@ function dealScreens() {
   return [
     { id: "salon-team-terms", role: "salon", title: "صفحهٔ آرتیست، شرایط کار با پیشنهاد تازهٔ آرتیست", setup: async (ctx) => { await teamWorld(ctx); await artistProposes(ctx); }, steps: dealOnMember },
     { id: "salon-team-terms-sheet", role: "salon", title: "پیشنهاد تغییر شرایط، برگهٔ سالن", setup: async (ctx) => { await teamWorld(ctx); await artistProposes(ctx); }, steps: [...dealOnMember, tap("پیشنهاد خودم")] },
-    { id: "salon-team-ledger", role: "salon", title: "حساب با آرتیست، سمت سالن", setup: teamWorld, steps: [STAFF_TAB, openNegar, tap(/^حساب با نگار/)] },
+    { id: "salon-team-ledger", role: "salon", title: "حساب با آرتیست، سمت سالن", setup: teamWorld, steps: [STAFF_TAB, openNegar, tap(/^حساب با الهام/)] },
     { id: "artist-team-terms", role: "artist", title: "همکاری، شرایط کار با پیشنهاد تازهٔ سالن", setup: async (ctx) => { await teamWorld(ctx); await salonProposes(ctx); }, steps: [COLLAB, scrollTo(".ttCard")] },
     { id: "artist-team-ledger", role: "artist", title: "حساب من با سالن", setup: teamWorld, steps: [COLLAB, tap(/^حساب من با/)] },
     { id: "artist-team-ledger-waiting", role: "artist", title: "حساب من با سالن، تصفیه منتظر تأیید", setup: async (ctx) => { await teamWorld(ctx); await artistSettles(ctx); }, steps: [COLLAB, tap(/^حساب من با/)] },
-    { id: "salon-team-ledger-confirm", role: "salon", title: "حساب با آرتیست، تصفیه‌ای که باید تأیید کنم", setup: async (ctx) => { await teamWorld(ctx); await artistSettles(ctx); }, steps: [STAFF_TAB, openNegar, tap(/^حساب با نگار/)] },
+    { id: "salon-team-ledger-confirm", role: "salon", title: "حساب با آرتیست، تصفیه‌ای که باید تأیید کنم", setup: async (ctx) => { await teamWorld(ctx); await artistSettles(ctx); }, steps: [STAFF_TAB, openNegar, tap(/^حساب با الهام/)] },
     { id: "artist-leave-sheet", role: "artist", title: "نوبت‌ها، «مرخصی» کنار «تایم استراحت»", setup: teamWorld, steps: [scrollTo(".artistBookingsToolbar"), tap("مرخصی", { exact: true })] },
     { id: "artist-leave-plan", role: "artist", title: "مرخصی، نوبت‌هایی که اول باید جواب بخورن", setup: teamWorld, steps: [scrollTo(".artistBookingsToolbar"), tap("مرخصی", { exact: true }), tap("ثبت مرخصی")] }
   ];
@@ -309,7 +309,7 @@ const openMap = async (p) => { await p.locator(".locCard.is-pinned").first().cli
 
 /* ---------- the story suggestion: a complete profile, so the suggestion has free times ---------- */
 const STORY_READY = async (ctx) => {
-  await instagram("salon.roz", "negar.kashi")(ctx);
+  await instagram("salon.niloofar", "elham.noori")(ctx);
   const image = await sample("work-3.jpg");
   await ctx.sessions.salon.post("/api/profile", { data: { avatar: image, service: "مو و ناخن" } });
   await ctx.sessions.artist.post("/api/profile", { data: { avatar: image, service: "ناخن" } });
@@ -331,7 +331,7 @@ const SCREENS = [
   { id: "guest-from-salon-link", role: "guest", title: "مهمانی که با لینک سالن آمده", path: (ids) => `/?open=salon-${ids.salon}`, steps: [css(".spvBarBook.is-open")] },
   { id: "guest-salon-page", role: "guest", title: "صفحهٔ عمومی سالن", path: salonPath },
   { id: "guest-salon-page-full", role: "guest", title: "صفحهٔ عمومی سالن، کامل", path: salonPath, full: true },
-  { id: "guest-salon-team-sheet", role: "guest", title: "برگهٔ آرتیست تیم در صفحهٔ سالن", setup: artistPosts, path: salonPath, steps: [css(".stmCard", "نگار کاشی")] },
+  { id: "guest-salon-team-sheet", role: "guest", title: "برگهٔ آرتیست تیم در صفحهٔ سالن", setup: artistPosts, path: salonPath, steps: [css(".stmCard", "الهام نوری")] },
   { id: "guest-artist-page", role: "guest", title: "صفحهٔ عمومی آرتیست", path: artistPath },
   { id: "guest-not-found", role: "guest", title: "صفحه پیدا نشد", path: () => "/no-such-page" },
   { id: "guest-terms", role: "guest", title: "قوانین", path: () => "/terms" },
@@ -343,10 +343,10 @@ const SCREENS = [
   { id: "client-notifications", role: "client", title: "اعلان‌های مشتری", steps: [tap("اعلان‌ها")] },
   { id: "client-support", role: "client", title: "پشتیبانی", steps: [tap(/^پشتیبانی/)] },
   { id: "client-history", role: "client", title: "نوبت‌های قبلی", steps: [tap(/نوبت‌های قبلی/)] },
-  { id: "client-booking-confirmed", role: "client", title: "جزئیات نوبت تأییدشده", steps: [tap(/^سالن رز، کوتاهی مو/)] },
-  { id: "client-booking-pending", role: "client", title: "جزئیات درخواست در انتظار", steps: [tap(/^سالن رز، رنگ مو/)] },
-  { id: "client-booking-map", role: "client", title: "«کجا» روی نقشه، از جزئیات نوبت", steps: [tap(/^سالن رز، کوتاهی مو/), openMap] },
-  { id: "client-booking-map-dark", role: "client", title: "«کجا» روی نقشه، شب", dark: true, steps: [tap(/^سالن رز، کوتاهی مو/), openMap] },
+  { id: "client-booking-confirmed", role: "client", title: "جزئیات نوبت تأییدشده", steps: [tap(/^سالن نیلوفر، کوتاهی مو/)] },
+  { id: "client-booking-pending", role: "client", title: "جزئیات درخواست در انتظار", steps: [tap(/^سالن نیلوفر، رنگ مو/)] },
+  { id: "client-booking-map", role: "client", title: "«کجا» روی نقشه، از جزئیات نوبت", steps: [tap(/^سالن نیلوفر، کوتاهی مو/), openMap] },
+  { id: "client-booking-map-dark", role: "client", title: "«کجا» روی نقشه، شب", dark: true, steps: [tap(/^سالن نیلوفر، کوتاهی مو/), openMap] },
   { id: "client-category-nails", role: "client", title: "دسته‌بندی ناخن", steps: [css(".cnCat", "ناخن")] },
   { id: "client-category-empty", role: "client", title: "دسته‌بندی بدون سالن", steps: [css(".cnCat", "ابرو")] },
   { id: "client-my-code", role: "client", title: "کد من", steps: [tap("کد من")] },
@@ -410,8 +410,8 @@ const SCREENS = [
   { id: "client-salon-sheet-instagram", role: "client", title: "صفحهٔ سالن داخل اپ مشتری با اینستاگرام", setup: IG_SET, path: salonPath, steps: [toWorksEnd] },
   { id: "salon-instagram-empty", role: "salon", title: "تنظیمات، اینستاگرام هنوز نذاشته", setup: IG_NONE, steps: [tab(0), toInstagram] },
   { id: "salon-instagram-open-empty", role: "salon", title: "تنظیمات، اینستاگرام باز، خالی", setup: IG_NONE, steps: [tab(0), toInstagram, IG_OPEN, toBio] },
-  { id: "salon-instagram-error", role: "salon", title: "تنظیمات، اینستاگرام، اسم اشتباه", setup: IG_NONE, steps: [tab(0), toInstagram, IG_OPEN, fill("#igSettingsInput", "سالن رز"), css(".igSettingsSave"), toBio] },
-  { id: "salon-instagram-saved", role: "salon", title: "تنظیمات، اینستاگرام ذخیره شد", setup: IG_NONE, steps: [tab(0), toInstagram, IG_OPEN, fill("#igSettingsInput", "https://www.instagram.com/salon.roz/?igsh=x1"), css(".igSettingsSave"), toInstagram] },
+  { id: "salon-instagram-error", role: "salon", title: "تنظیمات، اینستاگرام، اسم اشتباه", setup: IG_NONE, steps: [tab(0), toInstagram, IG_OPEN, fill("#igSettingsInput", "سالن نیلوفر"), css(".igSettingsSave"), toBio] },
+  { id: "salon-instagram-saved", role: "salon", title: "تنظیمات، اینستاگرام ذخیره شد", setup: IG_NONE, steps: [tab(0), toInstagram, IG_OPEN, fill("#igSettingsInput", "https://www.instagram.com/salon.niloofar/?igsh=x1"), css(".igSettingsSave"), toInstagram] },
   { id: "salon-instagram-set", role: "salon", title: "تنظیمات، اینستاگرام گذاشته", setup: IG_SET, steps: [tab(0), toInstagram] },
   { id: "salon-instagram-open-set", role: "salon", title: "تنظیمات، اینستاگرام باز، پر", setup: IG_SET, steps: [tab(0), toInstagram, IG_OPEN, toBio] },
   // «استوری آماده» slider (2026-10-28): the intro slide, then a design and the free slots of today and tomorrow
@@ -484,6 +484,7 @@ async function main() {
       try { await step(page); } catch (error) { errors.push(`step: ${error.message.split("\n")[0]}`); }
     }
     await page.waitForTimeout(900);
+    try {
     // The «یه درخواست نوبت تازه!» banner (and any other glass alert) pops up on arrival and would sit on top of every picture.
     if (!screen.keepNotices) await page.addStyleTag({ content: ".notice-glass { display: none !important; }" });
     const dir = path.join(OUT, screen.role);
@@ -493,6 +494,7 @@ async function main() {
     const visible = (await page.locator("body").innerText()).split("\n").map((line) => line.trim()).filter(Boolean);
     index.screens[screen.id] = { role: screen.role, title: screen.title, file: path.relative(OUT, file), takenAt: new Date().toISOString().slice(0, 10), text: [...new Set(visible)], problems: errors };
     console.log(`${screen.id}${errors.length ? `  (${errors.length} problem${errors.length > 1 ? "s" : ""}: ${errors[0].slice(0, 90)})` : ""}`);
+    } catch (error) { console.log(`${screen.id}  (crashed: ${error.message.slice(0, 80)})`); }
     await context.close();
   }
   await browser.close();
