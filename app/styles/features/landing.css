@@ -201,7 +201,6 @@ html.native-app .webOnlyAppLink { display: none !important; }
   font-weight: 800;
   font-size: 0.84rem;
 }
-.appLanding__eyebrow span { width: 8px; height: 8px; border-radius: 50%; background: var(--l-blend); box-shadow: 0 0 0 4px rgba(255, 134, 184, 0.25); }
 
 .appLanding__hero h1 {
   margin: 0;

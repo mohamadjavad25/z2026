@@ -61,9 +61,9 @@ export function GoScreen() {
       <section className="goPage__card">
         <img className="goPage__mascot" src="/brand/mascot/done.webp" alt="" width="160" height="160" />
         <h1>
-          رزرو کن،
+          نمونه‌کار ببین،
           <br />
-          <em>بدرخش</em>
+          <em>نوبت بگیر</em>
         </h1>
         <p>سالن و آرتیست رو با نمونه‌کار واقعی ببین و همون‌جا نوبت بگیر. برای مشتری رایگانه.</p>
         <a className="goPage__enter" href="/" onClick={enter}>ورود به فرفرو</a>
