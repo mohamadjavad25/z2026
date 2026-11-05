@@ -8,20 +8,18 @@ import { SupportIcon } from "./SupportIcon";
 import { notifySupportRead } from "./supportEvents";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { MessageAttachments } from "./Attachments";
-import { AttachmentField, Composer } from "./Composer";
-import { Spinner } from "../../components/Spinner";
+import { Composer } from "./Composer";
 import { SkeletonList } from "../../components/Skeleton";
 
-// value, label, icon, one line that says when to pick it, and what to write in the box.
+// value, label, icon, one line that says when to pick it, and the first line of the chat (shown here, never stored).
 const TOPICS = [
-  ["question", "سؤال", CircleHelp, "یه چیزی می‌خوام بدونم", "سؤالت رو بنویس…"],
-  ["bug", "مشکل فنی", Bug, "یه چیزی کار نمی‌کنه", "داشتی چی کار می‌کردی و چی شد؟ اگه راحت‌تری، عکس صفحه رو بفرست."],
-  ["account", "مشکل حساب", UserRoundCog, "ورود، شماره، اشتراک", "مشکل حسابت رو بنویس…"],
-  ["complaint", "شکایت", MessageSquareWarning, "از کسی یا چیزی راضی نبودم", "ماجرا رو بنویس؛ اگه از یه سالن یا آرتیسته، اسمش رو هم بگو."],
-  ["other", "سایر", Ellipsis, "هیچ‌کدوم از اینا", "هر چی می‌خوای بنویس…"]
+  ["question", "سؤال", CircleHelp, "یه چیزی می‌خوام بدونم", "سلام! سؤالت چیه؟"],
+  ["bug", "مشکل فنی", Bug, "یه چیزی کار نمی‌کنه", "سلام! داشتی چی کار می‌کردی و چی شد؟ اگه راحت‌تری، عکس صفحه رو بفرست."],
+  ["account", "مشکل حساب", UserRoundCog, "ورود، شماره، اشتراک", "سلام! مشکل حسابت چیه؟"],
+  ["complaint", "شکایت", MessageSquareWarning, "از کسی یا چیزی راضی نبودم", "سلام! ماجرا چی بود؟ اگه از یه سالن یا آرتیسته، اسمش رو هم بگو."],
+  ["other", "سایر", Ellipsis, "هیچ‌کدوم از اینا", "سلام! بگو چی شده."]
 ];
 const CATEGORY_LABEL = Object.fromEntries(TOPICS.map(([value, label]) => [value, label]));
-const MIN_MESSAGE = 10;
 const REASON_LABEL = { spam: "اسپم یا تبلیغ", inappropriate: "محتوای نامناسب", fake: "جعلی یا گمراه‌کننده", copyright: "کپی از کار دیگران", other: "سایر" };
 
 const digits = (value) => String(value).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
@@ -138,23 +136,31 @@ function TicketList({ onOpen, onNew }) {
   );
 }
 
-function Thread({ id }) {
-  const [data, setData] = useState(null);
+/**
+ * One conversation. With `draft` ({ category, subject }) it opens as an empty chat on the picked topic: nothing exists
+ * on the server until the first message goes out, so backing out leaves no empty conversation behind.
+ */
+function Thread({ id: startId = null, draft = null }) {
+  const [id, setId] = useState(startId);
+  const [data, setData] = useState(startId ? null : { ticket: { kind: "support", status: "open", category: draft?.category, subject: draft?.subject }, messages: [] });
   // Messages on their way: shown at once (with a clock) so sending a picture or a voice note never feels stuck.
   const [pending, setPending] = useState([]);
   const endRef = useRef(null);
 
-  const load = useCallback(async (silent = false) => {
-    const { ok, payload = {} } = await apiFetch(`/api/support/tickets/${id}`).catch(() => ({ ok: false }));
-    if (ok) setData(payload.data);
-    else if (!silent) setData({ error: payload.error || "نیومد؛ دوباره بزن." });
+  const load = useCallback(async (ticketId, silent = false, onLoaded) => {
+    const { ok, payload = {} } = await apiFetch(`/api/support/tickets/${ticketId}`).catch(() => ({ ok: false }));
+    if (ok) {
+      setData(payload.data);
+      onLoaded?.(); // same update, so a sent message is never on screen twice
+    } else if (!silent) setData({ error: payload.error || "نیومد؛ دوباره بزن." });
     notifySupportRead();
-  }, [id]);
+  }, []);
   useEffect(() => {
-    load();
-    const timer = setInterval(() => load(true), 15_000);
+    if (!id) return undefined;
+    load(id);
+    const timer = setInterval(() => load(id, true), 15_000);
     return () => clearInterval(timer);
-  }, [load]);
+  }, [id, load]);
   const count = (data?.messages?.length || 0) + pending.length;
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
@@ -166,12 +172,19 @@ function Thread({ id }) {
     setPending((prev) => [...prev, { key, body: message, attachments: preview }]);
     let result;
     try {
-      result = await apiFetch(`/api/support/tickets/${id}`, { method: "POST", body: JSON.stringify({ message, attachments }) });
+      result = id
+        ? await apiFetch(`/api/support/tickets/${id}`, { method: "POST", body: JSON.stringify({ message, attachments }) })
+        : await apiFetch("/api/support", { method: "POST", body: JSON.stringify({ category: draft?.category, subject: draft?.subject, message, attachments }) });
     } catch {
       result = { ok: false, payload: { error: "اینترنتت وصل نیست؛ یه نگاه بنداز و دوباره بزن." } };
     }
-    if (result.ok) await load(true);
-    setPending((prev) => prev.filter((item) => item.key !== key));
+    const clearPending = () => setPending((prev) => prev.filter((item) => item.key !== key));
+    if (result.ok) {
+      const ticketId = id ?? result.payload.data.id;
+      await load(ticketId, true, clearPending);
+      setId(ticketId);
+    }
+    clearPending();
     if (!result.ok) {
       setData((prev) => ({ ...prev, sendError: result.payload.error || "نرفت؛ دوباره بزن." }));
       return false;
@@ -189,8 +202,16 @@ function Thread({ id }) {
       <div className="scThread" aria-live="polite">
         <div className="scThreadHead">
           <b>{titleOf(ticket)}</b>
-          <StatePill ticket={ticket} />
+          {id ? <StatePill ticket={ticket} /> : null}
         </div>
+        {draft ? (
+          <div className="scGroup">
+            <div className="scMsg is-admin">
+              <small className="scWho"><SupportIcon size={13} /> پشتیبانی فرفرو</small>
+              <p>{(TOPICS.find(([value]) => value === draft.category) || TOPICS[0])[4]}</p>
+            </div>
+          </div>
+        ) : null}
         {ticket.kind === "report" ? <p className="scInfo">گزارشت رسید و بررسیش می‌کنیم. هر خبری بود همین‌جا می‌نویسیم.{ticket.category ? ` (دلیل: ${REASON_LABEL[ticket.category] || ticket.category})` : ""}</p> : null}
         {messages.map((message, index) => {
           const previous = messages[index - 1];
@@ -221,7 +242,7 @@ function Thread({ id }) {
             </div>
           </div>
         ))}
-        {!messages.length ? <p className="scMuted">هنوز پیامی اینجا نیست.</p> : null}
+        {!messages.length && !draft ? <p className="scMuted">هنوز پیامی اینجا نیست.</p> : null}
         {closed ? <p className="scInfo">این گفتگو بسته شده؛ پیام بدی دوباره باز می‌شه.</p> : null}
         <div ref={endRef} />
       </div>
@@ -231,62 +252,14 @@ function Thread({ id }) {
   );
 }
 
-// The topic is picked on the list (or comes from where support was opened); the form only asks for the message.
-function NewTicket({ category = "question", initialSubject = "", onCreated }) {
-  const [subject, setSubject] = useState(initialSubject);
-  const [message, setMessage] = useState("");
-  const [attachments, setAttachments] = useState([]);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const topic = TOPICS.find(([value]) => value === category) || TOPICS[0];
-  const length = message.trim().length;
-  const ready = attachments.length > 0 || length >= MIN_MESSAGE;
-
-  async function submit(event) {
-    event.preventDefault();
-    if (busy || !ready) return;
-    setBusy(true);
-    setError("");
-    const { ok, payload } = await apiFetch("/api/support", { method: "POST", body: JSON.stringify({ category, subject, message, attachments }) }).catch(() => ({ ok: false, payload: { error: "اینترنتت وصل نیست؛ یه نگاه بنداز و دوباره بزن." } }));
-    setBusy(false);
-    if (ok) onCreated(payload.data.id);
-    else setError(payload.error || "نرفت؛ دوباره بزن.");
-  }
-
-  return (
-    <form className="scForm" onSubmit={submit}>
-      <div className="scBody">
-        <label className="scField">
-          <span>پیامت</span>
-          <textarea rows={6} value={message} maxLength={2000} onChange={(event) => setMessage(event.target.value)} placeholder={topic[4]} />
-          <em className={`scCounter${length >= MIN_MESSAGE ? " is-ok" : ""}`} aria-live="polite">
-            {attachments.length ? "عکس یا صدا هم کافیه" : length >= MIN_MESSAGE ? <><Check size={13} aria-hidden="true" /> آماده‌ست</> : `دست‌کم ${digits(MIN_MESSAGE)} حرف بنویس (${digits(length)} از ${digits(MIN_MESSAGE)})`}
-          </em>
-        </label>
-        <AttachmentField value={attachments} onChange={setAttachments} />
-        <label className="scField">
-          <span>عنوان <small>(اگه بخوای)</small></span>
-          <input type="text" value={subject} maxLength={120} onChange={(event) => setSubject(event.target.value)} placeholder="مثلاً: نوبتم ثبت نشد" />
-        </label>
-      </div>
-      <footer className="scFoot">
-        {error ? <p className="scError" role="alert">{error}</p> : null}
-        <button type="submit" className="scPrimary" disabled={busy || !ready} aria-busy={busy || undefined}>
-          {busy ? <><Spinner size={18} current /> دارم می‌فرستم…</> : "بفرست"}
-        </button>
-      </footer>
-    </form>
-  );
-}
-
 /**
- * The whole support experience in one sheet: my conversations, one conversation (read replies, keep writing),
- * and a new message. `initial` can jump straight to a conversation ({ ticketId }) or the new-message form
- * ({ view: "new", category?, subject? }, e.g. a complaint already titled with a salon's name).
+ * The whole support experience in one sheet: my conversations and one conversation. Picking a topic goes straight into
+ * a chat. `initial` can jump to a conversation ({ ticketId }) or a new chat ({ view: "new", category?, subject? }, e.g.
+ * a complaint already titled with a salon's name).
  */
 export function SupportCenter({ initial = {}, onClose }) {
   useBackHandler(true, onClose);
-  const [view, setView] = useState(initial.ticketId ? { name: "thread", id: initial.ticketId } : initial.view === "new" ? { name: "new", category: initial.category, subject: initial.subject } : { name: "list" });
+  const [view, setView] = useState(initial.ticketId ? { name: "thread", id: initial.ticketId } : initial.view === "new" ? { name: "thread", draft: { category: initial.category || "question", subject: initial.subject } } : { name: "list" });
   const sheetRef = useRef(null);
   const closeRef = useRef(onClose);
   useEffect(() => {
@@ -307,7 +280,7 @@ export function SupportCenter({ initial = {}, onClose }) {
   if (typeof document === "undefined") return null;
 
   const inList = view.name === "list";
-  const title = view.name === "new" ? (TOPICS.find(([value]) => value === view.category) || TOPICS[0])[1] : view.name === "thread" ? "گفتگو" : "پشتیبانی";
+  const title = view.name === "thread" ? "گفتگو" : "پشتیبانی";
   return createPortal(
     <div className="scOverlay" onClick={onClose}>
       <div className="scSheet" role="dialog" aria-modal="true" aria-label="پشتیبانی" tabIndex={-1} ref={sheetRef} onClick={(event) => event.stopPropagation()}>
@@ -322,9 +295,8 @@ export function SupportCenter({ initial = {}, onClose }) {
           <h3>{title}</h3>
           <button type="button" className="scIconBtn" onClick={onClose} aria-label="بستن پشتیبانی"><X size={19} aria-hidden="true" /></button>
         </header>
-        {view.name === "list" ? <TicketList onOpen={(id) => setView({ name: "thread", id })} onNew={(category) => setView({ name: "new", category })} /> : null}
-        {view.name === "thread" ? <Thread key={view.id} id={view.id} /> : null}
-        {view.name === "new" ? <NewTicket category={view.category} initialSubject={view.subject} onCreated={(id) => setView({ name: "thread", id })} /> : null}
+        {view.name === "list" ? <TicketList onOpen={(id) => setView({ name: "thread", id })} onNew={(category) => setView({ name: "thread", draft: { category } })} /> : null}
+        {view.name === "thread" ? <Thread key={view.id ?? "new"} id={view.id} draft={view.draft} /> : null}
       </div>
     </div>,
     document.body

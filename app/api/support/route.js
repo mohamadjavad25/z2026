@@ -26,8 +26,9 @@ async function _POST(request) {
   const message = String(body.message || "").trim();
   const files = parseAttachments(body.attachments);
   if (!files.ok) return error(files.error, 400);
-  // A screenshot or a voice note says enough on its own; plain text needs a few words.
-  if (!files.items.length && message.length < 10) return error("یه کم بیشتر بنویس (دست‌کم ۱۰ حرف).", 400);
+  // A signed-in person is in a chat, so «سلام» is enough. A guest gets one message, which has to say something.
+  if (!files.items.length && !message) return error("پیامت رو بنویس.", 400);
+  if (!user && !files.items.length && message.length < 10) return error("یه کم بیشتر بنویس (دست‌کم ۱۰ حرف).", 400);
   if (message.length > 2000) return error("پیامت خیلی بلنده (حداکثر ۲۰۰۰ حرف).", 400);
 
   let phone = user?.phone || "";

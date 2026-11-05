@@ -744,11 +744,12 @@ describe("support (browser)", () => {
       return result.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id}: ${v.nodes[0].html.slice(0, 80)}`);
     });
     expect(await axeIssues()).toEqual([]);
-    // The topic cards start a new message with that topic already chosen.
+    // A topic goes straight into the chat: no form, no title, no least length.
     await center.getByRole("button", { name: /^سؤال/ }).click();
-    await center.getByLabel("پیامت").fill("سلام، این یک پیام آزمایشی از مرورگر برای پشتیبانی است.");
-    await center.getByRole("button", { name: "بفرست" }).click();
-    await center.getByText("سلام، این یک پیام آزمایشی از مرورگر برای پشتیبانی است.").waitFor();
+    await center.getByText("سلام! سؤالت چیه؟").waitFor();
+    await center.getByLabel("پیام", { exact: true }).fill("سلام، این یک پیام آزمایشی از مرورگر برای پشتیبانی است.");
+    await center.getByRole("button", { name: "ارسال", exact: true }).click();
+    await center.locator(".scMsg.is-user:not(.is-pending)").getByText("سلام، این یک پیام آزمایشی از مرورگر برای پشتیبانی است.").waitFor();
     expect(await axeIssues()).toEqual([]);
 
     // The admin answers; after a reload the button shows an unread badge and the reply is in the conversation.

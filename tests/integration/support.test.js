@@ -30,6 +30,13 @@ describe("support messages (public)", () => {
     expect(guest.payload.data.tickets[0].phone).toBe(guestPhone);
   });
 
+  it("lets a signed-in person open a chat with one word, but not with nothing", async () => {
+    const user = createClient();
+    await registerUser(user, { type: "client", name: "چت کوتاه" });
+    expect((await user.post("/api/support", { category: "question", message: "سلام" })).status).toBe(201);
+    expect((await user.post("/api/support", { category: "question", message: "   " })).status).toBe(400);
+  });
+
   it("refuses too-short messages, and a guest without a usable phone", async () => {
     const guest = createClient();
     expect((await guest.post("/api/support", { message: "کوتاه", phone: uniquePhone() })).status).toBe(400);

@@ -32,6 +32,12 @@
 /* It takes the look of the bell beside it (.profileHeroActions button, .cphBell); only the unread badge is its own. */
 .profileHeroActionsPair { display: flex; align-items: center; gap: 7px; pointer-events: auto; }
 .supportTopBtn { position: relative; cursor: pointer; }
+/* A moving brand gradient so people find support (owner, 2026-11-05). It is a layer inside the button, so it looks the same on every home page. */
+.supportTopGlow { position: absolute; inset: 0; display: grid; place-items: center; border-radius: inherit; background: var(--brand-blend-deep); background-size: 300% 300%; color: var(--on-photo); animation: supportGlow 5s ease-in-out infinite alternate; }
+/* Older hero rules colour every icon with !important; on the gradient this one must stay white. */
+.supportTopBtn .supportTopGlow svg { color: var(--on-photo) !important; }
+@keyframes supportGlow { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+@media (prefers-reduced-motion: reduce) { .supportTopGlow { animation: none; } }
 /* Client home: the bell stays on the left, support goes to the right corner, so their dots never touch (owner, 2026-11-01). */
 .profileHero.cphHero .cphBell.cphSupport { left: auto; right: 12px; }
 .supportTopBadge { position: absolute; top: -5px; inset-inline-end: -5px; display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--fill-hot); color: var(--n-0); font-style: normal; font-size: 0.68rem; font-weight: 900; box-shadow: 0 0 0 2px var(--n-0); }
@@ -46,8 +52,6 @@
 .scHeadIcon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 14px; background: var(--fill-strong); color: var(--n-0); }
 .scIconBtn { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--n-100); color: var(--ink); cursor: pointer; }
 .scBody { flex: 1; overflow-y: auto; display: grid; align-content: start; gap: var(--space-3); padding: var(--space-4); }
-.scPrimary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; border: 0; border-radius: var(--radius-pill); background: var(--fill-strong); color: var(--n-0); font: inherit; font-size: var(--text-md); font-weight: 850; cursor: pointer; }
-.scPrimary:disabled { opacity: 0.45; cursor: not-allowed; }
 .scMuted { margin: 0; color: var(--n-700); font-weight: 650; text-align: center; padding: var(--space-4) 0; }
 .scError { margin: 0; color: var(--danger); font-size: var(--text-sm); font-weight: 750; }
 .scEmpty { display: grid; justify-items: center; gap: 8px; padding: var(--space-6) var(--space-4); text-align: center; }
@@ -65,7 +69,8 @@
 .scItemMeta time { color: var(--n-600); font-size: 0.72rem; font-weight: 650; }
 .scDot { position: absolute; top: 10px; inset-inline-start: 10px; width: 10px; height: 10px; border-radius: 50%; background: var(--signal-hot); box-shadow: 0 0 0 3px var(--n-0); }
 .scState { padding: 2px 9px; border-radius: var(--radius-pill); font-size: 0.7rem; font-weight: 850; background: var(--n-100); color: var(--n-700); }
-.scState.is-waiting { background: rgb(var(--warning-rgb) / 0.14); color: var(--warning); }
+.scState.is-waiting { background: var(--warning-bg); color: var(--n-800); }
+.scState.is-waiting i { background: var(--warning); }
 .scState.is-answered { background: var(--n-100); color: var(--success); }
 .scState.is-closed { background: var(--n-100); color: var(--n-700); }
 
@@ -88,10 +93,6 @@
 .scSend:disabled { opacity: 0.4; cursor: not-allowed; }
 .scSend svg { transform: scaleX(-1); }
 
-.scField { display: grid; gap: 6px; }
-.scField > span { color: var(--n-700); font-size: var(--text-sm); font-weight: 800; }
-.scField :where(input, textarea) { width: 100%; padding: 12px var(--space-4); border: 0; border-radius: var(--radius-md); background: var(--n-0); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; font-size: var(--text-md); line-height: 1.8; resize: vertical; }
-.scField :where(input, textarea):focus-visible { outline: 2px solid var(--night); outline-offset: 1px; }
 
 /* ---------- Pictures and voice notes in the support chat (features/support/Attachments.jsx, Composer.jsx) ---------- */
 .scGroup.is-grouped { margin-top: -4px; }
@@ -221,15 +222,6 @@
 .scState.is-answered i { background: var(--success); }
 .scState.is-closed i { opacity: 0.5; }
 
-.scForm { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.scForm .scBody { gap: var(--space-4); }
-.scField > span small { color: var(--n-600); font-weight: 650; }
-.scField textarea { min-height: 140px; }
-.scCounter { display: inline-flex; align-items: center; gap: 4px; justify-self: end; font-style: normal; font-size: 0.72rem; font-weight: 750; color: var(--n-600); font-variant-numeric: tabular-nums; }
-.scCounter.is-ok { color: var(--success); }
-.scFoot { flex: 0 0 auto; display: grid; gap: 8px; padding: 10px var(--space-4) calc(10px + env(safe-area-inset-bottom)); background: var(--n-0); box-shadow: 0 -1px 0 var(--line), 0 -12px 24px -16px rgb(var(--shadow-rgb) / 0.18); }
-.scFoot .scError { justify-content: center; }
-.scPrimary[aria-busy="true"] { cursor: progress; opacity: 1; }
 
 /* ---- composer: one rounded box, text on top, round buttons underneath (shared look with the admin chat) ---- */
 .scComposer { background: transparent; box-shadow: none; padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); }

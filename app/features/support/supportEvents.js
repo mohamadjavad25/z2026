@@ -2,7 +2,7 @@
 const OPEN_EVENT = "frfro:open-support";
 const READ_EVENT = "frfro:support-read";
 
-/** Opens the support center. { ticketId } jumps straight into that conversation; { view: "new" } opens the new-message form. */
+/** Opens the support center. { ticketId } jumps straight into that conversation; { view: "new" } opens a new chat. */
 export function openSupport(detail = {}) {
   if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(OPEN_EVENT, { detail }));
 }
