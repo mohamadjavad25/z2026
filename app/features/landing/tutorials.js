@@ -107,7 +107,7 @@ const booker = ({ day = -1, time = -1, ready = false }) => [
   { t: "head", text: "روز" },
   { t: "chips", id: "days", items: DAYS, on: day },
   ...(day >= 0 ? [{ t: "head", text: "ساعت شروع" }, { t: "chips", id: "times", items: TIMES, on: time, grid: 4 }] : [{ t: "note", text: "روز را انتخاب کن تا ساعت‌های آزاد را ببینی." }]),
-  ...(ready ? [{ t: "summary", text: "۱ کار، ۹۰ دقیقه، ۴۵۰٬۰۰۰ تومان" }, { t: "btn", id: "send", text: "بفرست، یکشنبه ۱۵:۳۰" }] : [])
+  ...(ready ? [{ t: "summary", text: "۱ کار، ۹۰ دقیقه، ۴۵۰٬۰۰۰ تومان" }, { t: "btn", id: "send", text: "درخواست نوبت" }] : [])
 ];
 
 const salonRail = (on) => ({ t: "rail", id: "rail", items: ["نوبت‌ها", "خدمات", "نمونه‌کار", "پرسنل"], on });
@@ -238,7 +238,7 @@ export const LEARN_ROLES = [
           { screen: "mine", els: [bookTabs(0), salonPlace(), ...salonServices(), navClient(2)], tap: "svc0", say: "کنار خدمتی که می‌خواهی، «رزرو» را بزن." },
           { screen: "booker", els: booker({}), tap: "days.1", say: "روز را انتخاب کن." },
           { screen: "booker", els: booker({ day: 1 }), tap: "times.3", say: "از ساعت‌های آزاد یکی را بزن." },
-          { screen: "booker", els: booker({ day: 1, time: 3, ready: true }), tap: "send", say: "«بفرست» رو بزن." },
+          { screen: "booker", els: booker({ day: 1, time: 3, ready: true }), tap: "send", say: "«درخواست نوبت» رو بزن." },
           {
             screen: "status",
             els: [bookTabs(0), { t: "status", tone: "wait", title: `درخواستت به ${SALON} رسید`, text: `منتظر تأیید ${SALON} باش.`, when: "یکشنبه ۲۷ مهر · ساعت ۱۵:۳۰" }, salonPlace(), navClient(2)],

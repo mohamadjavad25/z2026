@@ -119,7 +119,7 @@ async function main() {
   await shoot("client-book-tab-connected", "client", [tab(2), pickSalon]);
   await shoot("client-booker", "client", [tab(2), pickSalon, async (p) => {
     await p.locator("button", { hasText: "کوتاهی مو" }).filter({ hasText: "رزرو" }).first().click(); await p.waitForTimeout(1200);
-    await p.locator("button", { hasText: "رزرو «کوتاهی مو»" }).click(); await p.waitForTimeout(1500);
+    await p.locator(".sduConfirm").click(); await p.waitForTimeout(1500);
   }]);
   const day = nextOpenDay();
   await client.post("/api/salon-bookings", { salonUserId: ids.salon, service: "کوتاهی مو", bookingDate: day, time: "۱۷:۰۰", client: PEOPLE.client.name, phone: PEOPLE.client.phone });

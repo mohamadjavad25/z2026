@@ -22,7 +22,6 @@ import { ServicesOnPage } from "../../components/ServicesOnPage";
 import { bundleServices } from "../../shared/lib/serviceBundle";
 import { trackAction, trackScreen } from "../../shared/lib/activity";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
-import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { SalonClientGallery } from "./SalonClientGallery";
 import { SalonTeam } from "./SalonTeam";
 import { SheetClose } from "../../components/SheetClose";
@@ -131,13 +130,6 @@ export function SalonClientPage({
   const instagramPhotos = folderPhotos(allPosts);
   const weekHours = Array.isArray(selectedSalon?.hours) ? selectedSalon.hours : [];
   const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
-  const prices = services.map((service) => parseTomanAmount(service.price)).filter(Boolean);
-  const minPrice = prices.length ? Math.min(...prices) : 0;
-  // On the bottom bar: how many services and the lowest price, e.g. «۸ خدمت، قیمت از ۴ تومان».
-  const barNote = [
-    services.length ? `${toPersianDigits(services.length)} خدمت` : "",
-    minPrice ? `قیمت از ${formatTomanNumber(minPrice)} تومان` : ""
-  ].filter(Boolean).join("، ");
 
   return (
     <div className={`salonPanel mobilePage page-salons ${active ? "is-active" : ""}`} id="salons">
@@ -302,9 +294,8 @@ export function SalonClientPage({
               aria-haspopup="dialog"
             >
               {selectedSalon.onlineBookingPaused ? <Scissors size={19} /> : <CalendarCheck size={19} />}
-              {servicesOpen ? "بستن" : selectedSalon.onlineBookingPaused ? "خدمات و قیمت‌ها" : "رزرو"}
-              {barNote && !servicesOpen ? <small>{barNote}</small> : null}
-              <ChevronUp size={18} className={`spvBarChevron${servicesOpen ? " is-open" : ""}`} aria-hidden="true" />
+              {servicesOpen ? "بستن" : selectedSalon.onlineBookingPaused ? "خدمات و قیمت‌ها" : "نوبت بگیر"}
+              {servicesOpen ? <ChevronUp size={18} className="spvBarChevron is-open" aria-hidden="true" /> : null}
             </button>
           </nav>
           </>

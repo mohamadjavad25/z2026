@@ -76,7 +76,7 @@ describe("where an artist's clients are received (browser)", () => {
     const item = cp.locator("button.sduItem").first();
     await item.waitFor();
     await item.click();
-    await cp.locator(".sduPanel button", { hasText: "رزرو" }).last().click({ force: true });
+    await cp.locator(".sduConfirm").click({ force: true });
     await cp.locator(".bspDay").first().waitFor();
     expect(await cp.locator(".plWhere").innerText()).toContain(salon.user.name);
     expect(clientView.problems).toEqual([]);

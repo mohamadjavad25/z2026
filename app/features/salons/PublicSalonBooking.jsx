@@ -10,7 +10,7 @@ import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar"
 import { toPersianDigits } from "../../shared/lib/digits";
 
 const NOT_A_CLIENT = "با حساب سالن یا آرتیست نمی‌شه نوبت گرفت؛ با حساب مشتری وارد شو.";
-const CANCELLED = "حساب نساختی، برای همین درخواست نرفت. هر وقت خواستی دوباره «بفرست» رو بزن.";
+const CANCELLED = "حساب نساختی، برای همین درخواست نرفت. هر وقت خواستی دوباره «درخواست نوبت» رو بزن.";
 
 /**
  * Booking from a salon's public page without signing in first (owner's decision of 2026-11-02, for visitors from an
@@ -53,7 +53,7 @@ export function usePublicSalonBooking(salon, gate) {
   const onSubmit = (body) => {
     const viewer = gate.viewer;
     // Still checking whether they are signed in (a slow network): never ask a signed-in client to sign up again.
-    if (viewer === undefined) return Promise.resolve({ ok: false, status: 400, payload: { error: "یه لحظه صبر کن و دوباره «بفرست» رو بزن." } });
+    if (viewer === undefined) return Promise.resolve({ ok: false, status: 400, payload: { error: "یه لحظه صبر کن و دوباره «درخواست نوبت» رو بزن." } });
     if (viewer && viewer.type !== "client") return Promise.resolve({ ok: false, status: 403, payload: { error: NOT_A_CLIENT } });
     if (viewer) return send(body);
     return new Promise((resolve) => {

@@ -12,7 +12,7 @@ import { renameCustomer } from "../../shared/api/customers";
 import { clockText, missingText } from "./visitBookerModel";
 
 const ROLE_COPY = {
-  client: { submit: "بفرست", busy: "دارم می‌فرستم…" },
+  client: { submit: "درخواست نوبت", busy: "دارم می‌فرستم…" },
   salon: { submit: "ثبت کن", busy: "دارم ثبت می‌کنم…" },
   artist: { submit: "ثبت کن", busy: "دارم ثبت می‌کنم…" }
 };
@@ -191,7 +191,7 @@ function VisitBookerForm({ role, title, subtitle, services, days, initial, custo
   let label = copy.submit;
   if (state.submitting) label = copy.busy;
   else if (checking) label = "دارم چک می‌کنم…";
-  else if (readiness.ok && day) label = `${copy.submit} برای ${day.label}، ${clockText(state.time)}`;
+  else if (role !== "client" && readiness.ok && day) label = `${copy.submit} برای ${day.label}، ${clockText(state.time)}`;
 
   // A salon or artist with no services cannot book anything yet: say so, and take them to add one.
   if (role !== "client" && !frozenServices.length) {

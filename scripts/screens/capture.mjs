@@ -189,7 +189,7 @@ async function withSecondSalon(ctx) {
 const openBooker = async (p) => {
   await p.locator("button.sduItem").first().click({ timeout: 6000 });
   await p.waitForTimeout(400);
-  await p.locator(".sduPanel button", { hasText: "رزرو" }).last().click({ timeout: 4000, force: true });
+  await p.locator(".sduConfirm").click({ timeout: 4000, force: true });
   await p.waitForTimeout(1500);
 };
 const scrollTo = (selector) => async (p) => { await p.locator(selector).first().scrollIntoViewIfNeeded({ timeout: 8000 }); await p.waitForTimeout(500); };
@@ -354,7 +354,7 @@ const SCREENS = [
   { id: "client-connect", role: "client", title: "وصل شدن به سالن یا آرتیست تازه (اسکن یا شماره)", steps: [tab(2), tap(/افزودن/)] },
   { id: "client-find-tab", role: "client", title: "تب رزرو، پیدا کردن", steps: [tab(2), async (p) => { await p.getByRole("tab", { name: "پیدا کردن" }).click(); await p.waitForTimeout(900); }] },
   { id: "client-salon-sheet", role: "client", title: "برگهٔ خدمات سالن با یک خدمت انتخاب‌شده", steps: [tab(2), async (p) => { await p.locator("button", { hasText: "رنگ مو" }).filter({ hasText: "رزرو" }).first().click(); await p.waitForTimeout(1200); }] },
-  { id: "client-booker", role: "client", title: "انتخاب روز و ساعت", steps: [tab(2), async (p) => { await p.locator("button", { hasText: "رنگ مو" }).filter({ hasText: "رزرو" }).first().click(); await p.waitForTimeout(1200); await p.locator("button", { hasText: "رزرو «رنگ مو»" }).click(); await p.waitForTimeout(1500); }] },
+  { id: "client-booker", role: "client", title: "انتخاب روز و ساعت", steps: [tab(2), async (p) => { await p.locator("button", { hasText: "رنگ مو" }).filter({ hasText: "رزرو" }).first().click(); await p.waitForTimeout(1200); await p.locator(".sduConfirm").click(); await p.waitForTimeout(1500); }] },
   { id: "client-multi-service", role: "client", title: "چند خدمت در یک نوبت", steps: [tab(2), text("چند کار با هم، توی یه نوبت")] },
   { id: "client-settings", role: "client", title: "تنظیمات مشتری", steps: [tab(0)] },
   { id: "client-settings-full", role: "client", title: "تنظیمات مشتری، کامل", steps: [tab(0)], full: true },
@@ -492,7 +492,7 @@ async function main() {
     const file = path.join(dir, `${screen.id}.jpg`);
     await page.screenshot({ path: file, type: "jpeg", quality: 72, fullPage: Boolean(screen.full) });
     const visible = (await page.locator("body").innerText()).split("\n").map((line) => line.trim()).filter(Boolean);
-    index.screens[screen.id] = { role: screen.role, title: screen.title, file: path.relative(OUT, file), takenAt: new Date().toISOString().slice(0, 10), text: [...new Set(visible)], problems: errors };
+    index.screens[screen.id] = { role: screen.role, title: screen.title, file: path.relative(OUT, file).split(path.sep).join("/"), takenAt: new Date().toISOString().slice(0, 10), text: [...new Set(visible)], problems: errors };
     console.log(`${screen.id}${errors.length ? `  (${errors.length} problem${errors.length > 1 ? "s" : ""}: ${errors[0].slice(0, 90)})` : ""}`);
     } catch (error) { console.log(`${screen.id}  (crashed: ${error.message.slice(0, 80)})`); }
     await context.close();

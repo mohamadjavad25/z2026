@@ -293,8 +293,8 @@ describe("client starts from what they want (browser)", () => {
     await bar.waitFor();
     expect(await page.locator(".sopRow").count()).toBe(0);
     const barText = await bar.innerText();
-    expect(barText).toContain("رزرو");
-    expect(barText).toContain("خدمت، قیمت از");
+    expect(barText).toContain("نوبت بگیر");
+    expect(barText).not.toContain("قیمت از");
     await bar.click();
     const item = page.locator(".sduItem", { hasText: "کوتاهی مو" });
     expect(await item.innerText()).toContain("دقیقه");

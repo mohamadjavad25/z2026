@@ -706,7 +706,7 @@ describe("VisitBooker for a client (browser)", () => {
     expect(rows[0]).toContain("آرتیست ناخن");
     expect(rows[1]).toContain("آرتیست مو");
     expect(await cp.locator("button.vbWho2").count()).toBe(0);
-    expect(await cp.locator(".vbSubmit").innerText()).toContain("بفرست");
+    expect(await cp.locator(".vbSubmit").innerText()).toContain("درخواست نوبت");
     await cp.locator(".vbSubmit").click();
     await cp.locator(".brScreen").waitFor();
     expect(view.problems).toEqual([]);

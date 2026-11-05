@@ -100,7 +100,7 @@ describe("«برای چند نفر؟» (browser)", () => {
     await page.locator(".vbTime").first().click();
     await page.locator(".vbPlanRow").nth(1).waitFor();
     expect(await page.locator(".vbPlanRow").allInnerTexts()).toEqual([expect.stringContaining("نفر ۱"), expect.stringContaining("نفر ۲")]);
-    await page.getByRole("button", { name: /^بفرست/ }).waitFor();
+    await page.getByRole("button", { name: /^درخواست نوبت/ }).waitFor();
     await page.locator(".vbSubmit").click();
     const receipt = page.locator(".brScreen");
     await receipt.waitFor();
@@ -199,7 +199,7 @@ describe("the hour is taken while sending (browser)", () => {
     const shown = LATIN(await hour.innerText());
     await hour.click();
     await page.locator(".vbTicket .vbPlanRow").first().waitFor();
-    await page.getByRole("button", { name: /^بفرست/ }).waitFor();
+    await page.getByRole("button", { name: /^درخواست نوبت/ }).waitFor();
     return shown;
   }
   const takeHour = async (team, offset, time, minutes = 30) => {
@@ -222,7 +222,7 @@ describe("the hour is taken while sending (browser)", () => {
     const other = LATIN(await page.locator(".vbTime").first().innerText());
     expect(other).not.toBe(shown);
     await page.locator(".vbTime").first().click();
-    await page.getByRole("button", { name: /^بفرست/ }).waitFor();
+    await page.getByRole("button", { name: /^درخواست نوبت/ }).waitFor();
     await page.locator(".vbSubmit").click();
     await page.locator(".brScreen").waitFor();
     const mine = (await salonBookings(team)).filter((item) => item.client === "مشتری گروه");
@@ -247,7 +247,8 @@ describe("the hour is taken while sending (browser)", () => {
     await card.waitFor();
     expect(await card.innerText()).toContain("فقط ساعت ۱۶:۳۰ مونده.");
     await card.getByRole("button", { name: "همین ۱۶:۳۰ رو می‌خوام" }).click();
-    await page.getByRole("button", { name: /^بفرست .*۱۶:۳۰/ }).waitFor();
+    await page.locator(".vbTicket", { hasText: "۱۶:۳۰" }).waitFor();
+    await page.getByRole("button", { name: /^درخواست نوبت/ }).waitFor();
     await page.locator(".vbSubmit").click();
     await page.locator(".brScreen").waitFor();
     const mine = (await salonBookings(team)).filter((item) => item.client === "مشتری گروه");
