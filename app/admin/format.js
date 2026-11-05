@@ -33,6 +33,7 @@ export const ACTION_LABEL = {
   set_password: "تعیین رمز جدید برای کاربر",
   booking_cancel: "لغو رزرو توسط مدیر",
   broadcast: "پیام همگانی",
+  survey_review: "بررسی جواب نظرسنجی",
   settings_update: "تغییر تنظیمات",
   export: "خروجی اکسل",
   cleanup: "پاک‌سازی سامانه",

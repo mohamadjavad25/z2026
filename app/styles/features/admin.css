@@ -7,7 +7,7 @@
 .admRoot {
   --a-bg: #0b0c11; --a-bg2: #101118; --a-card: #14151d; --a-card2: #1b1c26; --a-raise: #23242f;
   --a-line: rgba(255, 255, 255, 0.07); --a-line2: rgba(255, 255, 255, 0.13);
-  --a-ink: #f1f0f6; --a-muted: #a7a7ba; --a-faint: #707186;
+  --a-ink: #f1f0f6; --a-muted: #a7a7ba; --a-faint: #8e8fa6;
   --a-accent: #ff86b8; --a-accent-ink: #0c0d12; --a-accent-soft: rgba(255, 134, 184, 0.14);
   --a-violet: #a48bff; --a-violet-soft: rgba(139, 108, 255, 0.16);
   --a-blend: linear-gradient(120deg, #ff86b8 0%, #b58cff 52%, #7c5cff 100%);
@@ -23,7 +23,7 @@
 .admRoot[data-theme="light"] {
   --a-bg: #f3f2f8; --a-bg2: #ebeaf3; --a-card: #ffffff; --a-card2: #f6f5fa; --a-raise: #ffffff;
   --a-line: rgba(12, 13, 18, 0.08); --a-line2: rgba(12, 13, 18, 0.15);
-  --a-ink: #0c0d12; --a-muted: #5c5f6e; --a-faint: #8c8f9e;
+  --a-ink: #0c0d12; --a-muted: #5c5f6e; --a-faint: #6b6e7e;
   --a-accent: #c42a74; --a-accent-ink: #ffffff; --a-accent-soft: rgba(196, 42, 116, 0.1);
   --a-violet: #5b3fd6; --a-violet-soft: rgba(91, 63, 214, 0.1);
   --a-blend: linear-gradient(120deg, #e8267f 0%, #9a4fe0 55%, #5b3fd6 100%);

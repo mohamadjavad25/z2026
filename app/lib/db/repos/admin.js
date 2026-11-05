@@ -95,7 +95,7 @@ export const ACTION_GROUPS = {
   content: ["post_hide", "post_show", "post_delete", "bulk_posts"],
   bookings: ["booking_cancel"],
   billing: ["billing_settings", "billing_test_accounts", "billing_grant", "billing_reverify", "billing_refund"],
-  support: ["support_update", "broadcast"],
+  support: ["support_update", "broadcast", "survey_review"],
   system: ["settings_update", "export", "cleanup", "clear_errors"],
   security: ["login", "login_failed", "login_blocked", "enroll", "enroll_failed", "stepup", "stepup_failed", "revoke_sessions", "reset_authenticator"]
 };

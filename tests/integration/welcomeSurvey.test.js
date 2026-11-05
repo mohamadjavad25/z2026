@@ -105,4 +105,38 @@ describe("welcome survey", () => {
     expect(res.payload.data.answers.find((row) => row.user_id === user.id)).toMatchObject({ name: "گزارشی", feel: 3, parts: ["hours"], idea: "ساعت‌ها گیجم کرد" });
     expect((await createClient().get("/api/admin/welcome-survey")).status).toBe(403);
   });
+
+  it("reports how far it went, by role and period, with the people still waiting", async () => {
+    const { api: a1, user: u1 } = await startedArtist("گزارش-الف");
+    const { api: a2, user: u2 } = await startedArtist("گزارش-ب");
+    const { user: u3 } = await startedArtist("گزارش-ج");
+    await a1.post("/api/welcome-survey", { action: "answer", feel: 0, parts: ["photos"], idea: "سخت بود" });
+    await a2.post("/api/welcome-survey", { action: "later" });
+    await q("INSERT INTO welcome_surveys (user_id, pushed_at) VALUES ($1, NOW())", [u3.id]);
+    const admin = await adminClient();
+    const { data } = (await admin.get("/api/admin/welcome-survey?role=artist&days=7")).payload;
+    const mine = (list) => list.filter((row) => [u1.id, u2.id, u3.id].includes(row.user_id));
+    expect(mine(data.answers)).toHaveLength(1);
+    expect(mine(data.waiting).map((row) => row.status).sort()).toEqual(["pushed", "put_off"]);
+    expect(data.totals.reached).toBeGreaterThanOrEqual(3);
+    expect(data.enough).toBe(false);
+    expect(data.answers.find((row) => row.user_id === u1.id).attention).toBe(true);
+    const clients = (await admin.get("/api/admin/welcome-survey?role=client")).payload.data;
+    expect(mine(clients.answers)).toHaveLength(0);
+  });
+
+  it("lets the admin mark an answer seen with a note, and only an answer", async () => {
+    const { api, user } = await startedArtist("دیده‌شو");
+    const { user: silent } = await startedArtist("ساکت");
+    await api.post("/api/welcome-survey", { action: "answer", feel: 1, parts: [], idea: "" });
+    const admin = await adminClient();
+    expect((await admin.post("/api/admin/welcome-survey", { userId: user.id, seen: true, note: " پیگیری شد " })).ok).toBe(true);
+    const row = (await admin.get("/api/admin/welcome-survey")).payload.data.answers.find((item) => item.user_id === user.id);
+    expect(row).toMatchObject({ note: "پیگیری شد", attention: false });
+    expect(row.seen_at).toBeTruthy();
+    expect((await admin.post("/api/admin/welcome-survey", { userId: user.id, seen: false })).ok).toBe(true);
+    expect((await admin.post("/api/admin/welcome-survey", { userId: silent.id, seen: true })).status).toBe(404);
+    expect((await admin.post("/api/admin/welcome-survey", { userId: user.id })).status).toBe(400);
+    expect((await createClient().post("/api/admin/welcome-survey", { userId: user.id, seen: true })).status).toBe(403);
+  });
 });

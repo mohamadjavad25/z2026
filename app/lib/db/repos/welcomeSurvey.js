@@ -103,18 +103,82 @@ export async function claimPush(userId) {
   return Boolean(result?.rowCount);
 }
 
-/** The admin's page: the counts, then the newest answers with who gave them. */
-export async function surveyReport({ limit = 100 } = {}) {
+const ROLES = ["artist", "salon", "client"];
+const REPORT_DAYS = [7, 30];
+const MIN_ENOUGH = 10;
+const MAX_NOTE = 300;
+const MAX_ROWS = 5000;
+
+/**
+ * The admin's page. `role` ("artist", "salon", "client" or "") and `days` (7, 30 or 0 for all) narrow it; a row counts
+ * in the period it was answered in, or, if never answered, in the one it first reached the person.
+ * "reached" is everyone who has a row: pushed, put off or answered.
+ */
+export async function surveyReport({ role = "", days = 0, limit = 100 } = {}) {
   const db = await getDb();
-  const [totals, feels, parts, answers] = await Promise.all([
-    get(db, `SELECT COUNT(*) FILTER (WHERE answered_at IS NOT NULL)::int AS answered,
-                    COUNT(*) FILTER (WHERE answered_at IS NULL AND later_count > 0)::int AS put_off,
-                    COUNT(*) FILTER (WHERE pushed_at IS NOT NULL)::int AS pushed FROM welcome_surveys`),
-    all(db, "SELECT feel, COUNT(*)::int AS count FROM welcome_surveys WHERE answered_at IS NOT NULL GROUP BY feel"),
-    all(db, "SELECT part, COUNT(*)::int AS count FROM welcome_surveys, UNNEST(parts) AS part WHERE answered_at IS NOT NULL GROUP BY part ORDER BY count DESC"),
-    all(db, `SELECT s.user_id, u.name, u.type, s.feel, s.parts, s.idea, s.answered_at
-             FROM welcome_surveys s JOIN users u ON u.id = s.user_id
-             WHERE s.answered_at IS NOT NULL ORDER BY s.answered_at DESC LIMIT $1`, [limit])
-  ]);
-  return { totals, feels, parts, answers };
+  const wantRole = ROLES.includes(role) ? role : "";
+  const wantDays = REPORT_DAYS.includes(Number(days)) ? Number(days) : 0;
+  const rows = await all(db, `
+    SELECT s.user_id, u.name, u.type, s.feel, s.parts, s.idea, s.answered_at, s.later_count, s.pushed_at, s.next_at,
+           s.seen_at, s.admin_note, s.created_at
+    FROM welcome_surveys s JOIN users u ON u.id = s.user_id
+    WHERE ($1 = '' OR u.type = $1)
+      AND ($2 = 0 OR COALESCE(s.answered_at, s.created_at) >= NOW() - ($2 || ' days')::interval)
+    ORDER BY COALESCE(s.answered_at, s.created_at) DESC LIMIT ${MAX_ROWS}
+  `, [wantRole, wantDays]);
+
+  const answered = rows.filter((row) => row.answered_at);
+  const waiting = rows.filter((row) => !row.answered_at);
+  const feels = [];
+  for (const row of answered) {
+    if (row.feel === null || row.feel === undefined) continue;
+    const found = feels.find((item) => item.feel === row.feel);
+    if (found) found.count += 1;
+    else feels.push({ feel: row.feel, count: 1 });
+  }
+  const rated = answered.filter((row) => row.feel !== null && row.feel !== undefined);
+  const partCount = new Map();
+  for (const row of answered) for (const part of row.parts || []) partCount.set(part, (partCount.get(part) || 0) + 1);
+
+  // A hard answer nobody has marked yet comes first, then the newest.
+  const hard = (row) => row.feel !== null && row.feel !== undefined && row.feel <= 1;
+  const rank = (row) => (hard(row) && !row.seen_at ? 0 : row.seen_at ? 2 : 1);
+  const sorted = [...answered].sort((a, b) => rank(a) - rank(b) || new Date(b.answered_at) - new Date(a.answered_at));
+
+  return {
+    filter: { role: wantRole, days: wantDays },
+    totals: {
+      reached: rows.length,
+      answered: answered.length,
+      put_off: waiting.filter((row) => row.later_count > 0).length,
+      pushed: rows.filter((row) => row.pushed_at).length,
+      unseen: answered.filter((row) => !row.seen_at).length,
+      rate: rows.length ? Math.round((answered.length / rows.length) * 100) : null
+    },
+    average: rated.length ? Math.round((rated.reduce((sum, row) => sum + row.feel + 1, 0) / rated.length) * 10) / 10 : null,
+    enough: answered.length >= MIN_ENOUGH,
+    needed: Math.max(0, MIN_ENOUGH - answered.length),
+    feels,
+    parts: [...partCount].map(([part, count]) => ({ part, count })).sort((a, b) => b.count - a.count),
+    waiting: waiting.slice(0, 50).map((row) => ({
+      user_id: row.user_id, name: row.name, type: row.type,
+      status: row.later_count > 0 ? "put_off" : "pushed",
+      at: row.later_count > 0 ? row.next_at : row.pushed_at || row.created_at,
+      later_count: row.later_count
+    })),
+    answers: sorted.slice(0, limit).map((row) => ({
+      user_id: row.user_id, name: row.name, type: row.type, feel: row.feel, parts: row.parts || [], idea: row.idea,
+      answered_at: row.answered_at, seen_at: row.seen_at, note: row.admin_note, attention: hard(row) && !row.seen_at
+    }))
+  };
+}
+
+/** The admin marks an answer seen (or not) and keeps a short note. False when that person never answered. */
+export async function reviewAnswer(userId, { seen, note }) {
+  const db = await getDb();
+  const result = await run(db, `
+    UPDATE welcome_surveys SET seen_at = CASE WHEN $2::boolean THEN COALESCE(seen_at, NOW()) ELSE NULL END, admin_note = $3
+    WHERE user_id = $1 AND answered_at IS NOT NULL
+  `, [Number(userId), Boolean(seen), String(note || "").trim().slice(0, MAX_NOTE)]);
+  return Boolean(result?.rowCount);
 }
