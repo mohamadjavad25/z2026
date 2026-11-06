@@ -29,7 +29,7 @@ import { publicLocation } from "../../location.js";
 import { listArtistHoursPublic } from "./artists/hours.js";
 import { workplaceSchedule } from "./artistPlace.js";
 import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
-import { withServicePhotos } from "./servicePhotos.js";
+import { withServicePhotos, applyServicePhotoChoice } from "./servicePhotos.js";
 import { MAX_SERVICES_PER_PROVIDER } from "../../validation/service.js";
 import { proposalView } from "../../../shared/lib/providerRules.js";
 
@@ -38,13 +38,21 @@ export { ensureArtistHours, listArtistHours, updateArtistHour, saveArtistHoursWe
 export async function listArtistServices(userId, runner = null) {
   const db = runner || (await getDb());
   const rows = await all(db, `
-    SELECT id, name, price, duration, hint, badge, tone, emoji
+    SELECT id, name, price, duration, hint, badge, tone, emoji, photo_as_cover
     FROM artist_services WHERE user_id = $1 ORDER BY id ASC
   `, [userId]);
   return withServicePhotos("artist", rows, db);
 }
 
 export async function addArtistService(userId, data) {
+  const created = await insertArtistService(userId, data);
+  if (!created?.id) return created;
+  // The photo choice of the form (photoPostIds, photoAsCover), when it sent one.
+  await applyServicePhotoChoice("artist", userId, created.id, data);
+  return (await withServicePhotos("artist", [await get(await getDb(), "SELECT * FROM artist_services WHERE id = $1", [created.id])]))[0];
+}
+
+async function insertArtistService(userId, data) {
   // Counted and inserted under one lock per artist, so parallel requests can't slip past the cap.
   return withTransaction(null, async (db) => {
     await run(db, "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`artist-services:${Number(userId)}`]);
@@ -87,6 +95,7 @@ export async function updateArtistService(id, userId, data) {
     id,
     userId
   ]);
+  await applyServicePhotoChoice("artist", userId, id, data);
   const updated = await get(db, "SELECT * FROM artist_services WHERE id = $1", [id]);
   return (await withServicePhotos("artist", [updated], db))[0];
 }

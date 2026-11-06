@@ -78,4 +78,62 @@ describe("service photos", () => {
     expect((await salonClient.delete("/api/salon-services", { id: service.id })).ok).toBe(true);
     expect((await salonClient.get("/api/posts")).payload.data.posts.some((item) => item.id === keep)).toBe(true);
   });
+
+  it("the form can send photos with the service, and the icon can stay (photoAsCover false)", async () => {
+    const artistClient = createClient();
+    const artist = await registerUser(artistClient, { type: "artist", name: "Mode Artist" });
+    const a = await post(artistClient, "یک");
+    const created = await artistClient.post("/api/artist/me", { name: "لاک", price: "1", duration: "60 دقیقه", photoPostIds: [a], photoAsCover: false });
+    expect(created.status).toBe(201);
+    expect(created.payload.data.service.photos).toHaveLength(1);
+    expect(created.payload.data.service.photoAsCover).toBe(false);
+
+    const guest = (await createClient().get(`/api/artists/${artist.user.id}`)).payload.data.artist;
+    expect(guest.services[0].photoAsCover).toBe(false);
+    expect(guest.services[0].photos).toHaveLength(1);
+
+    // Only the mode changes: the photos stay.
+    const edited = await artistClient.patch("/api/artist/me", { id: created.payload.data.service.id, photoAsCover: true });
+    expect(edited.payload.data.service.photoAsCover).toBe(true);
+    expect(edited.payload.data.service.photos).toHaveLength(1);
+    // A service without photos defaults to «photo replaces icon».
+    const plain = await artistClient.post("/api/artist/me", { name: "ساده", price: "1", duration: "30 دقیقه" });
+    expect(plain.payload.data.service.photos).toEqual([]);
+    expect(plain.payload.data.service.photoAsCover).toBe(true);
+  });
+
+  it("a post links to its services when saved; off, full or foreign services are not linked", async () => {
+    const owner = createClient();
+    await registerUser(owner, { type: "artist", name: "Post Link Artist" });
+    const other = createClient();
+    await registerUser(other, { type: "artist", name: "Other Link Artist" });
+    const s1 = (await owner.post("/api/artist/me", { name: "یک", price: "1", duration: "30 دقیقه" })).payload.data.service;
+    const s2 = (await owner.post("/api/artist/me", { name: "دو", price: "1", duration: "30 دقیقه" })).payload.data.service;
+    const foreign = (await other.post("/api/artist/me", { name: "بیگانه", price: "1", duration: "30 دقیقه" })).payload.data.service;
+
+    const first = await owner.post("/api/posts", { title: "کار", tag: "یک", image: PNG, serviceIds: [s1.id, s2.id, foreign.id] });
+    expect(first.status).toBe(201);
+    const postId = first.payload.data.post.id;
+    const links = (await owner.get("/api/service-photos")).payload.data;
+    expect(links.postServices[postId].sort()).toEqual([s1.id, s2.id].sort());
+    expect(links.services.find((item) => item.id === s1.id).photoCount).toBe(1);
+
+    // Editing with an empty list takes the link off; leaving it out changes nothing.
+    expect((await owner.patch(`/api/posts/${postId}`, { title: "کار نو" })).ok).toBe(true);
+    expect((await owner.get("/api/service-photos")).payload.data.postServices[postId]).toHaveLength(2);
+    expect((await owner.patch(`/api/posts/${postId}`, { serviceIds: [] })).ok).toBe(true);
+    expect((await owner.get("/api/service-photos")).payload.data.postServices[postId]).toBeUndefined();
+
+    // A service with three photos does not take a fourth.
+    for (const title of ["الف", "ب", "ج"]) expect((await owner.post("/api/posts", { title, tag: "یک", image: PNG, serviceIds: [s1.id] })).status).toBe(201);
+    const fourth = (await owner.post("/api/posts", { title: "د", tag: "یک", image: PNG, serviceIds: [s1.id, s2.id] })).payload.data.post.id;
+    const after = (await owner.get("/api/service-photos")).payload.data;
+    expect(after.postServices[fourth]).toEqual([s2.id]);
+    expect(after.services.find((item) => item.id === s1.id).photoCount).toBe(3);
+
+    // Clients cannot read the owner's link list.
+    const clientUser = createClient();
+    await registerUser(clientUser, { type: "client", name: "Link Client" });
+    expect((await clientUser.get("/api/service-photos")).status).toBe(403);
+  });
 });

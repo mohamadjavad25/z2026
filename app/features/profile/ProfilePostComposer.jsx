@@ -8,6 +8,8 @@ import { createPortal } from "react-dom";
 import { ImageCropper } from "../../components/ImageCropper";
 import { SheetClose } from "../../components/SheetClose";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { apiFetch } from "../../shared/api/client";
+import { SERVICE_PHOTO_LIMIT } from "./ServicePhotosSheet";
 
 // A photo this small and no bigger than MAX_SOURCE_SIDE goes to the crop step untouched.
 const SMALL_ENOUGH_BYTES = 4 * 1024 * 1024;
@@ -188,6 +190,28 @@ export function ProfilePostComposer({
       : prev));
   }, [needsAutoPick, onlyChoice, onChange]);
 
+  // The owner's services (id, how many sample photos each has) and which services this post is linked to. A post is the
+  // sample photo of the services picked here (up to 3 photos per service); without it only the category (tag) is saved.
+  const [links, setLinks] = useState(null);
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    let alive = true;
+    apiFetch("/api/service-photos").then(({ ok, payload }) => { if (alive) setLinks(ok ? payload?.data || null : null); }).catch(() => {});
+    return () => { alive = false; };
+  }, [isOpen]);
+  const linkServices = links?.services || [];
+  const needsLinkInit = isOpen && Boolean(value) && linkServices.length > 0 && value.serviceIds === undefined;
+  useEffect(() => {
+    if (!needsLinkInit) return;
+    onChange?.((prev) => {
+      if (!prev || prev.serviceIds !== undefined) return prev;
+      const known = links.postServices?.[prev.id] || [];
+      const byTag = linkServices.find((item) => item.name === String(prev.tag || "").trim());
+      const ids = known.length ? known : byTag ? [byTag.id] : linkServices.length === 1 ? [linkServices[0].id] : [];
+      return { ...prev, serviceIds: ids, noLink: false };
+    });
+  }, [needsLinkInit, links, linkServices, onChange]);
+
   if (!value || typeof document === "undefined") return null;
 
   // Categories are exactly the services on the menu; no free typing.
@@ -197,7 +221,7 @@ export function ProfilePostComposer({
     !String(value.title || "").trim() ? "عنوان" : "",
     // A category can only be asked for when the menu has services to pick from; with an empty
     // menu the post goes out without one instead of leaving the button stuck.
-    tagChoices.length && !String(value.tag || "").trim() ? "دسته" : ""
+    (tagChoices.length || linkServices.length) && !String(value.tag || "").trim() ? "دسته" : ""
   ].filter(Boolean);
   const canSubmit = missing.length === 0;
   const isPrivate = value.isPublic === false;
@@ -316,7 +340,54 @@ export function ProfilePostComposer({
         <form className="artistWorkForm" onSubmit={onSubmit}>
           <div className="artistWorkField artistWorkCategoryField">
             <span>این کار مال کدوم خدمته؟</span>
-            {tagChoices.length ? (
+            {linkServices.length ? (
+              <>
+                <div className="pcTags" role="group" aria-label="انتخاب خدمت">
+                  {linkServices.map((service) => {
+                    const chosen = Array.isArray(value.serviceIds) && value.serviceIds.includes(service.id);
+                    const mine = (links.postServices?.[value.id] || []).includes(service.id);
+                    const full = service.photoCount >= SERVICE_PHOTO_LIMIT && !mine;
+                    return (
+                      <button
+                        type="button"
+                        key={service.id}
+                        aria-pressed={chosen}
+                        className={chosen ? "is-on" : ""}
+                        disabled={saving}
+                        onClick={() => {
+                          const current = Array.isArray(value.serviceIds) ? value.serviceIds : [];
+                          const next = chosen ? current.filter((id) => id !== service.id) : [...current, service.id];
+                          const tag = linkServices.find((item) => item.id === next[0])?.name || "";
+                          const title = String(value.title || "").trim();
+                          // The title follows the first service while it is blank or still just a service name.
+                          patch(!title || linkServices.some((item) => item.name === title) ? { serviceIds: next, tag, title: tag } : { serviceIds: next, tag });
+                        }}
+                      >
+                        {service.name}
+                        {service.photoCount ? <small>{toPersianDigits(service.photoCount)}/{toPersianDigits(SERVICE_PHOTO_LIMIT)}</small> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+                {Array.isArray(value.serviceIds) && value.serviceIds.length ? (
+                  <label className="pcLink">
+                    <input type="checkbox" checked={!value.noLink} disabled={saving} onChange={(event) => patch({ noLink: !event.target.checked })} />
+                    <span>
+                      <b>عکسش روی خدمت هم نشون داده بشه</b>
+                      <small>{value.noLink ? "فقط تو نمونه‌کارها می‌مونه و به خدمت وصل نمی‌شه." : "مشتری موقع انتخاب خدمت این عکس رو می‌بینه. هر خدمت تا ۳ عکس داره."}</small>
+                    </span>
+                  </label>
+                ) : null}
+                {(() => {
+                  if (value.noLink || !Array.isArray(value.serviceIds)) return null;
+                  const fullOnes = linkServices.filter((service) => value.serviceIds.includes(service.id)
+                    && service.photoCount >= SERVICE_PHOTO_LIMIT && !(links.postServices?.[value.id] || []).includes(service.id));
+                  return fullOnes.length ? (
+                    <small className="pcHint" role="status">«{fullOnes.map((service) => service.name).join("، ")}» الان {toPersianDigits(SERVICE_PHOTO_LIMIT)} عکس داره؛ این عکس بهش وصل نمی‌شه، مگه از «خدمات» یکی رو برداری.</small>
+                  ) : null;
+                })()}
+              </>
+            ) : tagChoices.length ? (
               <div className="pcTags" role="radiogroup" aria-label="انتخاب خدمت">
                 {tagChoices.map((tag) => (
                   <button
@@ -326,8 +397,6 @@ export function ProfilePostComposer({
                     aria-checked={value.tag === tag}
                     className={value.tag === tag ? "is-on" : ""}
                     disabled={saving}
-                    // The title follows the service while it is blank or still just a service
-                    // name; a title the user typed stays as it is.
                     onClick={() => {
                       const title = String(value.title || "").trim();
                       patch(!title || tagChoices.includes(title) ? { tag, title: tag } : { tag });

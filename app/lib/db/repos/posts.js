@@ -2,6 +2,7 @@ import { getDb, all, get, run, withTransaction } from "../connection.js";
 import { uploadImageDataUrl, deleteStoredImage } from "../../storage.js";
 import { ensureMediaColumns } from "../mediaSchema.js";
 import { resendTeamPostAfterNewImage } from "./salons/teamPosts.js";
+import { setPostServices } from "./servicePhotos.js";
 
 // Both image/ownerAvatar are stored as raw data:<type>;base64,<data> strings
 // in the DB but shipped here as media-endpoint URLs, never inline -- this
@@ -180,6 +181,8 @@ export async function createPost(ownerUserId, data, runner = null, options = {})
   ]);
   const postId = Number(info.rows[0].id);
   await syncOwnerPostCount(db, ownerUserId);
+  // The services this post is a sample photo of (service_photos); left out = no link.
+  if (Array.isArray(data.serviceIds)) await setPostServices(ownerUserId, postId, data.serviceIds);
   // Best-effort move to external storage (see app/lib/storage.js).
   if (image) {
     const stored = await get(db, "SELECT updated_at::text AS stamp FROM posts WHERE id = $1", [postId]);
@@ -234,6 +237,7 @@ export async function updatePost(id, ownerUserId, data, runner = null, options =
     imageChanged ? asThumb(data.thumb) : ""
   ]);
   await syncOwnerPostCount(db, ownerUserId);
+  if (Array.isArray(data.serviceIds)) await setPostServices(ownerUserId, id, data.serviceIds);
   if (imageChanged) {
     // A salon approved the old picture, not this one: it goes back to «درخواست‌های تیم» (owner's decision 2026-10-26).
     await resendTeamPostAfterNewImage(id, db);

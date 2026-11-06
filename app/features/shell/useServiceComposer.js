@@ -68,7 +68,9 @@ export function useServiceComposer({
       // booking made from it) carries a real, stable icon id.
       emoji: String(artistServiceDraft.emoji || guessBeautyEmojiId(name) || ""),
       badge: String(artistServiceDraft.badge || ""),
-      tone: "soft"
+      tone: "soft",
+      // The sample photos picked in the form (only when the owner touched them): linked posts and whether they replace the icon.
+      ...(artistServiceDraft.photoDirty ? { photoPostIds: artistServiceDraft.photoIds || [], photoAsCover: artistServiceDraft.photoAsCover !== false } : {})
     };
     try {
       const ok = isSalonService
@@ -139,7 +141,11 @@ export function useServiceComposer({
       duration: item.duration || "۶۰ دقیقه",
       hint: item.hint || "",
       emoji: item.emoji || "",
-      badge: item.badge || ""
+      badge: item.badge || "",
+      photoIds: (item.photos || []).map((photo) => photo.postId),
+      photoPreview: item.photos || [],
+      photoAsCover: item.photoAsCover !== false,
+      photoDirty: false
     });
     setArtistServiceCreateOpen(true);
   }, []);

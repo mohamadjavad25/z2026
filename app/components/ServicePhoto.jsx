@@ -16,13 +16,40 @@ export function ServiceCover({ photos, size = 56, count = true, className = "" }
   );
 }
 
+/** True when the service's photos replace its icon in lists (linked photos, and the owner did not pick «آیکن بمونه»). */
+export function showsPhotoAsCover(service) {
+  return Boolean(service?.photos?.length) && service.photoAsCover !== false;
+}
+
+/** Client side: the small «۳ عکس» button on a row whose icon stays; opens the photos. */
+export function ServicePhotoPill({ count, onClick, label }) {
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      className="svcPhotoPill"
+      aria-label={label}
+      onClick={(event) => { event.stopPropagation(); onClick?.(); }}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        event.stopPropagation();
+        onClick?.();
+      }}
+    >
+      <Camera size={11} />
+      {toPersianDigits(count)} عکس
+    </span>
+  );
+}
+
 /** Owner side: the chip on a service card that opens the photo picker. */
 export function ServicePhotoChip({ service, onClick }) {
   const count = Array.isArray(service?.photos) ? service.photos.length : 0;
   return (
     <button type="button" className={`svcChip svcPhotoChip${count ? " has-photos" : ""}`} onClick={onClick}>
       <Camera size={12} />
-      {count ? `${toPersianDigits(count)} عکس نمونه` : "عکس نمونه بذار"}
+      {count ? `${toPersianDigits(count)} عکس نمونه${service.photoAsCover === false ? "، کنار آیکن" : ""}` : "عکس نمونه بذار"}
     </button>
   );
 }

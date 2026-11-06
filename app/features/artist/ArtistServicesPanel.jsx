@@ -4,8 +4,8 @@ import { useState } from "react";
 import { CalendarCheck, Plus, Timer } from "lucide-react";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { ServiceCover, ServicePhotoChip } from "../../components/ServicePhoto";
-import { ServicePhotosSheet } from "../profile/ServicePhotosSheet";
+import { ServiceCover, ServicePhotoChip, showsPhotoAsCover } from "../../components/ServicePhoto";
+import { ServicePhotosEditor } from "../profile/ServicePhotosSheet";
 import { ServiceGroups } from "../../components/ServiceGroups";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
@@ -57,7 +57,7 @@ export function ArtistServicesPanel({
                 aria-label={`ویرایش ${service.name}`}
                 onClick={() => onEdit?.(service)}
               />
-              {service.photos?.length ? <ServiceCover photos={service.photos} size={76} /> : <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />}
+              {showsPhotoAsCover(service) ? <ServiceCover photos={service.photos} size={76} /> : <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />}
               <div className="svcCardBody">
                 <div className="svcCardTitle">
                   <strong>{service.name}</strong>
@@ -77,7 +77,7 @@ export function ArtistServicesPanel({
         )}
       </div>
       {photoService ? (
-        <ServicePhotosSheet
+        <ServicePhotosEditor
           service={services.find((item) => item.id === photoService.id) || photoService}
           onClose={() => setPhotoService(null)}
           onSaved={onPhotosChanged}

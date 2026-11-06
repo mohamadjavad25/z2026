@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarCheck, Check } from "lucide-react";
 import { ServiceIcon } from "./ServiceIcon";
 import { ServiceIconStrip } from "./ServiceIconStrip";
-import { ServiceCover } from "./ServicePhoto";
+import { ServiceCover, ServicePhotoPill, showsPhotoAsCover } from "./ServicePhoto";
 import { ServicePhotoViewer } from "./ServicePhotoViewer";
 import { EMOJI_CATEGORIES, getBeautyEmoji, guessBeautyEmojiId } from "../shared/constants/beautyEmoji";
 import { formatTomanNumber, parseTomanAmount } from "../shared/lib/money";
@@ -134,7 +134,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                           key={key}
                           className={`sduItem${on ? " is-selected" : ""}${browseOnly ? " is-static" : ""}`}
                         >
-                          {service.photos?.length ? (
+                          {showsPhotoAsCover(service) ? (
                             <span
                               role="button"
                               tabIndex={0}
@@ -156,6 +156,9 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                           <span className="sduItemBody">
                             <b>{service.name}</b>
                             <small>{service.duration || "مدتش فرق می‌کنه"}</small>
+                            {service.photos?.length && !showsPhotoAsCover(service) ? (
+                              <ServicePhotoPill count={service.photos.length} label={`عکس‌های ${service.name}`} onClick={() => setPhotoKey(key)} />
+                            ) : null}
                           </span>
                           {service.priceHidden ? null : (
                             <span className="sduItemPrice">

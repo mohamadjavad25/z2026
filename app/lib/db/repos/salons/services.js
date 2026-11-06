@@ -1,7 +1,7 @@
 import { getDb, withTransaction, all, get, run } from "../../connection.js";
 import { MAX_SERVICES_PER_PROVIDER } from "../../../validation/service.js";
 import { listSalonStaff } from "./staff.js";
-import { withServicePhotos } from "../servicePhotos.js";
+import { withServicePhotos, applyServicePhotoChoice } from "../servicePhotos.js";
 import { normalizeServiceEmoji } from "../serviceEmoji.js";
 import { resolveServiceStaff, splitServiceStaffChoice } from "../../../../shared/lib/serviceSkills.js";
 
@@ -62,6 +62,14 @@ async function getSalonServiceWithStaff(id, salonUserId, db) {
 }
 
 export async function addSalonService(salonUserId, data) {
+  const created = await insertSalonService(salonUserId, data);
+  if (!created?.id) return created;
+  // The photo choice of the form (photoPostIds, photoAsCover), when it sent one.
+  await applyServicePhotoChoice("salon", salonUserId, created.id, data);
+  return getSalonServiceWithStaff(created.id, salonUserId, await getDb());
+}
+
+async function insertSalonService(salonUserId, data) {
   await ensureExclusionsColumn();
   const staffId = data.staff_id == null || data.staff_id === "" ? null : Number(data.staff_id);
   // A new service starts with everyone whose skills match it; any ids sent are extra hand-picked ones.
@@ -136,6 +144,7 @@ export async function updateSalonService(id, salonUserId, data) {
     salonUserId,
     nextExcludedIds
   ]);
+  await applyServicePhotoChoice("salon", salonUserId, id, data);
   return getSalonServiceWithStaff(id, salonUserId, db);
 }
 

@@ -5,8 +5,8 @@ import { Check, Plus, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { ServiceCover, ServicePhotoChip } from "../../components/ServicePhoto";
-import { ServicePhotosSheet } from "../profile/ServicePhotosSheet";
+import { ServiceCover, ServicePhotoChip, showsPhotoAsCover } from "../../components/ServicePhoto";
+import { ServicePhotosEditor } from "../profile/ServicePhotosSheet";
 import { ServiceGroups } from "../../components/ServiceGroups";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 import { Mascot } from "../../components/Mascot";
@@ -81,7 +81,7 @@ export function SalonServicesWorkspace({
                   aria-label={`ویرایش ${service.name}`}
                   onClick={() => onEdit?.(service)}
                 />
-                {service.photos?.length ? <ServiceCover photos={service.photos} size={76} /> : <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />}
+                {showsPhotoAsCover(service) ? <ServiceCover photos={service.photos} size={76} /> : <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />}
                 <div className="svcCardBody">
                   <div className="svcCardTitle"><strong>{service.name}</strong></div>
                   {service.hint ? <p className="svcCardHint">{service.hint}</p> : null}
@@ -186,7 +186,7 @@ export function SalonServicesWorkspace({
         )}
       </div>
       {photoService ? (
-        <ServicePhotosSheet
+        <ServicePhotosEditor
           service={services.find((item) => item.id === photoService.id) || photoService}
           onClose={() => setPhotoService(null)}
           onSaved={onPhotosChanged}
