@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarCheck, Check } from "lucide-react";
 import { ServiceIcon } from "./ServiceIcon";
 import { ServiceIconStrip } from "./ServiceIconStrip";
+import { ServiceCover } from "./ServicePhoto";
+import { ServicePhotoViewer } from "./ServicePhotoViewer";
 import { EMOJI_CATEGORIES, getBeautyEmoji, guessBeautyEmojiId } from "../shared/constants/beautyEmoji";
 import { formatTomanNumber, parseTomanAmount } from "../shared/lib/money";
 import { toPersianDigits } from "../shared/lib/digits";
@@ -37,7 +39,7 @@ function groupServices(services) {
  * «بستن», the dim backdrop, Back or Escape. `title` is its accessible name. With `browseOnly` (online booking
  * paused) the services are only shown: nothing to pick, no «رزرو».
  */
-export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", browseOnly = false, note = "", onConfirm, onClose }) {
+export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", browseOnly = false, note = "", ownerLabel = "سالن", onConfirm, onClose }) {
   useBackHandler(open, onClose);
   const list = Array.isArray(services) ? services : [];
   // Services the client came for (a category tapped on «سالن و آرتیست من») are listed first, in a group of their own.
@@ -52,6 +54,8 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
   const [tab, setTab] = useState("all");
   // Kept while the menu is closed, so reopening it shows the same picks.
   const [pickedKeys, setPickedKeys] = useState([]);
+  // The service whose sample photos are open full size (null = none).
+  const [photoKey, setPhotoKey] = useState(null);
 
   // One matching service: it is already picked, so the client only confirms.
   useEffect(() => {
@@ -66,6 +70,8 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
+
+  useEffect(() => { if (!open) setPhotoKey(null); }, [open]);
 
   if (!open) return null;
 
@@ -128,7 +134,25 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                           key={key}
                           className={`sduItem${on ? " is-selected" : ""}${browseOnly ? " is-static" : ""}`}
                         >
-                          <ServiceIcon emoji={service.emoji} name={service.name} size="sm" />
+                          {service.photos?.length ? (
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              className="sduCoverBtn"
+                              aria-label={`عکس‌های ${service.name}`}
+                              onClick={(event) => { event.stopPropagation(); setPhotoKey(key); }}
+                              onKeyDown={(event) => {
+                                if (event.key !== "Enter" && event.key !== " ") return;
+                                event.preventDefault();
+                                event.stopPropagation();
+                                setPhotoKey(key);
+                              }}
+                            >
+                              <ServiceCover photos={service.photos} size={56} />
+                            </span>
+                          ) : (
+                            <ServiceIcon emoji={service.emoji} name={service.name} size="sm" />
+                          )}
                           <span className="sduItemBody">
                             <b>{service.name}</b>
                             <small>{service.duration || "مدتش فرق می‌کنه"}</small>
@@ -165,6 +189,14 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
           )}
         </div>
       </div>
+      <ServicePhotoViewer
+        service={photoKey ? list.find((service) => serviceKey(service) === photoKey) : null}
+        picked={photoKey ? pickedKeys.includes(photoKey) : false}
+        browseOnly={browseOnly}
+        owner={ownerLabel}
+        onPick={() => { if (photoKey) toggle(photoKey); }}
+        onClose={() => setPhotoKey(null)}
+      />
     </>
   );
 }

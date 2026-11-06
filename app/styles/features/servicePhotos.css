@@ -1,0 +1,49 @@
+/* Sample photos on services (2026-11-06): a small cover in the lists, the picker for the owner, the big viewer for the client.
+   Violet for the owner's own tools, pink for what a client does toward a booking (docs/DESIGN_SYSTEM.md). */
+
+/* cover: replaces the service icon in a row when the service has photos */
+.svcCover { position: relative; flex: none; width: var(--cover, 56px); height: var(--cover, 56px); border-radius: 16px; overflow: hidden; background: var(--n-100); box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.06); }
+.svcCover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.svcCover i { position: absolute; inset-inline-start: 4px; bottom: 4px; padding: 0 6px; border-radius: 999px; background: rgb(var(--ink-rgb) / 0.62); color: var(--n-0); font-style: normal; font-size: 0.6rem; font-weight: 800; line-height: 1.6; }
+.sduCoverBtn { flex: none; display: grid; border-radius: 16px; cursor: zoom-in; -webkit-tap-highlight-color: transparent; }
+.sduCoverBtn:focus-visible { outline: 2px solid var(--n-900); outline-offset: 2px; }
+
+/* owner: the chip on a service card (above the card's own tap area) */
+.svcPhotoChip { position: relative; z-index: 2; border: 0; font-family: inherit; cursor: pointer; background: var(--violet-soft); color: var(--violet-deep); font-weight: 800; }
+.svcPhotoChip.has-photos { background: var(--n-50); color: var(--n-700); }
+
+/* owner: picker */
+.svcPhotosSheet { display: grid; gap: 12px; padding: 4px 16px 20px; }
+.svcPhotosHint { margin: 0; color: var(--n-600); font-size: 0.8rem; font-weight: 700; line-height: 1.9; }
+.svcPhotosGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.svcPhotosTile { position: relative; aspect-ratio: 4 / 5; padding: 0; border: 0; border-radius: 16px; overflow: hidden; background: var(--n-100); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.svcPhotosTile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.svcPhotosTile.is-picked { box-shadow: inset 0 0 0 3px var(--violet-deep); }
+.svcPhotosNum { position: absolute; top: 6px; inset-inline-end: 6px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 999px; background: var(--violet-deep); color: var(--n-0); font-size: 0.72rem; font-weight: 900; }
+.svcPhotosTile em { position: absolute; inset-inline: 6px; bottom: 6px; padding: 1px 0; border-radius: 999px; background: var(--violet-deep); color: var(--n-0); font-style: normal; font-size: 0.64rem; font-weight: 800; text-align: center; }
+.svcPhotosEmpty { display: grid; gap: 4px; padding: 20px 8px; text-align: center; }
+.svcPhotosEmpty b { font-size: 0.95rem; font-weight: 900; }
+.svcPhotosEmpty span { color: var(--n-600); font-size: 0.8rem; font-weight: 700; line-height: 1.9; }
+.svcPhotosMsg { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--pink-soft); color: var(--n-900); font-size: 0.8rem; font-weight: 800; }
+.svcPhotosSave { min-height: 52px; border: 0; border-radius: 18px; background: var(--fill-strong); color: var(--n-0); font: inherit; font-size: 0.95rem; font-weight: 900; cursor: pointer; }
+.svcPhotosSave:disabled { opacity: 0.55; cursor: default; }
+
+/* client: the viewer (above the services menu) */
+.spvDim { z-index: 60; }
+.spvSheet { position: fixed; z-index: 61; inset-inline: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); max-width: 520px; margin-inline: auto; max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; display: grid; gap: 10px; padding: 12px; border-radius: 28px; background: var(--n-0); color: var(--n-900); box-shadow: 0 24px 60px -12px rgb(var(--shadow-rgb) / 0.45); animation: sduFade 0.3s ease-out both; }
+.spvTrack { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; border-radius: 20px; scrollbar-width: none; overscroll-behavior-x: contain; }
+.spvTrack::-webkit-scrollbar { display: none; }
+.spvSlide { flex: 0 0 100%; scroll-snap-align: center; aspect-ratio: 4 / 5; max-height: 52dvh; background: var(--n-100); }
+.spvSlide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.spvDots { display: flex; justify-content: center; gap: 5px; }
+.spvDots i { width: 6px; height: 6px; border-radius: 999px; background: var(--n-300); transition: width 0.2s, background-color 0.2s; }
+.spvDots i.is-on { width: 16px; background: var(--n-900); }
+.spvInfo { display: grid; gap: 6px; padding: 0 6px; }
+.spvInfo h3 { margin: 0; font-size: 1.05rem; font-weight: 900; }
+.spvChips { display: flex; flex-wrap: wrap; gap: 6px; }
+.spvChips span { padding: 1px 11px; border-radius: 999px; background: var(--n-50); color: var(--n-700); font-size: 0.78rem; font-weight: 800; }
+.spvChips span.is-price { background: var(--fill-strong); color: var(--n-0); font-weight: 900; }
+.spvNote { margin: 0; color: var(--n-600); font-size: 0.78rem; font-weight: 700; line-height: 1.9; }
+.spvPick { min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 18px; background: var(--live-fill); color: var(--on-live-fill); font: inherit; font-size: 0.95rem; font-weight: 900; cursor: pointer; }
+.spvPick.is-picked { background: var(--n-100); color: var(--n-900); }
+.spvClose { min-height: 44px; border: 0; border-radius: 16px; background: transparent; color: var(--n-700); font: inherit; font-size: 0.88rem; font-weight: 800; cursor: pointer; }

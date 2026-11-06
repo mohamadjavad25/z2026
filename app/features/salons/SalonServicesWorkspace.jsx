@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { Check, Plus, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { ServiceCover, ServicePhotoChip } from "../../components/ServicePhoto";
+import { ServicePhotosSheet } from "../profile/ServicePhotosSheet";
 import { ServiceGroups } from "../../components/ServiceGroups";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 import { Mascot } from "../../components/Mascot";
@@ -24,8 +27,11 @@ export function SalonServicesWorkspace({
   onCreate,
   onToggleArtist,
   onClearArtists,
-  onEdit
+  onEdit,
+  onPhotosChanged
 }) {
+  // The service whose sample photos are being picked.
+  const [photoService, setPhotoService] = useState(null);
   return (
     <>
       <div className="svcToolbar">
@@ -75,7 +81,7 @@ export function SalonServicesWorkspace({
                   aria-label={`ویرایش ${service.name}`}
                   onClick={() => onEdit?.(service)}
                 />
-                <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />
+                {service.photos?.length ? <ServiceCover photos={service.photos} size={76} /> : <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />}
                 <div className="svcCardBody">
                   <div className="svcCardTitle"><strong>{service.name}</strong></div>
                   {service.hint ? <p className="svcCardHint">{service.hint}</p> : null}
@@ -83,6 +89,7 @@ export function SalonServicesWorkspace({
                     <span className="svcChip is-price">{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "قیمت بذار"}</span>
                     <span className="svcChip">{service.duration || "مدت بذار"}</span>
                     <DueServiceChip name={service.name} />
+                    <ServicePhotoChip service={service} onClick={() => setPhotoService(service)} />
                   </div>
                   <div className="serviceArtistPick">
                     <button
@@ -178,6 +185,13 @@ export function SalonServicesWorkspace({
           }}</ServiceGroups>
         )}
       </div>
+      {photoService ? (
+        <ServicePhotosSheet
+          service={services.find((item) => item.id === photoService.id) || photoService}
+          onClose={() => setPhotoService(null)}
+          onSaved={onPhotosChanged}
+        />
+      ) : null}
     </>
   );
 }

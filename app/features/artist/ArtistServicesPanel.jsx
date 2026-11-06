@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { CalendarCheck, Plus, Timer } from "lucide-react";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
 import { ServiceIcon } from "../../components/ServiceIcon";
+import { ServiceCover, ServicePhotoChip } from "../../components/ServicePhoto";
+import { ServicePhotosSheet } from "../profile/ServicePhotosSheet";
 import { ServiceGroups } from "../../components/ServiceGroups";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
@@ -16,8 +19,11 @@ import { DueRemindersButton, DueServiceChip } from "../dueReminders/DueReminders
 export function ArtistServicesPanel({
   services = [],
   onCreate,
-  onEdit
+  onEdit,
+  onPhotosChanged
 }) {
+  // The service whose sample photos are being picked.
+  const [photoService, setPhotoService] = useState(null);
   return (
     <section className="artistServiceBoard" aria-label="مدیریت خدمات آرتیست">
       <div className="svcToolbar">
@@ -51,7 +57,7 @@ export function ArtistServicesPanel({
                 aria-label={`ویرایش ${service.name}`}
                 onClick={() => onEdit?.(service)}
               />
-              <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />
+              {service.photos?.length ? <ServiceCover photos={service.photos} size={76} /> : <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />}
               <div className="svcCardBody">
                 <div className="svcCardTitle">
                   <strong>{service.name}</strong>
@@ -63,12 +69,20 @@ export function ArtistServicesPanel({
                   <span className="svcChip"><Timer size={12} /> {service.duration}</span>
                   <span className="svcChip"><CalendarCheck size={12} /> نوبت می‌گیره</span>
                   <DueServiceChip name={service.name} />
+                  <ServicePhotoChip service={service} onClick={() => setPhotoService(service)} />
                 </div>
               </div>
             </article>
           )}</ServiceGroups>
         )}
       </div>
+      {photoService ? (
+        <ServicePhotosSheet
+          service={services.find((item) => item.id === photoService.id) || photoService}
+          onClose={() => setPhotoService(null)}
+          onSaved={onPhotosChanged}
+        />
+      ) : null}
     </section>
   );
 }

@@ -263,6 +263,7 @@ export function SalonClientPage({
           {visitorBar || (
           <>
           <ServicesDropUp
+            ownerLabel="سالن"
             key={bookWith ? `with-${bookWith.member.staffId}` : "all"}
             open={servicesOpen}
             title={bookWith ? `کارهای ${bookWith.member.name}` : `خدمات ${publicName}`}

@@ -29,6 +29,7 @@ import { publicLocation } from "../../location.js";
 import { listArtistHoursPublic } from "./artists/hours.js";
 import { workplaceSchedule } from "./artistPlace.js";
 import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
+import { withServicePhotos } from "./servicePhotos.js";
 import { MAX_SERVICES_PER_PROVIDER } from "../../validation/service.js";
 import { proposalView } from "../../../shared/lib/providerRules.js";
 
@@ -36,10 +37,11 @@ export { ensureArtistHours, listArtistHours, updateArtistHour, saveArtistHoursWe
 
 export async function listArtistServices(userId, runner = null) {
   const db = runner || (await getDb());
-  return all(db, `
+  const rows = await all(db, `
     SELECT id, name, price, duration, hint, badge, tone, emoji
     FROM artist_services WHERE user_id = $1 ORDER BY id ASC
   `, [userId]);
+  return withServicePhotos("artist", rows, db);
 }
 
 export async function addArtistService(userId, data) {
@@ -85,7 +87,8 @@ export async function updateArtistService(id, userId, data) {
     id,
     userId
   ]);
-  return get(db, "SELECT * FROM artist_services WHERE id = $1", [id]);
+  const updated = await get(db, "SELECT * FROM artist_services WHERE id = $1", [id]);
+  return (await withServicePhotos("artist", [updated], db))[0];
 }
 
 export async function deleteArtistService(id, userId) {
