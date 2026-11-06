@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CalendarPlus, CreditCard, Gift, Undo2 } from "lucide-react";
 import { Button } from "../components/ui";
 import { api } from "./adminFetch";
+import { groupTypedAmount, parseTomanAmount } from "../shared/lib/money";
 import { ACCOUNT_STATE, PAYMENT_STATUS, fmtDate, fmtDay, num, toman } from "./format";
 import { ErrorNote, Loading, toastResult } from "./ui";
 
@@ -91,7 +92,7 @@ export function RefundDialog({ payment, onClose, onDone }) {
         </ul>
         <label className="admLabel">
           <span>مبلغ برگشتی (تومان)</span>
-          <input type="number" inputMode="numeric" min={1} max={payment.amountToman} value={Number.isFinite(amount) ? amount : ""} onChange={(event) => setAmount(Math.max(0, Math.round(Number(event.target.value) || 0)))} autoFocus />
+          <input inputMode="numeric" value={amount ? groupTypedAmount(amount) : ""} onChange={(event) => setAmount(Math.min(payment.amountToman, parseTomanAmount(event.target.value)))} aria-label="مبلغ برگشتی" autoFocus />
         </label>
         {payment.kind === "sms_pack" ? (
           <p className="admMuted">این یک بسته‌ی پیامک است: با ثبت بازپرداخت، پیامک‌های مصرف‌نشده‌ی همین بسته از حساب کم می‌شود.</p>
@@ -153,7 +154,7 @@ export function GrantDialog({ userId, name, onClose, onDone }) {
         </div>
         <label className="admLabel">
           <span>مبلغی که بیرون از اپ گرفته شد (تومان)</span>
-          <input type="number" inputMode="numeric" min={0} step={1000} value={Number.isFinite(amount) ? amount : ""} onChange={(event) => setAmount(Math.max(0, Math.round(Number(event.target.value) || 0)))} />
+          <input inputMode="numeric" value={amount ? groupTypedAmount(amount) : ""} onChange={(event) => setAmount(parseTomanAmount(event.target.value))} aria-label="مبلغ گرفته‌شده" />
           <small className="admMuted">{amount ? `${toman(amount)} در درآمد حساب می‌شود.` : "صفر یعنی هدیه؛ در درآمد حساب نمی‌شود."}</small>
         </label>
         <label className="admLabel">
