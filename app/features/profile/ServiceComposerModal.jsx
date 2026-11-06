@@ -17,8 +17,6 @@ import { useBackHandler } from "../../shared/hooks/useBackHandler";
 // on some Android phones and left static/clipped bands (see docs/DEVLOG.md), so only a few are mounted.
 const CATALOG_PAGE = 8;
 
-const DURATION_CHIPS = ["۱۵ دقیقه", "۳۰ دقیقه", "۴۵ دقیقه", "۶۰ دقیقه", "۹۰ دقیقه", "۱۲۰ دقیقه", "۱۸۰ دقیقه"];
-
 /**
  * Shared artist + salon service create/edit page.
  *
@@ -400,18 +398,8 @@ export function ServiceComposerModal({
               </label>
             </div>
 
-            <div className="svcChips" role="group" aria-label="انتخاب سریع مدت">
-              {DURATION_CHIPS.map((option) => (
-                <button
-                  type="button"
-                  key={option}
-                  className={draft.duration === option ? "on" : ""}
-                  onClick={() => onDraftChange?.({ duration: option })}
-                >
-                  {option.replace(" دقیقه", "′")}
-                </button>
-              ))}
-            </div>
+            {/* Suggested durations were taken off (owner, 2026-11-06); the gap stays so the page keeps its shape. */}
+            <div className="svcChipsGap" aria-hidden="true" />
 
             <label className="svcField">
               <span>توضیح کوتاه</span>

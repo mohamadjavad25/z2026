@@ -649,22 +649,8 @@ button.svcCard:active { transform: scale(0.99); }
 
 .svcFieldRow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-.svcChips { display: flex; flex-wrap: wrap; gap: 6px; }
-
-.svcChips button {
-  min-height: 34px;
-  padding: 0 13px;
-  border: 1px solid var(--n-100);
-  border-radius: 999px;
-  background: var(--n-50);
-  color: var(--n-700);
-  font: inherit;
-  font-size: 0.74rem;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.svcChips button.on { border-color: var(--n-900); background: var(--fill-strong); color: var(--n-0); }
+/* The empty place of the suggested-duration chips (two rows of 34px chips and a 6px gap), kept so the form keeps its shape. */
+.svcChipsGap { height: 74px; }
 
 .svcSubmit {
   min-height: 54px;

@@ -42,6 +42,10 @@ Before building or changing anything that touches bookings, accounts, login/SMS,
 
 Know the system first (`docs/HEALTH.md`), think through what can break in real use, keep to the existing layers, and review your own diff as if blocking a pull request. For important or complex work use the `tech-lead` agent to plan and review, then `qa-engineer` and `security-specialist` in their areas. Never add a debt listed in `docs/HEALTH.md`; pay one down when already in that file. Tell the owner only what matters, in the voice above.
 
+## Calm screens (owner, 2026-11-06)
+
+Every screen shows only what the person needs at that step. Short words: a label, at most one short line, no explaining paragraphs, no warning or disclaimer lines inside a flow (the legal pages carry those). No repeated things: one badge instead of a chip row, one control instead of a card with a description, no second «بستن» when the backdrop or a × closes. Before a screen is done, look at its picture and ask «what can go?». For UI work show the owner before and after pictures. A post is «نمونه‌کار» in the UI, never «پست»; what a service links to is «نمونه», never «عکس». Artists and salons never see how many people saved a work.
+
 ## Copy voice (2026-10-23)
 
 Every text a client, salon or artist sees follows `docs/COPY.md`: casual «تو» with «رو», «می‌خوای»; one name per thing; errors say what to do. Legal pages and the admin panel are outside it. Stored values (statuses, weekday and service names) never change, only how they are shown.

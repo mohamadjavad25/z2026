@@ -158,5 +158,8 @@ describe("service photos", () => {
     const photos = (await createClient().get(`/api/salons/${salon.user.id}`)).payload.data.salon.services[0].photos;
     expect(photos.map((photo) => photo.postId)).toEqual([onlyId, work]);
     expect((await fetch(`${TEST_BASE_URL}${photos[0].image}`)).status).toBe(200);
+    // Nobody can open it as a post, and it cannot be sent to a salon as a work.
+    expect((await createClient().get(`/api/posts/${onlyId}`)).status).toBe(404);
+    expect((await salonClient.get(`/api/posts/${onlyId}`)).status).toBe(200);
   });
 });

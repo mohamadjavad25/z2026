@@ -144,7 +144,8 @@ export function PostViewer({
           <div className="pvStats" role="group" aria-label="آمار">
             {age ? <span><Calendar size={14} />{age}</span> : null}
             <span><Eye size={14} />{postCount(post.views)} بازدید</span>
-            <span><Bookmark size={14} />{postCount(post.saves)} ذخیره</span>
+            {/* The owner does not see how many saved it (owner, 2026-11-06). */}
+            {!canEdit ? <span><Bookmark size={14} />{postCount(post.saves)} ذخیره</span> : null}
           </div>
 
           {extra}

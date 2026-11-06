@@ -22,6 +22,7 @@ function mapPost(row) {
     image: row.image ? `/api/media/post/${row.id}?v=${row.updated_at ? new Date(row.updated_at).getTime() : 0}` : "",
     caption: row.caption || "",
     isPublic: Boolean(row.is_public),
+    inPortfolio: row.in_portfolio !== false,
     featured: Boolean(row.featured),
     saves: String(row.saves_count || 0),
     views: String(row.views_count || 0),
@@ -36,7 +37,7 @@ function mapPost(row) {
 }
 
 const postSelect = `
-  SELECT p.id, p.owner_user_id, p.title, p.tag, p.caption, p.is_public, p.featured, p.saves_count, p.views_count, p.created_at, p.updated_at, p.image_url,
+  SELECT p.id, p.owner_user_id, p.title, p.tag, p.caption, p.is_public, p.in_portfolio, p.featured, p.saves_count, p.views_count, p.created_at, p.updated_at, p.image_url,
     (p.image <> '' OR p.image_url IS NOT NULL) AS image,
     u.name AS owner_name,
     u.type AS owner_type,
@@ -129,7 +130,9 @@ export async function getPostById(id, runner = null) {
 export async function getVisiblePost(id, viewerUserId = null, runner = null) {
   const post = await getPostById(id, runner);
   if (!post) return null;
-  if (post.isPublic || (viewerUserId && Number(viewerUserId) === Number(post.ownerUserId))) return post;
+  const isOwner = viewerUserId && Number(viewerUserId) === Number(post.ownerUserId);
+  // A service's own gallery photo is only a picture on that service, not a post anyone can open.
+  if (isOwner || (post.isPublic && post.inPortfolio)) return post;
   return null;
 }
 

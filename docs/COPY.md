@@ -50,3 +50,7 @@
 مقدارهایی که در داده ذخیره یا با آن مقایسه می‌شوند فقط در نمایش ترجمه می‌شوند، خودشان عوض نمی‌شوند: وضعیت‌ها
 («تایید شده»، «لغو»، «درخواست»، «تازه»، «منقضی شده»، «در انتظار مشتری»)، نام روزهای هفته، نام خدمت‌ها و کاتالوگ خدمات
 (در داده ذخیره می‌شوند)، و هر متنی که کدی آن را با عبارت باقاعده می‌خواند.
+
+## Calm and short (owner, 2026-11-06)
+
+One short line at most under a control; no explaining paragraphs and no warning or disclaimer sentences inside flows (terms and privacy carry those). «نمونه‌کار» for a post, «نمونه» for what a service links to (a work or a photo from the gallery), never «پست» or «عکس» for the link. Counts only where they help the person decide (the owner never sees save counts).
