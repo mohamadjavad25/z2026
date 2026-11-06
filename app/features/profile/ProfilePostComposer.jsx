@@ -370,10 +370,10 @@ export function ProfilePostComposer({
                   })}
                 </div>
                 {Array.isArray(value.serviceIds) && value.serviceIds.length ? (
-                  <label className="pcLink">
-                    <input type="checkbox" checked={!value.noLink} disabled={saving} onChange={(event) => patch({ noLink: !event.target.checked })} />
-                    <b>روی خدمت هم نشون بده</b>
-                  </label>
+                  <button type="button" className={`pcPin${value.noLink ? "" : " is-on"}`} aria-pressed={!value.noLink} disabled={saving} onClick={() => patch({ noLink: !value.noLink })}>
+                    <span><b>روی خدمت هم نشون بده</b></span>
+                    <i className="pcSwitch" aria-hidden="true" />
+                  </button>
                 ) : null}
                 {(() => {
                   if (value.noLink || !Array.isArray(value.serviceIds)) return null;
@@ -447,7 +447,7 @@ export function ProfilePostComposer({
                   <Lock size={15} /> فقط من
                 </button>
               </div>
-              <small className="pcHint">{isPrivate ? "توی صفحه‌ت و جستجو دیده نمی‌شه." : "توی صفحه‌ت دیده می‌شه."}</small>
+              {isPrivate ? <small className="pcHint">فقط خودت می‌بینیش.</small> : null}
             </div>
           ) : null}
 
@@ -462,9 +462,9 @@ export function ProfilePostComposer({
               <Pin size={16} />
               <span>
                 <b>سنجاقش کن اول ویترین</b>
-                <small>{pinDisabled ? `بیشتر از ${toPersianDigits(pinLimit)} تا سنجاق نمی‌شه؛ اول یکی رو بردار.` : "کارهای سنجاق‌شده همیشه اول دیده می‌شن."}</small>
+                {pinDisabled ? <small>{`بیشتر از ${toPersianDigits(pinLimit)} تا سنجاق نمی‌شه؛ اول یکی رو بردار.`}</small> : null}
               </span>
-              <i>{value.featured ? "روشن" : "خاموش"}</i>
+              <i className="pcSwitch" aria-hidden="true" />
             </button>
           ) : null}
 
@@ -523,17 +523,18 @@ function SalonSendRow({ team, on, touched, isPrivate, saving, onToggle }) {
         <Store size={16} />
         <span>
           <b>{team.name}</b>
-          <small>{team.name} این پست رو اضافه نکرد.</small>
+          <small>اضافه‌ش نکرد.</small>
         </span>
       </div>
     );
   }
+  // A short status line only when there is something to say: waiting, already there, being taken off, or not possible.
   const hint = isPrivate
-    ? "پست «فقط من» رو نمی‌شه برای سالن فرستاد."
+    ? "برای «فقط من» نمی‌شه."
     : !on
-      ? touched && team.status ? `از صفحهٔ ${team.name} برداشته می‌شه.` : `اگه بفرستی و ${team.name} قبول کنه، با اسمت توی صفحه‌ش میاد.`
-      : touched && !team.status ? `بعد از ذخیره می‌ره پیش ${team.name} تا قبولش کنه.`
-        : team.status === "approved" ? `توی صفحهٔ ${team.name} هست.` : `منتظر تأیید ${team.name}.`;
+      ? touched && team.status ? "برداشته می‌شه." : ""
+      : touched && !team.status ? `بعد از تأیید ${team.name} می‌آد.`
+        : team.status === "approved" ? "توی صفحه‌شه." : `منتظر تأیید ${team.name}.`;
   const shownOn = on && !isPrivate;
   return (
     <button
@@ -546,9 +547,9 @@ function SalonSendRow({ team, on, touched, isPrivate, saving, onToggle }) {
       <Store size={16} />
       <span>
         <b>برای صفحهٔ {team.name} هم بفرست</b>
-        <small>{hint}</small>
+        {hint ? <small>{hint}</small> : null}
       </span>
-      <i>{shownOn ? "روشن" : "خاموش"}</i>
+      <i className="pcSwitch" aria-hidden="true" />
     </button>
   );
 }
