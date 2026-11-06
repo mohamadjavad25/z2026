@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useHome } from "../shell/HomeContext";
 import { OnboardingSlides } from "./OnboardingSlides";
-import { WelcomeSurvey } from "./WelcomeSurvey";
+import { openSupport } from "../support";
 import { OPEN_TUTORIAL_EVENT, WELCOME_SEEN_KEY } from "./slides";
 import { ENTER_APP_EVENT } from "../landing/constants";
 import { peekPendingOpen } from "../../shared/lib/appHandoff";
 import { apiFetch } from "../../shared/api/client";
-import { trackAction } from "../../shared/lib/activity";
 
 /**
  * This visit came with a purpose: a salon's or artist's link to book (`?open=`, or the place a public page's
@@ -129,14 +128,15 @@ function surveyEnded(id) {
 }
 
 /**
- * The welcome survey: the server says whether it is this person's time, a moment after the app opens. In the browser
- * and in the Android app alike. Never over the tutorial, or over someone who came to book or to join a team.
+ * The come-back nudge (owner 2026-11-06): the server says whether it is this person's time, a moment after the app
+ * opens (they have been away a few days, or tapped the push). It opens the «نظر و پیشنهاد» form in support, the same one
+ * support always has. In the browser and in the Android app alike. Never over the tutorial, or over someone who came
+ * to book or to join a team.
  */
 export function SurveyHost() {
-  const { createdProfile, profileSettings, arrivalIntent, goToTab, openProfileEdit } = useHome();
+  const { createdProfile, profileSettings, arrivalIntent } = useHome();
   const id = createdProfile?.id;
   const pending = Boolean(profileSettings?.tutorialPending);
-  const [survey, setSurvey] = useState(null);
   const asked = useRef(null);
 
   useEffect(() => {
@@ -148,7 +148,7 @@ export function SurveyHost() {
       asked.current = id;
       timer = window.setTimeout(async () => {
         const result = await apiFetch("/api/welcome-survey").catch(() => null);
-        if (alive && result?.ok && result.payload?.data?.survey) setSurvey(result.payload.data.survey);
+        if (alive && result?.ok && result.payload?.data?.survey) openSupport({ view: "feedback", nudge: true });
       }, 2000);
     };
     check();
@@ -157,29 +157,9 @@ export function SurveyHost() {
       alive = false;
       window.clearTimeout(timer);
       window.removeEventListener(ENTER_APP_EVENT, check);
-      if (asked.current === id && !survey) asked.current = null;
+      if (asked.current === id) asked.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, pending, arrivalIntent]);
 
-  if (!survey) return null;
-  return (
-    <WelcomeSurvey
-      survey={survey}
-      onLater={() => {
-        setSurvey(null);
-        trackAction("survey_later");
-        apiFetch("/api/welcome-survey", { method: "POST", body: JSON.stringify({ action: "later" }) }).catch(() => null);
-      }}
-      onAnswered={() => {
-        try { window.localStorage.setItem(SURVEY_ENDED_KEY, String(id)); } catch { /* the server still knows */ }
-      }}
-      onClose={() => setSurvey(null)}
-      onGo={(step) => {
-        setSurvey(null);
-        goToTab("profile");
-        if (step.go === "edit") openProfileEdit();
-      }}
-    />
-  );
+  return null;
 }

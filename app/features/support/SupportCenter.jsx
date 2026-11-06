@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bug, Check, ChevronLeft, ChevronRight, CircleHelp, Clock3, Ellipsis, Flag, MessageSquareWarning, UserRoundCog, X } from "lucide-react";
+import { Bug, Check, ChevronLeft, ChevronRight, CircleHelp, Clock3, Ellipsis, Flag, MessageSquareWarning, Star, UserRoundCog, X } from "lucide-react";
 import { apiFetch } from "../../shared/api/client";
 import { SupportIcon } from "./SupportIcon";
 import { notifySupportRead } from "./supportEvents";
@@ -10,6 +10,8 @@ import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { MessageAttachments } from "./Attachments";
 import { Composer } from "./Composer";
 import { SkeletonList } from "../../components/Skeleton";
+import { FEEDBACK_THANKS } from "../../shared/lib/feedback";
+import { FeedbackForm } from "./FeedbackForm";
 
 // value, label, icon, one line that says when to pick it, and the first line of the chat (shown here, never stored).
 const TOPICS = [
@@ -17,6 +19,7 @@ const TOPICS = [
   ["bug", "مشکل فنی", Bug, "یه چیزی کار نمی‌کنه", "سلام! داشتی چی کار می‌کردی و چی شد؟ اگه راحت‌تری، عکس صفحه رو بفرست."],
   ["account", "مشکل حساب", UserRoundCog, "ورود، شماره، اشتراک", "سلام! مشکل حسابت چیه؟"],
   ["complaint", "شکایت", MessageSquareWarning, "از کسی یا چیزی راضی نبودم", "سلام! ماجرا چی بود؟ اگه از یه سالن یا آرتیسته، اسمش رو هم بگو."],
+  ["feedback", "نظر و پیشنهاد", Star, "به یه بخش امتیاز بده و نظرت رو بگو", ""],
   ["other", "سایر", Ellipsis, "هیچ‌کدوم از اینا", "سلام! بگو چی شده."]
 ];
 const CATEGORY_LABEL = Object.fromEntries(TOPICS.map(([value, label]) => [value, label]));
@@ -212,6 +215,15 @@ function Thread({ id: startId = null, draft = null }) {
             </div>
           </div>
         ) : null}
+        {ticket.category === "feedback" ? (
+          <>
+            <div className="scFeedback">
+              {ticket.feedback_stars ? <span className="fbStarsRow" aria-label={`${ticket.feedback_stars} ستاره`}>{"★".repeat(ticket.feedback_stars)}{"☆".repeat(5 - ticket.feedback_stars)}</span> : null}
+              <span>{ticket.feedback_kind}{ticket.feedback_section ? ` · ${ticket.feedback_section}` : ""}</span>
+            </div>
+            <p className="scInfo">{FEEDBACK_THANKS}</p>
+          </>
+        ) : null}
         {ticket.kind === "report" ? <p className="scInfo">گزارشت رسید و بررسیش می‌کنیم. هر خبری بود همین‌جا می‌نویسیم.{ticket.category ? ` (دلیل: ${REASON_LABEL[ticket.category] || ticket.category})` : ""}</p> : null}
         {messages.map((message, index) => {
           const previous = messages[index - 1];
@@ -257,9 +269,15 @@ function Thread({ id: startId = null, draft = null }) {
  * a chat. `initial` can jump to a conversation ({ ticketId }) or a new chat ({ view: "new", category?, subject? }, e.g.
  * a complaint already titled with a salon's name).
  */
-export function SupportCenter({ initial = {}, onClose }) {
+export function SupportCenter({ initial = {}, role = "client", onClose: closeSheet }) {
+  // Opened by the come-back nudge ({ nudge: true }): sending the form answers it, closing without sending puts it off.
+  const answered = useRef(false);
+  const onClose = useCallback(() => {
+    if (initial.nudge && !answered.current) apiFetch("/api/welcome-survey", { method: "POST", body: JSON.stringify({ action: "later" }) }).catch(() => null);
+    closeSheet();
+  }, [initial.nudge, closeSheet]);
   useBackHandler(true, onClose);
-  const [view, setView] = useState(initial.ticketId ? { name: "thread", id: initial.ticketId } : initial.view === "new" ? { name: "thread", draft: { category: initial.category || "question", subject: initial.subject } } : { name: "list" });
+  const [view, setView] = useState(initial.view === "feedback" ? { name: "feedback" } : initial.ticketId ? { name: "thread", id: initial.ticketId } : initial.view === "new" ? { name: "thread", draft: { category: initial.category || "question", subject: initial.subject } } : { name: "list" });
   const sheetRef = useRef(null);
   const closeRef = useRef(onClose);
   useEffect(() => {
@@ -280,7 +298,7 @@ export function SupportCenter({ initial = {}, onClose }) {
   if (typeof document === "undefined") return null;
 
   const inList = view.name === "list";
-  const title = view.name === "thread" ? "گفتگو" : "پشتیبانی";
+  const title = view.name === "thread" ? "گفتگو" : view.name === "feedback" ? "نظر و پیشنهاد" : "پشتیبانی";
   return createPortal(
     <div className="scOverlay" onClick={onClose}>
       <div className="scSheet" role="dialog" aria-modal="true" aria-label="پشتیبانی" tabIndex={-1} ref={sheetRef} onClick={(event) => event.stopPropagation()}>
@@ -295,7 +313,8 @@ export function SupportCenter({ initial = {}, onClose }) {
           <h3>{title}</h3>
           <button type="button" className="scIconBtn" onClick={onClose} aria-label="بستن پشتیبانی"><X size={19} aria-hidden="true" /></button>
         </header>
-        {view.name === "list" ? <TicketList onOpen={(id) => setView({ name: "thread", id })} onNew={(category) => setView({ name: "thread", draft: { category } })} /> : null}
+        {view.name === "list" ? <TicketList onOpen={(id) => setView({ name: "thread", id })} onNew={(category) => setView(category === "feedback" ? { name: "feedback" } : { name: "thread", draft: { category } })} /> : null}
+        {view.name === "feedback" ? <FeedbackForm role={role} onSent={(id) => { answered.current = true; if (initial.nudge) apiFetch("/api/welcome-survey", { method: "POST", body: JSON.stringify({ action: "done" }) }).catch(() => null); setView({ name: "thread", id }); }} /> : null}
         {view.name === "thread" ? <Thread key={view.id ?? "new"} id={view.id} draft={view.draft} /> : null}
       </div>
     </div>,

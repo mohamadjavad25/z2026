@@ -431,7 +431,7 @@ export function HomeView() {
             openBookingSheet();
           }}
         />
-        {createdProfile ? <SupportHost /> : null}
+        {createdProfile ? <SupportHost role={createdProfile.type} /> : null}
         {createdProfile ? <TutorialHost /> : null}
         {createdProfile ? <SurveyHost /> : null}
         <PublicArtistHost />

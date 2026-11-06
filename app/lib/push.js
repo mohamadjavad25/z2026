@@ -62,9 +62,15 @@ async function sendAppPush(userId, message, ttl) {
  * triggered it. `sent` counts both kinds, `appSent` only the Android app (Firebase took it). `ttl` (seconds) is how long
  * it may wait for a phone that is off: a reminder past its appointment is worse than none.
  */
-export async function sendPushToUser(userId, { title, body, url = "/", ttl = DEFAULT_TTL_SECONDS } = {}) {
+export async function sendPushToUser(userId, { title, body, url = "/", ttl = DEFAULT_TTL_SECONDS, appFirst = false } = {}) {
   if (!userId) return { ok: false, sent: 0, appSent: 0 };
   const seconds = Math.max(60, Math.round(Number(ttl) || DEFAULT_TTL_SECONDS));
+  if (appFirst) {
+    // One message to one phone: the Android app when Firebase takes it, the browser only when there is no app.
+    const appSent = await sendAppPush(userId, { title, body, url }, seconds).catch(() => 0);
+    const webSent = appSent > 0 ? 0 : await sendWebPush(userId, JSON.stringify({ title, body, url }), seconds).catch(() => 0);
+    return { ok: true, sent: webSent + appSent, appSent };
+  }
   const [webSent, appSent] = await Promise.all([
     sendWebPush(userId, JSON.stringify({ title, body, url }), seconds).catch(() => 0),
     sendAppPush(userId, { title, body, url }, seconds).catch(() => 0)

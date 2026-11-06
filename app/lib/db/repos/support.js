@@ -1,6 +1,6 @@
 import { getDb, withTransaction, all, get, run } from "../connection.js";
 
-export const SUPPORT_CATEGORIES = ["question", "bug", "complaint", "account", "other"];
+export const SUPPORT_CATEGORIES = ["question", "bug", "complaint", "account", "feedback", "other"];
 export const REPORT_REASONS = ["spam", "inappropriate", "fake", "copyright", "other"];
 export const TICKET_STATUSES = ["open", "in_progress", "closed"];
 
@@ -38,6 +38,9 @@ export function ensureSupportTables() {
     await run(db, "ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS last_message_at TIMESTAMPTZ NOT NULL DEFAULT NOW()");
     await run(db, "ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS user_read_at TIMESTAMPTZ");
     await run(db, "ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS from_admin BOOLEAN NOT NULL DEFAULT FALSE");
+    await run(db, "ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS feedback_section TEXT NOT NULL DEFAULT ''");
+    await run(db, "ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS feedback_kind TEXT NOT NULL DEFAULT ''");
+    await run(db, "ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS feedback_stars SMALLINT");
     await run(db, `CREATE TABLE IF NOT EXISTS support_messages (
       id SERIAL PRIMARY KEY,
       ticket_id INTEGER NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
@@ -105,16 +108,16 @@ const LAST_BODY = `(SELECT CASE
   FROM support_messages m WHERE m.ticket_id = t.id ORDER BY m.id DESC LIMIT 1)`;
 
 /** Creates a ticket (a user's message or a report) with its first message. A second live report from the same person about the same target returns the existing one (`already: true`). */
-export async function createTicket({ kind, userId = null, contactPhone = "", category = "other", subject = "", body = "", targetType = "", targetId = null, attachments = [] }) {
+export async function createTicket({ kind, userId = null, contactPhone = "", category = "other", subject = "", body = "", targetType = "", targetId = null, attachments = [], feedback = null }) {
   await ensureSupportTables();
   const db = await getDb();
   const created = await withTransaction(null, async (client) => {
     const row = await get(client, `
-      INSERT INTO support_tickets (kind, user_id, contact_phone, category, subject, body, target_type, target_id, user_read_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+      INSERT INTO support_tickets (kind, user_id, contact_phone, category, subject, body, target_type, target_id, user_read_at, feedback_section, feedback_kind, feedback_stars)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9, $10, $11)
       ON CONFLICT (user_id, target_type, target_id) WHERE kind = 'report' AND status <> 'closed' DO NOTHING
       RETURNING id
-    `, [kind, userId, contactPhone, category, subject, body, targetType, targetId]);
+    `, [kind, userId, contactPhone, category, subject, body, targetType, targetId, feedback?.section || "", feedback?.kind || "", feedback?.stars ?? null]);
     if (row && (body || attachments.length)) await insertMessage(client, { ticketId: row.id, author: "user", authorUserId: userId, body, attachments });
     return row;
   });
@@ -263,7 +266,7 @@ export async function getUserTicket(userId, ticketId) {
   const ticket = await get(db, `
     UPDATE support_tickets SET user_read_at = NOW()
     WHERE id = $1 AND user_id = $2
-    RETURNING id, kind, category, subject, status, target_type, from_admin, created_at, last_actor, resolution
+    RETURNING id, kind, category, subject, status, target_type, from_admin, created_at, last_actor, resolution, feedback_section, feedback_kind, feedback_stars
   `, [Number(ticketId), Number(userId)]);
   if (!ticket) return null;
   return { ticket, messages: await messagesOf(db, ticket.id) };

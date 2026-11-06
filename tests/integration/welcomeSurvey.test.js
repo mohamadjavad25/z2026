@@ -7,7 +7,7 @@ import { q } from "./angle2Util.js";
 async function startedArtist(name = "ارزو", { posts = 3, services = 2, price = "از ۲ تومن" } = {}) {
   const api = createClient();
   const { user } = await registerUser(api, { type: "artist", name });
-  await q("UPDATE users SET created_at = NOW() - INTERVAL '3 hours' WHERE id = $1", [user.id]);
+  await q("UPDATE users SET created_at = NOW() - INTERVAL '3 hours', last_seen_at = NOW() - INTERVAL '4 days' WHERE id = $1", [user.id]);
   for (let i = 0; i < posts; i += 1) await q("INSERT INTO posts (owner_user_id, title, tag, caption, is_public) VALUES ($1, 'کار', 'مو', 'توضیح', TRUE)", [user.id]);
   for (let i = 0; i < services; i += 1) await q("INSERT INTO artist_services (user_id, name, price, duration) VALUES ($1, $2, $3, '۱ ساعت')", [user.id, `خدمت ${i}`, price]);
   return { api, user };
@@ -35,6 +35,35 @@ describe("welcome survey", () => {
     const { api } = await startedArtist("نو", { posts: 3, services: 0 });
     await q("UPDATE users SET created_at = NOW() WHERE id = (SELECT id FROM users WHERE name = 'نو' ORDER BY id DESC LIMIT 1)");
     expect(await surveyOf(api)).toBe(null); // done enough, too new
+  });
+
+  it("comes only after a few days away, or after the push was sent (owner 2026-11-06)", async () => {
+    const { api, user } = await startedArtist("تازه‌دیده");
+    await q("UPDATE users SET last_seen_at = NOW() - INTERVAL '1 day' WHERE id = $1", [user.id]);
+    expect(await surveyOf(api)).toBe(null); // seen yesterday: no card, no push
+    await q("UPDATE users SET last_seen_at = NOW() - INTERVAL '3 days 1 hour' WHERE id = $1", [user.id]);
+    expect(await surveyOf(api)).not.toBe(null);
+    // They tapped the push: opening the app has already refreshed last_seen_at, and the card must still come.
+    await q("UPDATE users SET last_seen_at = NOW() WHERE id = $1", [user.id]);
+    expect(await surveyOf(api)).toBe(null);
+    await q("INSERT INTO welcome_surveys (user_id, pushed_at) VALUES ($1, NOW()) ON CONFLICT (user_id) DO UPDATE SET pushed_at = NOW()", [user.id]);
+    expect(await surveyOf(api)).not.toBe(null);
+  });
+
+  it("never pushes someone the footprint has not seen yet", async () => {
+    const { user } = await startedArtist("ندیده");
+    await q("UPDATE users SET last_seen_at = NULL WHERE id = $1", [user.id]);
+    await q("INSERT INTO native_push_tokens (user_id, token) VALUES ($1, $2)", [user.id, `survey-null-${user.id}`]);
+    await fetch(`${TEST_BASE_URL}/api/cron/send-reminders`, { method: "POST", headers: { Authorization: `Bearer ${TEST_CRON_SECRET}`, "Content-Type": "application/json" }, body: JSON.stringify({ now: "2026-11-05T08:00:00Z" }) });
+    expect((await q("SELECT pushed_at FROM welcome_surveys WHERE user_id = $1", [user.id]))[0]?.pushed_at).toBeUndefined();
+  });
+
+  it("is done for good once the person sends a note from the support form", async () => {
+    const { api, user } = await startedArtist("فرم‌فرست");
+    expect(await surveyOf(api)).not.toBe(null);
+    expect((await api.post("/api/welcome-survey", { action: "done" })).ok).toBe(true);
+    expect((await q("SELECT answered_at FROM welcome_surveys WHERE user_id = $1", [user.id]))[0].answered_at).toBeTruthy();
+    expect(await surveyOf(api)).toBe(null);
   });
 
   it("is not shown to a guest", async () => {

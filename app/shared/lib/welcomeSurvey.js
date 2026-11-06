@@ -51,12 +51,12 @@ export function praise({ role, facts }) {
   return `${done} گذاشتی. این‌جوری مشتری قبل از اومدن، کارت رو می‌شناسه.`;
 }
 
+/** The one come-back push (owner 2026-11-06): no name, no promise, so it reads the same for a salon, an artist and a client. */
 export function pushText(person) {
-  const { role, facts } = person;
-  const body = role === "client" || !facts.posts
-    ? "یه دقیقه وقت داری بگی تا اینجا چطور بود؟"
-    : `صفحه‌ت با ${fa(facts.posts)} تا نمونه‌کار خیلی قشنگ شده. یه دقیقه وقت داری؟`;
-  return { title: greeting(person), body };
+  const role = person?.role;
+  if (role === "client") return { title: "نوبت گرفتن چطور بود؟", body: "بگو راحت بود یا جایی گیر کردی. فقط چند ثانیه." };
+  if (role === "salon") return { title: "ساختن صفحهٔ سالنت چطور بود؟", body: "بگو کدوم بخش رو چطور دیدی. فقط چند ثانیه." };
+  return { title: "کار با فرفرو چطور بود؟", body: "بگو کدوم بخش رو چطور دیدی. فقط چند ثانیه." };
 }
 
 /**

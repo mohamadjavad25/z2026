@@ -12,6 +12,40 @@ async function artistWithPost(title = "پست قابل گزارش") {
   return { client, artist, post: created.payload.data.post };
 }
 
+describe("نظر و پیشنهاد (feedback in support)", () => {
+  it("lands in the support chat with its part, kind and stars, and the admin sees it", async () => {
+    const user = createClient();
+    const account = await registerUser(user, { type: "artist", name: "نظردهنده" });
+    const sent = await user.post("/api/support", { category: "feedback", section: "نوبت‌ها", kind: "پیشنهاد دارم", stars: 4, message: "وقتی نوبت رو عوض می‌کنم، مشتری خبردار نمی‌شه." });
+    expect(sent.status).toBe(201);
+    const mine = await user.get(`/api/support/tickets/${sent.payload.data.id}`);
+    expect(mine.payload.data.ticket).toMatchObject({ category: "feedback", subject: "نظر دربارهٔ «نوبت‌ها»", feedback_section: "نوبت‌ها", feedback_kind: "پیشنهاد دارم", feedback_stars: 4 });
+    expect(mine.payload.data.messages).toHaveLength(1);
+    // The person keeps chatting in the same place.
+    expect((await user.post(`/api/support/tickets/${sent.payload.data.id}`, { message: "یه چیز دیگه هم هست" })).status).toBe(201);
+    const admin = await adminClient();
+    const list = await admin.get(`/api/admin/support?q=${account.phone}`);
+    expect(list.payload.data.tickets.some((ticket) => ticket.id === sent.payload.data.id && ticket.category === "feedback")).toBe(true);
+  });
+
+  it("works without stars, and refuses an unknown part, a bad kind, bad stars or an empty note", async () => {
+    const user = createClient();
+    await registerUser(user, { type: "client", name: "مشتری نظر" });
+    const ok = { category: "feedback", section: "نوبت گرفتن", kind: "مشکل داشتم", message: "دکمه جواب نداد" };
+    expect((await user.post("/api/support", ok)).status).toBe(201);
+    expect((await user.post("/api/support", { ...ok, section: "پیدا کردن سالن یا آرتیست" })).status).toBe(400);
+    expect((await user.post("/api/support", { ...ok, section: "ساختگی" })).status).toBe(400);
+    expect((await user.post("/api/support", { ...ok, kind: "هیچی" })).status).toBe(400);
+    expect((await user.post("/api/support", { ...ok, stars: 9 })).status).toBe(400);
+    expect((await user.post("/api/support", { ...ok, message: " " })).status).toBe(400);
+  });
+
+  it("is for signed-in people only", async () => {
+    const guest = await createClient().post("/api/support", { category: "feedback", section: "اعلان‌ها", kind: "خوشم اومد", message: "عالیه این بخش", phone: uniquePhone() });
+    expect(guest.status).toBe(401);
+  });
+});
+
 describe("support messages (public)", () => {
   it("accepts a message from a signed-in user, and from a guest who leaves a phone", async () => {
     const user = createClient();

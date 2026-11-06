@@ -238,3 +238,13 @@
 .scRound.is-send:disabled { opacity: 1; background: var(--accent-soft); color: var(--muted); }
 .scRound.is-busy { animation: scBusy 1s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .scRound.is-busy { animation: none; } }
+
+/* «نظر و پیشنهاد»: optional stars and the summary line on top of the chat */
+.fbStars { display: flex; gap: 2px; justify-content: flex-end; }
+.fbStars button { border: 0; background: none; padding: 2px; color: var(--n-300); cursor: pointer; line-height: 0; }
+.fbStars button.is-on { color: var(--pink-deep); }
+.fbStars button.is-on svg { fill: currentColor; }
+.fbStars button:focus-visible { outline: 2px solid var(--night); outline-offset: 1px; border-radius: var(--radius-sm); }
+.fbStarsWord { color: var(--muted); font-size: var(--text-sm); }
+.scFeedback { display: grid; gap: 2px; padding: 8px 12px; border: 1px dashed var(--line); border-radius: var(--radius-md); font-size: var(--text-sm); color: var(--muted); }
+.scFeedback .fbStarsRow { color: var(--pink-deep); letter-spacing: 2px; direction: ltr; text-align: end; }

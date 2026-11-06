@@ -8,7 +8,6 @@ describe("welcome survey words", () => {
     const artist = { role: "artist", name: "ارزو", facts: { posts: 10, services: 9, bookings: 0 } };
     expect(greeting(artist)).toBe("ارزو جان، خوش اومدی!");
     expect(praise(artist)).toContain("۱۰ تا نمونه‌کار و ۹ تا خدمت");
-    expect(pushText(artist).body).toContain("۱۰ تا نمونه‌کار");
   });
 
   it("calls a salon «عزیز», a client by the first name, and copes with no name", () => {
@@ -19,7 +18,17 @@ describe("welcome survey words", () => {
 
   it("never says «۰ تا» when one of the two is missing", () => {
     expect(praise({ role: "salon", facts: { posts: 0, services: 4 } })).toMatch(/^۴ تا خدمت گذاشتی/);
-    expect(pushText({ role: "artist", name: "سارا", facts: { posts: 0, services: 4, bookings: 0 } }).body).not.toContain("نمونه‌کار");
+  });
+
+  it("writes the one push without a name and without a promise, in «تو» (owner 2026-11-06)", () => {
+    for (const role of ["artist", "salon", "client"]) {
+      const text = pushText({ role, name: "رز سالن Bella" });
+      const all = `${text.title} ${text.body}`;
+      expect(all).not.toMatch(/رز|Bella|جان|عزیز|شما|درستش کنیم|خودمون می‌خونیم/);
+      expect(text.title.length).toBeGreaterThan(5);
+    }
+    expect(pushText({ role: "client" }).title).toBe("نوبت گرفتن چطور بود؟");
+    expect(pushText({ role: "salon" }).title).toContain("سالنت");
   });
 
   it("speaks to a client about bookings, one or many", () => {

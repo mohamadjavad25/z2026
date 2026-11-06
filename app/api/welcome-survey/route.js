@@ -1,13 +1,14 @@
 import { z } from "zod";
 import { json, readObjectBody, requireUser, validateBody, withErrorHandling } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
-import { putOff, saveAnswer, surveyFor } from "../../lib/db/repos/welcomeSurvey.js";
+import { markDone, putOff, saveAnswer, surveyFor } from "../../lib/db/repos/welcomeSurvey.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("later") }),
+  z.object({ action: z.literal("done") }),
   z.object({
     action: z.literal("answer"),
     feel: z.number().int().min(0).max(4),
@@ -32,6 +33,7 @@ async function _POST(request) {
   const parsed = validateBody(body, await readObjectBody(request));
   if (!parsed.ok) return parsed.response;
   if (parsed.data.action === "later") await putOff(user.id);
+  else if (parsed.data.action === "done") await markDone(user.id);
   else await saveAnswer(user.id, parsed.data);
   return json({ data: { ok: true } });
 }
