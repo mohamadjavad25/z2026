@@ -45,6 +45,7 @@ export function ArtistScheduleBoard({
 }) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
+  const [autoHintOpen, setAutoHintOpen] = useState(false);
   const leave = useArtistLeaves({ onNotice });
   // On a team, or still holding a leave from one (left the salon since): a leave that blocks bookings stays removable.
   const showLeave = onTeam || leave.leaves.length > 0;
@@ -70,20 +71,28 @@ export function ArtistScheduleBoard({
   return (
     <div className="artistBookingsPage">
       <section className="salonTodaySchedule is-artistSchedule">
-        <DayNav items={weekTabs} selectedDay={selectedDay} onSelectDay={onSelectDay} onOpenCalendar={() => setHistoryOpen(true)} />
-        {/* «تأیید خودکار» in sight, not only in settings (owner's decision 2026-11-04). Only for requests from her own page. */}
-        {onToggleAutoConfirm ? (
-          <div className={`plSwitchRow artistAutoConfirm${autoConfirm ? " is-on" : ""}`}>
-            <span>
-              <b>تأیید خودکار</b>
-              <small>
-                {autoConfirm ? "روشنه؛ درخواست‌های صفحه‌ت خودشون قطعی می‌شن." : "خاموشه؛ هر درخواست رو خودت تأیید می‌کنی."}
-                {onTeam ? " نوبت‌هایی که سالن برات می‌گیره رو خود سالن تأیید می‌کنه." : ""}
-              </small>
-            </span>
-            <button type="button" className="plSwitch" role="switch" aria-checked={Boolean(autoConfirm)} aria-label="تأیید خودکار" onClick={onToggleAutoConfirm} />
-          </div>
-        ) : null}
+        {/* «تأیید خودکار» in sight, not only in settings (owner's decision 2026-11-04); one slim strip glued to the day card
+            (owner's choice 2026-11-06: the old card was four lines tall). Only for requests from her own page. */}
+        <div className="dayNavCombo">
+          <DayNav items={weekTabs} selectedDay={selectedDay} onSelectDay={onSelectDay} onOpenCalendar={() => setHistoryOpen(true)} />
+          {onToggleAutoConfirm ? (
+            <>
+              <div className={`artistAutoConfirm${autoConfirm ? " is-on" : ""}`}>
+                <button type="button" className="artistAutoConfirmLabel" aria-expanded={autoHintOpen} onClick={() => setAutoHintOpen((open) => !open)}>
+                  <b>تأیید خودکار</b>
+                  <small>{autoConfirm ? "روشن" : "خاموش"}</small>
+                </button>
+                <button type="button" className="plSwitch is-small" role="switch" aria-checked={Boolean(autoConfirm)} aria-label="تأیید خودکار" onClick={onToggleAutoConfirm} />
+              </div>
+              {autoHintOpen ? (
+                <p className="artistAutoConfirmHint">
+                  {autoConfirm ? "روشنه؛ درخواست‌های صفحه‌ت خودشون قطعی می‌شن." : "خاموشه؛ هر درخواست رو خودت تأیید می‌کنی."}
+                  {onTeam ? " نوبت‌هایی که سالن برات می‌گیره رو خود سالن تأیید می‌کنه." : ""}
+                </p>
+              ) : null}
+            </>
+          ) : null}
+        </div>
         <PendingOtherDays
           requests={requests.map((request) => ({ id: request.id, dateKey: getBookingDateKey(request.dateKey || request.date) }))}
           visibleIds={dayRows.map((booking) => booking.id)}
