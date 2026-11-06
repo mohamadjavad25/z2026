@@ -324,3 +324,13 @@ export async function sweepServiceOnlyPosts(ownerUserId, runner = null) {
   for (const row of rows) await deletePost(row.id, ownerUserId, db);
   return rows.length;
 }
+
+/** How many gallery-only posts (a service's own photos, outside the portfolio) this owner holds. */
+export async function countServiceOnlyPosts(ownerUserId, runner = null) {
+  const db = runner || (await getDb());
+  const row = await get(db, "SELECT COUNT(*)::int AS n FROM posts WHERE owner_user_id = $1 AND NOT in_portfolio", [ownerUserId]);
+  return row.n;
+}
+
+/** The most gallery-only posts one owner can hold: three for each of the 100 services (they are swept when unused). */
+export const MAX_SERVICE_ONLY_POSTS = 300;

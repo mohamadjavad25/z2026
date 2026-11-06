@@ -162,4 +162,27 @@ describe("service photos", () => {
     expect((await createClient().get(`/api/posts/${onlyId}`)).status).toBe(404);
     expect((await salonClient.get(`/api/posts/${onlyId}`)).status).toBe(200);
   });
+
+  it("editing a work keeps a service's photo order; a private work does not use up a place; the directory menu has the photos", async () => {
+    const salonClient = createClient();
+    const salon = await registerUser(salonClient, { type: "salon", name: "Order Salon" });
+    const service = (await salonClient.post("/api/salon-services", { name: "ناخن", price: "1", duration: "30 دقیقه" })).payload.data.service;
+    const [a, b, c] = [await post(salonClient, "الف"), await post(salonClient, "ب"), await post(salonClient, "ج")];
+    expect((await put(salonClient, { serviceId: service.id, postIds: [a, b, c] })).ok).toBe(true);
+
+    // Saving the first work again (with its services) leaves the order alone.
+    expect((await salonClient.patch(`/api/posts/${a}`, { caption: "توضیح تازه", serviceIds: [service.id] })).ok).toBe(true);
+    const order = (await createClient().get(`/api/salons/${salon.user.id}`)).payload.data.salon.services[0].photos.map((photo) => photo.postId);
+    expect(order).toEqual([a, b, c]);
+
+    // A private work no longer shows to clients and does not use up a place: a fourth work can take it.
+    expect((await salonClient.patch(`/api/posts/${c}`, { isPublic: false })).ok).toBe(true);
+    const d = await post(salonClient, "د", { serviceIds: [service.id] });
+    const after = (await createClient().get(`/api/salons/${salon.user.id}`)).payload.data.salon.services[0].photos.map((photo) => photo.postId);
+    expect(after).toEqual([a, b, d]);
+
+    // The directory's booking menu carries the photos too.
+    const listed = (await createClient().get("/api/salons")).payload.data.salons.find((item) => item.id === salon.user.id);
+    expect(listed.services[0].photos.map((photo) => photo.postId)).toEqual([a, b, d]);
+  });
 });

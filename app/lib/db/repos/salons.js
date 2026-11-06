@@ -7,6 +7,7 @@ import { listSalonHours } from "./salons/hours.js";
 import { bumpJoinTermsVersion } from "./salons/joinTerms.js";
 import { listSalonPortfolio } from "./salons/portfolio.js";
 import { listSalonServices } from "./salons/services.js";
+import { withServicePhotos } from "./servicePhotos.js";
 import { listSalonStaff } from "./salons/staff.js";
 import { listPublicTeam } from "./salons/team.js";
 import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access.js";
@@ -113,7 +114,7 @@ export async function listSalons({ cursor, limit, maxLimit = 50 } = {}) {
   // useSalonDirectory.js's inline booking modal reads them directly off a
   // directory row without waiting for that detail fetch.
   const userIds = rows.map((row) => row.user_id);
-  const [settingsRows, followerRows, followingRows, serviceRows, hourRows] = await Promise.all([
+  const [settingsRows, followerRows, followingRows, plainServiceRows, hourRows] = await Promise.all([
     all(db, "SELECT user_id, settings FROM user_settings WHERE user_id = ANY($1)", [userIds]),
     all(db, "SELECT target_user_id, COUNT(*) AS c FROM follows WHERE target_user_id = ANY($1) GROUP BY target_user_id", [userIds]),
     all(db, "SELECT follower_user_id, COUNT(*) AS c FROM follows WHERE follower_user_id = ANY($1) GROUP BY follower_user_id", [userIds]),
@@ -126,6 +127,8 @@ export async function listSalons({ cursor, limit, maxLimit = 50 } = {}) {
     all(db, "SELECT * FROM salon_hours WHERE salon_user_id = ANY($1)", [userIds])
   ]);
 
+  // The booking menu in the directory shows the samples too (one query for every listed salon's services).
+  const serviceRows = await withServicePhotos("salon", plainServiceRows, db);
   const settingsByUser = new Map(settingsRows.map((r) => [
     r.user_id,
     r.settings && typeof r.settings === "object" ? r.settings : {}

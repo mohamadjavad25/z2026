@@ -368,7 +368,7 @@ export function ProfilePostComposer({
                     );
                   })}
                 </div>
-                {Array.isArray(value.serviceIds) && value.serviceIds.length ? (
+                {Array.isArray(value.serviceIds) && value.serviceIds.length && !isPrivate ? (
                   <button type="button" className={`pcPin${value.noLink ? "" : " is-on"}`} aria-pressed={!value.noLink} disabled={saving} onClick={() => patch({ noLink: !value.noLink })}>
                     <span><b>روی خدمت هم نشون بده</b></span>
                     <i className="pcSwitch" aria-hidden="true" />

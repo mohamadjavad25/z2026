@@ -81,12 +81,19 @@ export async function setPostServices(ownerId, postId, serviceIds) {
       ? await all(db, `SELECT id FROM ${table} WHERE ${ownerColumn} = $1 AND id = ANY($2::int[]) ORDER BY id FOR UPDATE`, [ownerId, wanted])
       : [];
     const ownIds = new Set(own.map((row) => Number(row.id)));
-    await run(db, `DELETE FROM service_photos WHERE post_id = $1 AND ${column} IS NOT NULL`, [postId]);
-    const linked = [];
-    for (const serviceId of wanted.filter((id) => ownIds.has(id))) {
-      const count = await get(db, `SELECT COUNT(*)::int AS n FROM service_photos WHERE ${column} = $1`, [serviceId]);
+    const desired = wanted.filter((id) => ownIds.has(id));
+    // Only what changed: links to services no longer wanted go, missing ones are added at the end, the rest keep their
+    // place, so editing a work never reshuffles a service's cover.
+    const current = (await all(db, `SELECT ${column} AS service_id FROM service_photos WHERE post_id = $1 AND ${column} IS NOT NULL`, [postId])).map((row) => Number(row.service_id));
+    const gone = current.filter((id) => !desired.includes(id));
+    if (gone.length) await run(db, `DELETE FROM service_photos WHERE post_id = $1 AND ${column} = ANY($2::int[])`, [postId, gone]);
+    const linked = desired.filter((id) => current.includes(id));
+    for (const serviceId of desired.filter((id) => !current.includes(id))) {
+      // A private work does not count: clients never see it (withServicePhotos).
+      const count = await get(db, `SELECT COUNT(*)::int AS n FROM service_photos sp JOIN posts p ON p.id = sp.post_id AND p.is_public WHERE sp.${column} = $1`, [serviceId]);
       if (count.n >= MAX_SERVICE_PHOTOS) continue;
-      await run(db, `INSERT INTO service_photos (${column}, post_id, position) VALUES ($1, $2, $3)`, [serviceId, postId, count.n]);
+      const last = await get(db, `SELECT COALESCE(MAX(position) + 1, 0)::int AS n FROM service_photos WHERE ${column} = $1`, [serviceId]);
+      await run(db, `INSERT INTO service_photos (${column}, post_id, position) VALUES ($1, $2, $3)`, [serviceId, postId, last.n]);
       linked.push(serviceId);
     }
     return linked;
@@ -104,7 +111,7 @@ export async function ownerServiceLinks(ownerId, type) {
   const [table, ownerColumn] = SERVICE_TABLE[kind];
   const column = COLUMN[kind];
   const services = await all(db, `
-    SELECT s.id, s.name, s.photo_as_cover, (SELECT COUNT(*)::int FROM service_photos sp WHERE sp.${column} = s.id) AS photo_count
+    SELECT s.id, s.name, s.photo_as_cover, (SELECT COUNT(*)::int FROM service_photos sp JOIN posts p ON p.id = sp.post_id AND p.is_public WHERE sp.${column} = s.id) AS photo_count
     FROM ${table} s WHERE s.${ownerColumn} = $1 ORDER BY s.id
   `, [ownerId]);
   const links = await all(db, `

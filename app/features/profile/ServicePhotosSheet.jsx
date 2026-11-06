@@ -47,7 +47,7 @@ export function ServicePhotosPicker({ name, emoji, initialIds = [], initialPhoto
     setPicked((current) => {
       if (current.includes(id)) return current.filter((item) => item !== id);
       if (current.length >= SERVICE_PHOTO_LIMIT) {
-        setMessage(`برای هر خدمت تا ${toPersianDigits(SERVICE_PHOTO_LIMIT)} عکس می‌شه؛ یکی رو بردار.`);
+        setMessage(`برای هر خدمت تا ${toPersianDigits(SERVICE_PHOTO_LIMIT)} نمونه می‌شه؛ یکی رو بردار.`);
         return current;
       }
       return [...current, id];

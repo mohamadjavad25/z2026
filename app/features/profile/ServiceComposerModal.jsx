@@ -448,6 +448,7 @@ export function ServiceComposerModal({
           name={draft.name}
           emoji={draft.emoji}
           initialIds={draft.photoIds || []}
+          initialPhotos={draft.photoPreview || []}
           initialAsCover={draft.photoAsCover !== false}
           submitLabel="تموم"
           onClose={() => setPhotosOpen(false)}
