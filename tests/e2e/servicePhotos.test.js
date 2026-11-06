@@ -64,6 +64,7 @@ describe("sample photos on services (browser)", () => {
     await card.locator(".svcPhotoBadge").click();
     await page.locator(".svcPhotosSheet").waitFor();
     // The portfolio work is offered, the private one is not; «از گالری» is the first tile.
+    await page.locator(".svcPhotosTile:not(.is-add)").first().waitFor(); // the works arrive a moment after the sheet
     expect(await page.locator(".svcPhotosTile").count()).toBe(2); // gallery tile + the public work
     await page.locator(".svcPhotosTile:not(.is-add)").first().click();
     await page.locator(".svcPhotosSheet input[type=file]").setInputFiles(PHOTO);
