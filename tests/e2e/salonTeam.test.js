@@ -88,7 +88,7 @@ describe("the team on a salon's page (browser)", () => {
     const send = sheet.getByRole("button", { name: new RegExp(`برای صفحهٔ ${salon.user.name} هم بفرست`) });
     expect(await send.getAttribute("aria-pressed")).toBe("false");
     await send.click();
-    expect(await send.innerText()).toContain(`بعد از ذخیره می‌ره پیش ${salon.user.name} تا قبولش کنه.`);
+    expect(await send.innerText()).toContain(`بعد از تأیید ${salon.user.name} می‌آد.`);
     await sheet.locator(".artistWorkSave").click();
     await mine.page.getByText("ذخیره شد و رفت پیش سالن تا قبولش کنه.").waitFor();
     expect(mine.problems).toEqual([]);
