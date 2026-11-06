@@ -7,7 +7,8 @@ import { ServiceIconStrip } from "./ServiceIconStrip";
 import { ServiceCover, ServicePhotoPill, showsPhotoAsCover } from "./ServicePhoto";
 import { ServicePhotoViewer } from "./ServicePhotoViewer";
 import { EMOJI_CATEGORIES, getBeautyEmoji, guessBeautyEmojiId } from "../shared/constants/beautyEmoji";
-import { formatTomanNumber, parseTomanAmount } from "../shared/lib/money";
+import { servicePriceText } from "../shared/lib/money";
+import { ServicePrice } from "./ServicePrice";
 import { toPersianDigits } from "../shared/lib/digits";
 import { bundleServices, serviceKey } from "../shared/lib/serviceBundle";
 import { useBackHandler } from "../shared/hooks/useBackHandler";
@@ -79,7 +80,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
   const visible = showTabs && tab !== "all" ? groups.filter((group) => group.id === tab) : groups;
   const picked = pickedKeys.map((key) => list.find((service) => serviceKey(service) === key)).filter(Boolean);
   const total = bundleServices(picked);
-  const totalAmount = total ? parseTomanAmount(total.price) : 0;
+  const totalText = total ? servicePriceText(total.price) : "";
   const toggle = (key) => setPickedKeys((keys) => (keys.includes(key) ? keys.filter((item) => item !== key) : [...keys, key]));
 
   return (
@@ -125,7 +126,6 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                     ) : null}
                     {group.items.map((service) => {
                       const key = serviceKey(service);
-                      const amount = parseTomanAmount(service.price);
                       const on = pickedKeys.includes(key);
                       const Item = browseOnly ? "div" : "button";
                       return (
@@ -162,7 +162,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                           </span>
                           {service.priceHidden ? null : (
                             <span className="sduItemPrice">
-                              {amount ? <>{formatTomanNumber(amount)} <small>تومان</small></> : <small>قیمت توافقی</small>}
+                              <ServicePrice price={service.price} />
                             </span>
                           )}
                           {browseOnly ? null : <span className="sduCheck" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
@@ -184,7 +184,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                 <button type="button" className="sduConfirm" disabled={!picked.length} onClick={() => picked.length && onConfirm(picked)}>
                   <CalendarCheck size={18} />
                   {picked.length ? "ادامه" : "یه کار انتخاب کن"}
-                  {totalAmount ? <small>{formatTomanNumber(totalAmount)} تومان</small> : null}
+                  {totalText ? <small>{totalText}</small> : null}
                 </button>
               </div>
               )}

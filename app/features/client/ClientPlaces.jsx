@@ -8,7 +8,7 @@ import { Mascot } from "../../components/Mascot";
 import { listConnections } from "../../shared/api/connections";
 import { useAppRefresh } from "../../shared/lib/appRefresh";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
+import { servicePriceText } from "../../shared/lib/money";
 import { formatRelativeBookingDayLabel, getPersianWeekday } from "../../shared/lib/persianCalendar";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { ConnectSheet } from "../connect/ConnectSheet";
@@ -41,10 +41,9 @@ function todayStatus(place) {
 }
 
 function serviceMeta(service) {
-  const price = parseTomanAmount(service.price);
   return [
     service.duration ? toPersianDigits(service.duration) : "",
-    price ? `${formatTomanNumber(price)} تومان` : ""
+    servicePriceText(service.price)
   ].filter(Boolean).join("، ");
 }
 

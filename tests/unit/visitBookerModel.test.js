@@ -248,7 +248,7 @@ describe("how a service's price reads", () => {
       { id: 3, name: "عروس", duration: "۱۸۰ دقیقه", price: "توافقی" }
     ]);
     expect([plain.price, plain.priceText]).toEqual([550000, "۵۵۰٬۰۰۰ تومان"]);
-    expect([from.price, from.priceText]).toEqual([0, "از ۲.۵ میلیون"]);
+    expect([from.price, from.priceText]).toEqual([0, "از ۲.۵ میلیون تومان"]);
     expect([deal.price, deal.priceText]).toEqual([0, "توافقی"]);
     expect(priceText("")).toBe("");
   });

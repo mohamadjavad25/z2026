@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Check, Plus, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
+import { servicePriceText } from "../../shared/lib/money";
 import { ServiceLead } from "../../components/ServicePhoto";
 import { ServicePhotosEditor } from "../profile/ServicePhotosSheet";
 import { ServiceGroups } from "../../components/ServiceGroups";
@@ -85,7 +85,7 @@ export function SalonServicesWorkspace({
                   <div className="svcCardTitle"><strong>{service.name}</strong></div>
                   {service.hint ? <p className="svcCardHint">{service.hint}</p> : null}
                   <div className="svcCardMeta">
-                    <span className="svcChip is-price">{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "قیمت بذار"}</span>
+                    <span className="svcChip is-price">{servicePriceText(service.price) || "قیمت بذار"}</span>
                     <span className="svcChip">{service.duration || "مدت بذار"}</span>
                     <DueServiceChip name={service.name} />
                   </div>

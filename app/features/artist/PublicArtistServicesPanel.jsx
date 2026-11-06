@@ -2,7 +2,7 @@
 
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
-import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
+import { servicePriceText } from "../../shared/lib/money";
 
 export function PublicArtistServicesPanel({
   services,
@@ -23,7 +23,7 @@ export function PublicArtistServicesPanel({
       ) : (
         <div className="spvServiceList">
           {safeServices.map((service) => {
-            const amount = parseTomanAmount(service.price);
+            const written = servicePriceText(service.price);
             return (
               <button
                 type="button"
@@ -38,7 +38,7 @@ export function PublicArtistServicesPanel({
                 </span>
                 {/* «نمایش قیمت‌ها» off (priceHidden from the server): the spot stays empty, the grid keeps its columns. */}
                 <span className="spvServicePrice">
-                  {service.priceHidden ? null : amount ? <><b>{formatTomanNumber(amount)}</b><em>تومان</em></> : <em>قیمت توافقی</em>}
+                  {service.priceHidden ? null : written ? <b>{written}</b> : <em>قیمت توافقی</em>}
                 </span>
                 <span className="spvServiceGo">رزرو</span>
               </button>

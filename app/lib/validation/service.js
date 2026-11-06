@@ -1,4 +1,5 @@
 import { toAsciiDigits } from "../../shared/lib/digits.js";
+import { durationTextMinutes } from "../../shared/lib/time.js";
 import { MAX_BOOKING_MINUTES, parseBoundedInt } from "./numbers.js";
 
 /** Longest name, price text, duration text and hint a salon or artist may save on a service. */
@@ -26,8 +27,8 @@ export function priceProblem(value) {
 }
 
 /**
- * A service's duration is shown as text ("۴۵ دقیقه"); the number in it is what bookings use, so it must be
- * a whole number of minutes from 1 to MAX_BOOKING_MINUTES. An empty one is allowed (the default applies).
+ * A service's duration is shown as text ("۴۵ دقیقه", "۲ ساعت"); what it says in minutes is what bookings use, so it
+ * must come to 1 to MAX_BOOKING_MINUTES minutes. An empty one is allowed (the default applies).
  */
 export function durationProblem(value) {
   if (value === undefined || value === null || value === "") return null;
@@ -36,9 +37,9 @@ export function durationProblem(value) {
   if (!text) return null;
   if (text.length > SERVICE_LIMITS.duration) return "مدت خیلی بلنده؛ فقط عدد دقیقه رو بنویس.";
   const match = toAsciiDigits(text).match(/\d+/);
-  if (!match || match[0].length > 6) return "مدت رو به دقیقه بنویس؛ مثلاً ۴۵";
+  if ((!match && !/ساعت/.test(text)) || match?.[0].length > 6) return "مدت رو به دقیقه بنویس؛ مثلاً ۴۵";
   if (/^\s*[-−–]/.test(toAsciiDigits(text))) return "مدت نمی‌تونه منفی باشه.";
-  if (!parseBoundedInt(match[0], { min: 1, max: MAX_BOOKING_MINUTES }).ok) {
+  if (!parseBoundedInt(durationTextMinutes(text), { min: 1, max: MAX_BOOKING_MINUTES }).ok) {
     return `مدت باید بین ۱ تا ${MAX_BOOKING_MINUTES} دقیقه باشه.`;
   }
   return null;

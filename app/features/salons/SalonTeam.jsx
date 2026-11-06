@@ -8,7 +8,7 @@ import { ConnectionAvatar } from "../connect/ConnectionCard";
 import { SalonClientGallery } from "./SalonClientGallery";
 import { thumbUrl } from "../../shared/lib/mediaUrl";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
+import { ServicePrice } from "../../components/ServicePrice";
 
 /**
  * The services this team member does at the salon: the ones the salon's list gives them, and the ones it gives nobody
@@ -105,13 +105,12 @@ export function SalonTeam({ salon, team, services, salonPosts = [], getFallbackS
             {openServices.length ? (
               <div className="stmServices" aria-label={`کارهای ${open.name}`}>
                 {openServices.map((service) => {
-                  const amount = parseTomanAmount(service.price);
                   return (
                     <div className="stmService" key={service.id ?? service.name}>
                       <ServiceIcon emoji={service.emoji} name={service.name} size="sm" />
                       <span className="stmServiceBody"><b>{service.name}</b><small>{service.duration || "مدتش فرق می‌کنه"}</small></span>
                       {/* «نمایش قیمت‌ها» off: priceHidden from the server, no price and no «قیمت توافقی». */}
-                      {service.priceHidden ? null : <em>{amount ? <>{formatTomanNumber(amount)} <small>تومان</small></> : <small>قیمت توافقی</small>}</em>}
+                      {service.priceHidden ? null : <em><ServicePrice price={service.price} /></em>}
                     </div>
                   );
                 })}

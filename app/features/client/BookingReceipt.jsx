@@ -6,7 +6,7 @@ import { BellRing, CalendarCheck, CalendarClock, Check, Clock3, ListChecks, Phon
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
+import { ServicePrice } from "../../components/ServicePrice";
 import { formatRelativeBookingDayLabel } from "../../shared/lib/persianCalendar";
 import { bookingWaitMinutes, requestMinutesLeft, requestRemainingShare } from "../../shared/lib/bookingWindow";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
@@ -83,22 +83,22 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
         name: item.name,
         emoji: item.emoji || "",
         duration: item.duration || "",
-        price: parseTomanAmount(item.price)
+        price: item.price
       }));
     }
     const names = String(live.service || "").split(" + ").map((name) => name.trim()).filter(Boolean);
-    if (!names.length) return [{ name: "نوبت", emoji: live.service_emoji, duration: "", price: 0 }];
+    if (!names.length) return [{ name: "نوبت", emoji: live.service_emoji, duration: "", price: "" }];
     return names.map((name, index) => ({
       name,
       emoji: index === 0 ? live.service_emoji : "",
       duration: "",
-      price: names.length === 1 ? parseTomanAmount(receipt.price) : 0
+      price: names.length === 1 ? receipt.price : ""
     }));
   })();
   const day = formatRelativeBookingDayLabel(live.booking_date || live.date || "امروز");
   const time = live.time ? toPersianDigits(live.time) : "";
   const end = bookingEndLabel(live);
-  const price = parseTomanAmount(receipt.price);
+  const price = receipt.price;
   const left = stage === "wait" ? minutesLeft(live, now) : null;
   const phone = live.salonPhone || live.salon_phone || "";
   const waitsOpen = stage === "wait" && bookingWaitMinutes(live) === null;
@@ -171,14 +171,14 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
                   <b>{line.name}</b>
                   {line.duration ? <small>{toPersianDigits(line.duration)}</small> : null}
                 </span>
-                {line.price ? <em>{formatTomanNumber(line.price)} <small>تومان</small></em> : null}
+                {line.price ? <em><ServicePrice price={line.price} fallback="" /></em> : null}
               </li>
             ))}
           </ul>
           {lines.length > 1 && price ? (
             <div className="brTotal">
               <span>جمع</span>
-              <em>{formatTomanNumber(price)} <small>تومان</small></em>
+              <em><ServicePrice price={price} fallback="" /></em>
             </div>
           ) : null}
           <div className="brRow">

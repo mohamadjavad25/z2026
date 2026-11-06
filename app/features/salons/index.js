@@ -1,4 +1,3 @@
-export { salonServiceCatalog } from "./constants";
 export { SalonClientBookingModal } from "./SalonClientBookingModal";
 export { SalonClientPage } from "./SalonClientPage";
 export { SalonCustomersPage } from "./SalonCustomersPage";

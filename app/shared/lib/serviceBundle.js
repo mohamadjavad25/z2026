@@ -1,5 +1,5 @@
 import { toPersianDigits } from "./digits";
-import { parseTomanAmount } from "./money";
+import { plainPriceAmount } from "./money";
 import { parseServiceDurationMinutes } from "./time";
 
 // Bookings store the service as free text, at most this long (lib/validation/booking.js).
@@ -41,7 +41,7 @@ export function bundleServices(services) {
   const list = (Array.isArray(services) ? services : []).filter(Boolean);
   if (list.length < 2) return list[0] || null;
   const minutes = list.reduce((sum, service) => sum + parseServiceDurationMinutes(service.duration), 0);
-  const prices = list.map((service) => parseTomanAmount(service.price));
+  const prices = list.map((service) => plainPriceAmount(service.price));
   return {
     id: `bundle:${list.map(serviceKey).join("+")}`,
     name: joinServiceNames(list.map((service) => service.name)),

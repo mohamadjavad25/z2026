@@ -5,7 +5,7 @@ import { ServiceIcon } from "../../components/ServiceIcon";
 import { MapPin, Store, Timer } from "lucide-react";
 import { LocationButton } from "../../components/LocationButton";
 import { toPersianDigits } from "../../shared/lib/digits";
-import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
+import { servicePriceText } from "../../shared/lib/money";
 import { BookingSlotPicker } from "../../components/BookingSlotPicker";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
 import { salonClientBookingDays } from "./constants";
@@ -126,7 +126,7 @@ export function PublicArtistBookingPanel({
           </small>
         </div>
         {activeService?.priceHidden ? null : (
-          <b>{parseTomanAmount(activeService?.price) ? `${formatTomanNumber(parseTomanAmount(activeService.price))} تومان` : "—"}</b>
+          <b>{servicePriceText(activeService?.price) || "—"}</b>
         )}
       </div>
 

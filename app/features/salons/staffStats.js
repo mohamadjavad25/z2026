@@ -1,4 +1,4 @@
-import { parseTomanAmount } from "../../shared/lib/money";
+import { plainPriceAmount } from "../../shared/lib/money";
 import { getBookingDateOffsetDays } from "../artist/bookingUtils";
 import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar";
 
@@ -24,7 +24,7 @@ export function computeStaffStats(staff, appointments = [], services = []) {
     [staff?.name, staff?.artist_name].map((value) => String(value || "").trim()).filter(Boolean)
   );
   const priceByService = new Map(
-    services.map((service) => [String(service.name || "").trim(), parseTomanAmount(service.price)])
+    services.map((service) => [String(service.name || "").trim(), plainPriceAmount(service.price)])
   );
   const cache = new Map();
   const weeks = Array.from({ length: STAFF_STATS_WEEKS }, () => ({ income: 0, bookings: 0 }));

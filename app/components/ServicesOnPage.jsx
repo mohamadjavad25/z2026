@@ -2,7 +2,7 @@
 
 import { ChevronLeft } from "lucide-react";
 import { ServiceIcon } from "./ServiceIcon";
-import { formatTomanNumber, parseTomanAmount } from "../shared/lib/money";
+import { ServicePrice } from "./ServicePrice";
 
 /**
  * «خدمات و قیمت‌ها» on a public salon/artist page, for a salon or artist visiting it (they have no «رزرو» bar).
@@ -19,7 +19,6 @@ export function ServicesOnPage({ services = [], onPick }) {
       <h3 className="spvHead" id="spv-services-title">{pricesHidden ? "خدمات" : "خدمات و قیمت‌ها"}</h3>
       <div className="sopList">
         {services.map((service) => {
-          const amount = parseTomanAmount(service.price);
           return (
             <Row
               {...(onPick ? { type: "button", onClick: () => onPick(service), "aria-label": `رزرو ${service.name}` } : {})}
@@ -33,7 +32,7 @@ export function ServicesOnPage({ services = [], onPick }) {
               </span>
               {service.priceHidden ? null : (
                 <span className="sopPrice">
-                  {amount ? <>{formatTomanNumber(amount)} <small>تومان</small></> : <small>قیمت توافقی</small>}
+                  <ServicePrice price={service.price} />
                 </span>
               )}
               {onPick ? <ChevronLeft size={18} className="sopGo" aria-hidden="true" /> : null}

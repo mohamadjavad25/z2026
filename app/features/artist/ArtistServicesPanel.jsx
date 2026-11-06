@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CalendarCheck, Plus, Timer } from "lucide-react";
-import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
+import { servicePriceText } from "../../shared/lib/money";
 import { ServiceLead } from "../../components/ServicePhoto";
 import { ServicePhotosEditor } from "../profile/ServicePhotosSheet";
 import { ServiceGroups } from "../../components/ServiceGroups";
@@ -64,7 +64,7 @@ export function ArtistServicesPanel({
                 </div>
                 {service.hint ? <p className="svcCardHint">{service.hint}</p> : null}
                 <div className="svcCardMeta">
-                  <span className="svcChip is-price">{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "توافقی"}</span>
+                  <span className="svcChip is-price">{servicePriceText(service.price) || "توافقی"}</span>
                   <span className="svcChip"><Timer size={12} /> {service.duration}</span>
                   <span className="svcChip"><CalendarCheck size={12} /> نوبت می‌گیره</span>
                   <DueServiceChip name={service.name} />

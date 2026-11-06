@@ -19,7 +19,7 @@ import { buildClientHistoryLookup } from "./clientHistory.js";
 import { listPostsByOwner } from "./posts.js";
 import { formatPersianDateKey, isPersianDateKey, persianDateKeyToDate, resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { minutesUntilSlotStart } from "../../../shared/lib/bookingWindow.js";
-import { getTehranClockMinutes, normalizeBookingTimeLabel, parseBookingTime } from "../../../shared/lib/time.js";
+import { getTehranClockMinutes, normalizeBookingTimeLabel, parseBookingTime, parseServiceDurationMinutes } from "../../../shared/lib/time.js";
 import { ALL_BREAK_DAYS, BREAK_NOW_MINUTES, breakRangesOn, cleanBreakDays } from "../../../shared/lib/artistBreak.js";
 import { clientBookingMatch, clientVisibleStatus } from "../clientMatch.js";
 import { isProfileSaved } from "./social.js";
@@ -821,11 +821,6 @@ function toAsciiDigits(value) {
   return String(value ?? "").replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)));
 }
 
-function parseDurationMinutes(value) {
-  const match = toAsciiDigits(value).match(/(\d+)/);
-  return Math.max(15, Number(match?.[1] || 60));
-}
-
 function timeToMinutes(value) {
   const [hours = "0", minutes = "0"] = toAsciiDigits(value).split(":");
   return (Number(hours) || 0) * 60 + (Number(minutes) || 0);
@@ -839,7 +834,7 @@ export async function listArtistBookedSlots(artistUserId, { excludeBookingId = n
   const db = runner || (await getDb());
   const services = await listArtistServices(artistUserId, db);
   const serviceDurationMap = Object.fromEntries(
-    services.map((service) => [service.name, parseDurationMinutes(service.duration)])
+    services.map((service) => [service.name, parseServiceDurationMinutes(service.duration)])
   );
   const excluded = new Set([excludeBookingId, ...excludeBookingIds].filter((id) => id != null).map(Number));
   const rows = await all(db, `
@@ -1021,7 +1016,7 @@ export async function addArtistBookingInTx(artistUserId, data, runner = null) {
   const durationMinutes = Math.min(720, Math.max(
     15,
     Number(data.durationMinutes || data.duration_minutes)
-      || parseDurationMinutes(data.duration)
+      || parseServiceDurationMinutes(data.duration)
       || 60
   ));
   if (!bookingDate || !time) {

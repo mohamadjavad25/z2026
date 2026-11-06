@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, X } from "lucide-react";
-import { formatTomanNumber, parseTomanAmount } from "../shared/lib/money";
+import { servicePriceText } from "../shared/lib/money";
 import { useBackHandler } from "../shared/hooks/useBackHandler";
 
 /**
@@ -24,7 +24,6 @@ export function ServicePhotoViewer({ service, picked = false, browseOnly = false
   }, [service, onClose]);
 
   if (!service || !photos.length) return null;
-  const amount = parseTomanAmount(service.price);
 
   return (
     <>
@@ -54,7 +53,7 @@ export function ServicePhotoViewer({ service, picked = false, browseOnly = false
         ) : null}
         <div className="spvInfo">
           <h3>{service.name}</h3>
-          {service.priceHidden ? null : <span className="spvPrice">{amount ? `${formatTomanNumber(amount)} تومان` : "قیمت توافقی"}</span>}
+          {service.priceHidden ? null : <span className="spvPrice">{servicePriceText(service.price) || "قیمت توافقی"}</span>}
         </div>
         {browseOnly ? null : (
           <button type="button" className={`spvPick${picked ? " is-picked" : ""}`} onClick={() => { onPick?.(); onClose(); }}>

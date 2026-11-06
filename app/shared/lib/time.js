@@ -16,9 +16,23 @@ export function buildUpcomingWeekDays(count = 7) {
   });
 }
 
+/**
+ * The minutes a service's written length says: «۴۵ دقیقه», «۴۵», «۲ ساعت», «۱ ساعت و نیم», «۲ ساعت و ۳۰ دقیقه», «نیم ساعت»,
+ * «۱:۳۰». 0 when it says none. A range («۱ تا ۲ ساعت») counts as its longer end, so a calendar never holds too little.
+ */
+export function durationTextMinutes(value) {
+  const text = toAsciiDigits(String(value ?? "")).replace(/٫/g, ".").trim();
+  const clock = text.match(/^(\d{1,2}):(\d{2})$/);
+  if (clock) return Number(clock[1]) * 60 + Number(clock[2]);
+  if (!/ساعت/.test(text)) return Number(text.match(/\d+/)?.[0] || 0);
+  const hours = [...text.matchAll(/(\d+(?:\.\d+)?)\s*(?=ساعت)/g)].at(-1)?.[1];
+  const base = hours ? Number(hours) * 60 : /نیم\s*ساعت/.test(text) ? 30 : /ربع\s*ساعت/.test(text) ? 15 : 60;
+  const extra = Number(text.match(/(\d+)\s*دقیقه/)?.[1] || 0) + (/و\s*نیم/.test(text) ? 30 : 0) + (/و\s*ربع/.test(text) ? 15 : 0);
+  return Math.round(base + extra);
+}
+
 export function parseServiceDurationMinutes(value) {
-  const match = toLatinDigits(String(value ?? "")).match(/(\d+)/);
-  return Math.max(15, Number(match?.[1] || 60));
+  return Math.max(15, durationTextMinutes(value) || 60);
 }
 
 export function timeLabelToMinutes(value) {

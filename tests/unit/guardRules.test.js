@@ -12,6 +12,11 @@ describe("guard: added lines", () => {
     expect(blocks([{ file: "docs/PROJECT_NOTES.md", line: 1, text: "ZIBABAN_* renamed" }])).toHaveLength(0);
   });
 
+  it("stops digits being pulled out of a written price", () => {
+    expect(blocks([{ file: "app/features/x.jsx", line: 1, text: "const amount = parseTomanAmount(service.price);" }])).toHaveLength(1);
+    expect(blocks([{ file: "app/admin/x.jsx", line: 1, text: "setAmount(parseTomanAmount(event.target.value))" }])).toHaveLength(0);
+  });
+
   it("stops «دنبال کردن» in the app", () => {
     expect(blocks([{ file: "app/features/x/Button.jsx", line: 1, text: "<b>دنبال کردن</b>" }])).toHaveLength(1);
   });

@@ -17,7 +17,6 @@ import { apiFetch } from "../../shared/api/client";
 import { answerProposal } from "../../shared/api/providerExit";
 import { notifyFromResponse } from "../../shared/lib/apiNotify";
 import { bundleServices } from "../../shared/lib/serviceBundle";
-import { salonServiceCatalog } from "./constants";
 import { isBookingAhead } from "../client/bookingStatus";
 
 const initialBooking = {
@@ -33,10 +32,8 @@ export function getVisibleSalonServiceItems(salon) {
   return [];
 }
 
-export function getBookableSalonServiceItems(salon) {
-  const visible = getVisibleSalonServiceItems(salon);
-  return visible.length ? visible : salonServiceCatalog;
-}
+/** Only what the salon itself saved: an empty menu stays empty, because the server refuses anything else anyway. */
+export const getBookableSalonServiceItems = getVisibleSalonServiceItems;
 
 /**
  * Salon **client** directory: public list, storefront, follow/save, booking modal.

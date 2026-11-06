@@ -3,6 +3,7 @@ import { bookingStartMs } from "../../../shared/lib/reminderTiming.js";
 import { dateKeyAfter } from "../../../shared/lib/artistPlace.js";
 import { timeLabelToMinutes } from "../../../shared/lib/time.js";
 import { toLatinDigits } from "../../../shared/lib/digits.js";
+import { plainPriceAmount } from "../../../shared/lib/money.js";
 
 /**
  * Leave, terms and the ledger between a salon and a team artist (owner's decision 2026-10-28, docs/DECISIONS.md;
@@ -29,11 +30,8 @@ export function parsePercent(text) {
   return value !== null && value <= 100 ? value : null;
 }
 
-/** «۴۵۰٬۰۰۰» / «450,000» / «۴۵۰۰۰۰ تومان» → 450000; "" or text → 0. */
-export function parseAmount(text) {
-  const digits = toLatinDigits(String(text ?? "")).replace(/[,٬\s]/g, "").match(/^\d{1,12}/);
-  return digits ? Number(digits[0]) : 0;
-}
+/** «۴۵۰٬۰۰۰» / «450,000» / «۴۵۰۰۰۰ تومان» / «۴۵۰ هزار» → 450000; "" or a price with no exact amount → 0. */
+export const parseAmount = plainPriceAmount;
 
 const validKey = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
 const validTime = (value) => /^[0-9۰-۹]{1,2}:[0-9۰-۹]{2}$/.test(String(value || "").trim());

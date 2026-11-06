@@ -123,7 +123,7 @@
 .sduItemBody { flex: 1; min-width: 0; display: grid; gap: 2px; }
 .sduItemBody b { font-size: 0.88rem; font-weight: 900; }
 .sduItemBody small { color: var(--n-600); font-size: 0.74rem; font-weight: 700; }
-.sduItemPrice { font-size: 0.88rem; font-weight: 900; white-space: nowrap; }
+.sduItemPrice { max-width: 45%; text-align: end; overflow-wrap: anywhere; font-size: 0.88rem; font-weight: 900; }
 .sduItemPrice small { color: var(--n-600); font-size: 0.68rem; font-weight: 700; }
 .sduCheck { width: 22px; height: 22px; flex: none; box-sizing: border-box; display: grid; place-items: center; border: 2px solid var(--n-300); border-radius: 7px; color: transparent; transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
 /* Pink: picking a service is part of a booking (owner's decision 2026-11-04, one look for salon and artist pages). */
@@ -165,7 +165,7 @@
 .sopBody { flex: 1; min-width: 0; display: grid; gap: 2px; }
 .sopBody b { font-size: 0.9rem; font-weight: 900; }
 .sopBody small { color: var(--n-600); font-size: 0.74rem; font-weight: 700; }
-.sopPrice { flex: none; font-size: 0.88rem; font-weight: 900; white-space: nowrap; }
+.sopPrice { flex: none; max-width: 45%; text-align: end; overflow-wrap: anywhere; font-size: 0.88rem; font-weight: 900; }
 .sopPrice small { color: var(--n-600); font-size: 0.68rem; font-weight: 700; }
 .sopGo { flex: none; color: var(--n-400); }
 .sopRow.is-static { cursor: default; }

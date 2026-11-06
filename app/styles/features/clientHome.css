@@ -168,7 +168,7 @@
 .brSvc > span:not(.serviceIcon) { flex: 1; min-width: 0; display: grid; gap: 1px; }
 .brSvc b { font-size: 0.95rem; font-weight: 950; }
 .brSvc small { color: var(--n-600); font-size: 0.74rem; font-weight: 800; }
-.brSvc em { flex: 0 0 auto; font-style: normal; font-size: 0.9rem; font-weight: 950; font-variant-numeric: tabular-nums; }
+.brSvc em { flex: 0 0 auto; max-width: 45%; text-align: end; overflow-wrap: anywhere; font-style: normal; font-size: 0.9rem; font-weight: 950; font-variant-numeric: tabular-nums; }
 .brSvc em small { font-size: 0.68rem; }
 .brRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 12px; border-top: 1px dashed var(--n-150); font-size: 0.82rem; }
 .brRow span { display: inline-flex; align-items: center; gap: 6px; color: var(--n-600); font-weight: 800; }
