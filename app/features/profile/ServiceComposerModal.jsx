@@ -10,6 +10,7 @@ import { ServiceEmojiPicker } from "../../components/ServiceEmojiPicker";
 import { EMOJI_CATEGORIES } from "../../shared/constants/beautyEmoji";
 import { categoriesForSpecialties } from "../../shared/constants/serviceCatalog";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { groupTypedAmount } from "../../shared/lib/money";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
 
 // The catalog is shown a page at a time: ~30 gradient SVG icons in one scroll box exhausted tile memory
@@ -384,7 +385,7 @@ export function ServiceComposerModal({
                 <span>قیمت (تومان)</span>
                 <input
                   value={draft.price}
-                  onChange={(event) => onDraftChange?.({ price: event.target.value })}
+                  onChange={(event) => onDraftChange?.({ price: groupTypedAmount(event.target.value) })}
                   placeholder="از ۲.۴ م"
                   inputMode="text"
                 />

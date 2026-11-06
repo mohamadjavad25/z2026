@@ -6,6 +6,7 @@ import { ProfileSheet } from "../profile/ProfileSheet";
 import { getTeamLedger, sendTeamSettlement, setTeamLineAmount } from "../../shared/api/team";
 import { toPersianDigits, toLatinDigits } from "../../shared/lib/digits";
 import { formatPersianDateKey } from "../../shared/lib/persianCalendar";
+import { groupTypedAmount } from "../../shared/lib/money";
 import { keyLabel, toman } from "./teamWeek";
 
 /** «۴۵۰٬۰۰۰» typed in any digits → 450000; null when it is not a whole number. */
@@ -110,7 +111,7 @@ export function TeamLedgerSheet({ open, pair, otherName, onClose }) {
                   <p>{otherName} می‌گه {toman(waiting.paid)} پرداخت شد.{waiting.paid !== waiting.expected ? ` حساب ${toman(waiting.expected)} بود.` : ""}</p>
                   {paying === "dispute" ? (
                     <div className="tlPay">
-                      <label><span>چقدر پرداخت شد؟</span><input inputMode="numeric" value={typed} onChange={(event) => setTyped(event.target.value)} aria-label="مبلغ واقعی" /></label>
+                      <label><span>چقدر پرداخت شد؟</span><input inputMode="numeric" value={typed} onChange={(event) => setTyped(groupTypedAmount(event.target.value))} aria-label="مبلغ واقعی" /></label>
                       <button type="button" className="is-pink" disabled={busy} onClick={submitPaying}>ثبت</button>
                     </div>
                   ) : (
@@ -125,7 +126,7 @@ export function TeamLedgerSheet({ open, pair, otherName, onClose }) {
           ) : totals.net !== 0 && !totals.unknown ? (
             paying === "start" ? (
               <section className="tlPay" aria-label="تصفیه">
-                <label><span>چقدر پرداخت شد؟</span><input inputMode="numeric" value={typed} onChange={(event) => setTyped(event.target.value)} aria-label="مبلغ پرداخت‌شده" /></label>
+                <label><span>چقدر پرداخت شد؟</span><input inputMode="numeric" value={typed} onChange={(event) => setTyped(groupTypedAmount(event.target.value))} aria-label="مبلغ پرداخت‌شده" /></label>
                 <button type="button" className="is-pink" disabled={busy} onClick={submitPaying}>ثبت تصفیه</button>
                 <button type="button" className="ttLink" onClick={() => setPaying(null)}>بیخیال</button>
               </section>
@@ -146,7 +147,7 @@ export function TeamLedgerSheet({ open, pair, otherName, onClose }) {
                     </span>
                     {editLine === line.id ? (
                       <span className="tlEdit">
-                        <input inputMode="numeric" autoFocus value={lineTyped} onChange={(event) => setLineTyped(event.target.value)} aria-label="قیمت تازه" />
+                        <input inputMode="numeric" autoFocus value={lineTyped} onChange={(event) => setLineTyped(groupTypedAmount(event.target.value))} aria-label="قیمت تازه" />
                         <button type="button" disabled={busy} onClick={() => saveLine(line)}>ثبت</button>
                       </span>
                     ) : (
