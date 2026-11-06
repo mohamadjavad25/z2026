@@ -39,7 +39,7 @@ function groupServices(services) {
  * «بستن», the dim backdrop, Back or Escape. `title` is its accessible name. With `browseOnly` (online booking
  * paused) the services are only shown: nothing to pick, no «رزرو».
  */
-export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", browseOnly = false, note = "", ownerLabel = "سالن", onConfirm, onClose }) {
+export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", browseOnly = false, note = "", onConfirm, onClose }) {
   useBackHandler(open, onClose);
   const list = Array.isArray(services) ? services : [];
   // Services the client came for (a category tapped on «سالن و آرتیست من») are listed first, in a group of their own.
@@ -196,7 +196,6 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
         service={photoKey ? list.find((service) => serviceKey(service) === photoKey) : null}
         picked={photoKey ? pickedKeys.includes(photoKey) : false}
         browseOnly={browseOnly}
-        owner={ownerLabel}
         onPick={() => { if (photoKey) toggle(photoKey); }}
         onClose={() => setPhotoKey(null)}
       />

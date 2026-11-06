@@ -188,7 +188,6 @@ export function PublicArtistModal({
             {visitorBar || (
             <>
             <ServicesDropUp
-            ownerLabel="آرتیست"
               open={servicesOpen}
               title={`خدمات ${artist.name || "آرتیست"}`}
               services={services}

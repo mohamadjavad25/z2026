@@ -10,7 +10,7 @@ import { useBackHandler } from "../shared/hooks/useBackHandler";
  * next photo. «همین رو می‌خوام» picks the service (the same pick as tapping its row) and closes this; with
  * `browseOnly` (online booking paused) there is nothing to pick, so only «بستن» shows.
  */
-export function ServicePhotoViewer({ service, picked = false, browseOnly = false, owner = "سالن", onPick, onClose }) {
+export function ServicePhotoViewer({ service, picked = false, browseOnly = false, onPick, onClose }) {
   useBackHandler(Boolean(service), onClose);
   const photos = Array.isArray(service?.photos) ? service.photos : [];
   const [index, setIndex] = useState(0);
@@ -56,7 +56,6 @@ export function ServicePhotoViewer({ service, picked = false, browseOnly = false
           <h3>{service.name}</h3>
           {service.priceHidden ? null : <span className="spvPrice">{amount ? `${formatTomanNumber(amount)} تومان` : "قیمت توافقی"}</span>}
         </div>
-        <p className="spvNote">نمونه از کارهای {owner}؛ نتیجه کمی فرق می‌کنه.</p>
         {browseOnly ? null : (
           <button type="button" className={`spvPick${picked ? " is-picked" : ""}`} onClick={() => { onPick?.(); onClose(); }}>
             {picked ? <><Check size={16} strokeWidth={3} /> انتخاب شده</> : "همین رو می‌خوام"}

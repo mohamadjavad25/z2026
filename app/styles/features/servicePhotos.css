@@ -68,6 +68,5 @@
 .spvInfo { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 6px; }
 .spvInfo h3 { margin: 0; font-size: 1.05rem; font-weight: 900; }
 .spvPrice { padding: 1px 12px; border-radius: 999px; background: var(--fill-strong); color: var(--n-0); font-size: 0.78rem; font-weight: 900; }
-.spvNote { margin: 0; padding: 0 6px; color: var(--n-600); font-size: 0.74rem; font-weight: 700; }
 .spvPick { min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 18px; background: var(--live-fill); color: var(--on-live-fill); font: inherit; font-size: 0.95rem; font-weight: 900; cursor: pointer; }
 .spvPick.is-picked { background: var(--n-100); color: var(--n-900); }
