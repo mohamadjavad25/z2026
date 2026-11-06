@@ -134,4 +134,44 @@ describe("welcome survey", () => {
     expect(res.payload.data.answers.find((row) => row.user_id === user.id)).toMatchObject({ name: "گزارشی", feel: 3, parts: ["hours"], idea: "ساعت‌ها گیجم کرد" });
     expect((await createClient().get("/api/admin/welcome-survey")).status).toBe(403);
   });
+
+  it("still comes on the visit that ends the absence, although the footprint refreshed last_seen_at first (the browser's race)", async () => {
+    const { api, user } = await startedArtist("برگشته");
+    expect(await surveyOf(api)).not.toBe(null); // away four days
+    // What the page does 1.5 s after it opens: its first footprint send, before the card is asked for.
+    const first = await api.post("/api/activity", { visitor: "return-visitor-0001", visit: "return-visit-0000001", events: [{ k: "screen", n: "home", ago: 0 }] });
+    expect(first.status).toBe(204);
+    expect((await q("SELECT last_seen_at > NOW() - INTERVAL '1 minute' AS fresh FROM users WHERE id = $1", [user.id]))[0].fresh).toBe(true);
+    expect(await surveyOf(api)).not.toBe(null); // this visit began after four days away
+
+    // A later visit (the last one ended over half an hour ago) is an ordinary one.
+    await q("UPDATE users SET last_seen_at = NOW() - INTERVAL '40 minutes' WHERE id = $1", [user.id]);
+    await api.post("/api/activity", { visitor: "return-visitor-0001", visit: "return-visit-0000002", events: [{ k: "screen", n: "home", ago: 0 }] });
+    expect(await surveyOf(api)).toBe(null);
+  });
+
+  it("pushes at most the daily cap in any 24 hours, and the rest wait for the next day", async () => {
+    const sweep = () => fetch(`${TEST_BASE_URL}/api/cron/send-reminders`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${TEST_CRON_SECRET}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ now: "2026-11-05T08:00:00Z" }) // 11:30 in Tehran
+    });
+    const pushedAt = async (id) => (await q("SELECT pushed_at FROM welcome_surveys WHERE user_id = $1", [id]))[0]?.pushed_at;
+    const { user: waiting } = await startedArtist("منتظر سقف");
+    await q("INSERT INTO native_push_tokens (user_id, token) VALUES ($1, $2)", [waiting.id, `survey-cap-${waiting.id}`]);
+    // Fill the day: enough pushes already went out in the last 24 hours.
+    const filler = [];
+    for (let i = 0; i < 20; i += 1) {
+      const api = createClient();
+      const { user } = await registerUser(api, { type: "artist", name: `پر کن ${i}` });
+      await q("INSERT INTO welcome_surveys (user_id, pushed_at) VALUES ($1, NOW())", [user.id]);
+      filler.push(user.id);
+    }
+    expect((await sweep()).ok).toBe(true);
+    expect(await pushedAt(waiting.id)).toBeUndefined(); // the day is full
+
+    await q("UPDATE welcome_surveys SET pushed_at = NOW() - INTERVAL '2 days' WHERE user_id = ANY($1)", [filler.slice(0, 5)]);
+    expect((await sweep()).ok).toBe(true);
+    expect(await pushedAt(waiting.id)).toBeTruthy(); // room again
+  });
 });

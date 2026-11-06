@@ -23,9 +23,21 @@ const FACTS = `
              + (SELECT COUNT(*) FROM artist_bookings b WHERE b.client_user_id = u.id)::int AS bookings
   ) f`;
 
-/** Away long enough to be asked (owner 2026-11-06): not seen for three days, or already pushed (they come back by tapping it). */
+/**
+ * Away long enough to be asked (owner 2026-11-06): not seen for three days, or this visit began after three days away
+ * (prev_seen_at, the end of the previous visit: the first footprint send already refreshed last_seen_at), or already
+ * pushed (they come back by tapping it).
+ */
 const AWAY_DAYS = 3;
-const AWAY = `(s.pushed_at IS NOT NULL OR (u.last_seen_at IS NOT NULL AND u.last_seen_at <= NOW() - INTERVAL '${AWAY_DAYS} days'))`;
+const AWAY = `(s.pushed_at IS NOT NULL
+  OR (u.last_seen_at IS NOT NULL AND u.last_seen_at <= NOW() - INTERVAL '${AWAY_DAYS} days')
+  OR (u.prev_seen_at IS NOT NULL AND u.prev_seen_at <= NOW() - INTERVAL '${AWAY_DAYS} days'))`;
+
+/** The push goes to someone who is away right now; the card waits for whoever comes back. */
+const AWAY_NOW = `(u.last_seen_at IS NOT NULL AND u.last_seen_at <= NOW() - INTERVAL '${AWAY_DAYS} days')`;
+
+/** At most this many pushes a day (owner 2026-11-06): a first run must not wake every old account at once. */
+export const DAILY_PUSH_CAP = 20;
 
 const DUE = `
   u.suspended_at IS NULL AND u.type IN ('artist', 'salon', 'client')
@@ -99,11 +111,18 @@ export async function peopleToPush(limit = 100) {
   const db = await getDb();
   const rows = await all(db, `
     SELECT u.id, u.type, u.name, f.posts, f.services, f.bookings FROM users u ${FACTS}
-    WHERE ${DUE} AND s.pushed_at IS NULL AND u.last_seen_at IS NOT NULL
+    WHERE ${DUE} AND ${AWAY_NOW} AND s.pushed_at IS NULL
       AND (EXISTS (SELECT 1 FROM push_subscriptions p WHERE p.user_id = u.id) OR EXISTS (SELECT 1 FROM native_push_tokens n WHERE n.user_id = u.id))
     ORDER BY u.id LIMIT $1
   `, [limit]);
   return rows.map((row) => ({ id: row.id, ...person(row) }));
+}
+
+/** How many of these pushes went out in the last 24 hours. */
+export async function pushedInLastDay() {
+  const db = await getDb();
+  const row = await get(db, "SELECT COUNT(*)::int AS n FROM welcome_surveys WHERE pushed_at > NOW() - INTERVAL '24 hours'");
+  return row.n;
 }
 
 /** True for the one run that gets to send it, so two sweeps at once can never push twice. */

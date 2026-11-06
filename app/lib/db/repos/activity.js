@@ -51,7 +51,11 @@ export async function recordActivity({ visitId, visitorId, userId = null, device
       UPDATE activity_visits SET user_id = $3::int
       WHERE $3::int IS NOT NULL AND visitor_id = $2 AND user_id IS NULL AND id <> $1 AND EXISTS (SELECT 1 FROM visit)
     ), seen AS (
-      UPDATE users SET last_seen_at = NOW()
+      -- A new visit (the last sign of life is over 30 minutes old) remembers when the previous one ended: the come-back
+      -- nudge asks how long they were away before this visit, which last_seen_at no longer tells once it is refreshed.
+      UPDATE users SET
+        prev_seen_at = CASE WHEN last_seen_at < NOW() - INTERVAL '30 minutes' THEN last_seen_at ELSE prev_seen_at END,
+        last_seen_at = NOW()
       WHERE id = (
         SELECT id FROM users WHERE id = $3::int AND (last_seen_at IS NULL OR last_seen_at < NOW() - INTERVAL '1 minute')
         FOR NO KEY UPDATE SKIP LOCKED
