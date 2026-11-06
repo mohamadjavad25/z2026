@@ -38,7 +38,8 @@ export function useSalonPortfolioActions({
     setSalonWorkDraft({
       id: "new",
       title: "",
-      tag: salonServiceList[0]?.name || "",
+      // No service picked for you: the owner chooses (one service on the menu is picked by the composer itself).
+      tag: "",
       caption: "",
       image: "",
       isPublic: true,

@@ -136,6 +136,8 @@ async function salonPosts({ sessions }) {
 }
 /** Sample photos on services (2026-11-06): مانیکور of the salon gets its three works, کاشت ناخن of الهام gets two. */
 async function servicePhotos(ctx) {
+  // The welcome survey comes to a salon with 3 works and 3 services: put it off so it does not cover these screens.
+  for (const who of ["salon", "artist", "client"]) await ctx.sessions[who].post("/api/welcome-survey", { action: "later" });
   await salonPosts(ctx);
   await artistPosts(ctx);
   const link = async (session, servicesRoute, name, take, asCover = true) => {
@@ -377,6 +379,7 @@ const SCREENS = [
   { id: "salon-service-form-photos-linked", role: "salon", title: "ویرایش خدمت، عکس نمونه وصل شده", setup: servicePhotos, full: true, steps: [toServices, scrollToCard("مانیکور"), async (p) => { await p.locator(".svcCard", { hasText: "مانیکور" }).first().locator(".svcCardOpen").click({ position: { x: 24, y: 24 } }); await p.waitForTimeout(1200); }] },
   { id: "salon-service-photos-picker-icon", role: "salon", title: "برگهٔ عکس نمونه، آیکن بمونه", setup: servicePhotos, steps: [toServices, scrollToCard("براشینگ"), async (p) => { await p.locator(".svcCard", { hasText: "براشینگ" }).locator(".svcPhotoChip").first().click(); await p.waitForTimeout(1500); }] },
   { id: "salon-post-composer-services", role: "salon", title: "ویرایش نمونه‌کار، انتخاب خدمت‌ها و وصل شدن عکس", setup: servicePhotos, steps: [css(".profileModeRail button, [role=tab], button", "نمونه‌کار"), css(".profileGalleryCard"), tap("ویرایش"), async (p) => { await p.waitForTimeout(1500); await p.locator(".pcTags").first().evaluate((el) => el.scrollIntoView({ block: "center" })); await p.waitForTimeout(500); }] },
+  { id: "salon-post-composer-new", role: "salon", title: "نمونه‌کار تازه، انتخاب خدمت", setup: servicePhotos, steps: [css(".profileModeRail button, [role=tab], button", "نمونه‌کار"), async (p) => { await p.locator(".profileGallery input[type=file]").first().setInputFiles(new URL("./samples/work-3.jpg", import.meta.url).pathname); await p.waitForTimeout(2500); }, tap(/همین خوبه/), async (p) => { await p.waitForTimeout(1200); await p.locator(".pcTags").first().evaluate((el) => el.scrollIntoView({ block: "center" })); await p.waitForTimeout(500); }] },
   { id: "salon-service-photos-empty-chip", role: "salon", title: "خدمات سالن، یه خدمت بی‌عکس و یکی با آیکن و دکمهٔ عکس", setup: servicePhotos, steps: [toServices, scrollToCard("رنگ مو")] },
   { id: "artist-service-photos", role: "artist", title: "خدمات آرتیست، کاشت ناخن با عکس نمونه", setup: servicePhotos, steps: [toServices, scrollToCard("کاشت ناخن")] },
   { id: "client-service-photos-list", role: "client", title: "برگهٔ خدمات سالن با عکس نمونه", setup: servicePhotos, steps: [tab(2), async (p) => { await p.locator("button", { hasText: "مانیکور" }).filter({ hasText: "رزرو" }).first().click(); await p.waitForTimeout(1200); }] },

@@ -340,7 +340,7 @@ export function ServiceComposerModal({
                 ) : (
                   <span className="svcIconSlotEmpty"><Plus size={26} /></span>
                 )}
-                <small>{draft.emoji ? "عوض کردن آیکن" : "یه آیکن انتخاب کن"}</small>
+                <small>{draft.emoji || draft.name.trim() ? "عوض کردن آیکن" : "یه آیکن انتخاب کن"}</small>
               </button>
               <label className="svcField">
                 <span>اسم خدمت</span>

@@ -56,7 +56,7 @@ export function ServicePhotosPicker({ name, emoji, initialIds = [], initialAsCov
   const label = empty ? "باشه" : submitLabel || (picked.length ? `ذخیره، ${toPersianDigits(picked.length)} عکس` : "بدون عکس");
 
   return (
-    <ProfileSheet open kicker="عکس نمونه" title={name || "خدمت"} label={`عکس‌های ${name || "خدمت"}`} onClose={onClose}>
+    <ProfileSheet open kicker="عکس نمونه" title={`عکس‌های ${name || "خدمت"}`} label={`عکس‌های ${name || "خدمت"}`} onClose={onClose}>
       <div className="svcPhotosSheet">
         {posts === null ? (
           <p className="svcPhotosHint" role="status">یه لحظه...</p>

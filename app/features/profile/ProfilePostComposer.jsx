@@ -364,7 +364,7 @@ export function ProfilePostComposer({
                         }}
                       >
                         {service.name}
-                        {service.photoCount ? <small>{toPersianDigits(service.photoCount)}/{toPersianDigits(SERVICE_PHOTO_LIMIT)}</small> : null}
+                        {full ? <small>پُره</small> : service.photoCount ? <small>{toPersianDigits(service.photoCount)} عکس</small> : null}
                       </button>
                     );
                   })}
