@@ -2,6 +2,7 @@
 
 import { Camera } from "lucide-react";
 import { toPersianDigits } from "../shared/lib/digits";
+import { ServiceIcon } from "./ServiceIcon";
 
 /** The cover of a service's sample photos, small (a list row). `photos` come from the server as [{ postId, image }]. */
 export function ServiceCover({ photos, size = 56, count = true, className = "" }) {
@@ -43,13 +44,22 @@ export function ServicePhotoPill({ count, onClick, label }) {
   );
 }
 
-/** Owner side: the chip on a service card that opens the photo picker. */
-export function ServicePhotoChip({ service, onClick }) {
+/**
+ * Owner side: the left of a service card. The cover (or the icon) with one small badge on its corner: a camera when
+ * the service has no samples, the camera and a count when it has. Tapping the badge opens the sample picker; the rest
+ * of the card still opens the service editor.
+ */
+export function ServiceLead({ service, onPhotos, size = 76 }) {
   const count = Array.isArray(service?.photos) ? service.photos.length : 0;
   return (
-    <button type="button" className={`svcChip svcPhotoChip${count ? " has-photos" : ""}`} onClick={onClick}>
-      <Camera size={12} />
-      {count ? `${toPersianDigits(count)} نمونه${service.photoAsCover === false ? "، کنار آیکن" : ""}` : "نمونه بذار"}
-    </button>
+    <span className="svcLead">
+      {showsPhotoAsCover(service)
+        ? <ServiceCover photos={service.photos} size={size} count={false} />
+        : <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />}
+      <button type="button" className={`svcPhotoBadge${count ? " has-count" : ""}`} onClick={onPhotos} aria-label={count ? `${toPersianDigits(count)} نمونه برای ${service.name}` : `نمونه بذار برای ${service.name}`}>
+        <Camera size={13} />
+        {count ? toPersianDigits(count) : null}
+      </button>
+    </span>
   );
 }

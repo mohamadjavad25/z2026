@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { formatTomanNumber, parseTomanAmount } from "../shared/lib/money";
-import { toPersianDigits } from "../shared/lib/digits";
 import { useBackHandler } from "../shared/hooks/useBackHandler";
 
 /**
@@ -31,6 +30,7 @@ export function ServicePhotoViewer({ service, picked = false, browseOnly = false
     <>
       <button type="button" className="sduDim spvDim" aria-label="بستن نمونه‌ها" onClick={onClose} />
       <div className="spvSheet" role="dialog" aria-modal="true" aria-label={`نمونه‌های ${service.name}`}>
+        <button type="button" className="spvX" onClick={onClose} aria-label="بستن"><X size={18} /></button>
         <div
           className="spvTrack"
           ref={track}
@@ -54,21 +54,14 @@ export function ServicePhotoViewer({ service, picked = false, browseOnly = false
         ) : null}
         <div className="spvInfo">
           <h3>{service.name}</h3>
-          <div className="spvChips">
-            {service.priceHidden ? null : <span className="is-price">{amount ? `${formatTomanNumber(amount)} تومان` : "قیمت توافقی"}</span>}
-            <span>{service.duration || "مدتش فرق می‌کنه"}</span>
-          </div>
-          <p className="spvNote">
-            {photos.length > 1 ? `${toPersianDigits(photos.length)} نمونه از کارهای ${owner}. ` : `نمونه‌ای از کارهای ${owner}. `}
-            نتیجه روی خودت ممکنه کمی فرق کنه.
-          </p>
+          {service.priceHidden ? null : <span className="spvPrice">{amount ? `${formatTomanNumber(amount)} تومان` : "قیمت توافقی"}</span>}
         </div>
+        <p className="spvNote">نمونه از کارهای {owner}؛ نتیجه کمی فرق می‌کنه.</p>
         {browseOnly ? null : (
           <button type="button" className={`spvPick${picked ? " is-picked" : ""}`} onClick={() => { onPick?.(); onClose(); }}>
-            {picked ? <><Check size={16} strokeWidth={3} /> انتخاب شده، برش دار</> : "همین رو می‌خوام"}
+            {picked ? <><Check size={16} strokeWidth={3} /> انتخاب شده</> : "همین رو می‌خوام"}
           </button>
         )}
-        <button type="button" className="spvClose" onClick={onClose}>بستن</button>
       </div>
     </>
   );

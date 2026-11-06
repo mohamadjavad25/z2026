@@ -423,34 +423,19 @@ export function ServiceComposerModal({
               />
             </label>
 
-            <div className="svcFormPhotos">
-              <span>نمونه برای مشتری (اختیاری)</span>
-              <button type="button" className={`svcFormPhotosBtn${photoCount ? " has-photos" : ""}`} onClick={() => setPhotosOpen(true)}>
-                {photoCount ? (
-                  <span className="svcFormPhotosStrip" aria-hidden="true">
-                    {photoPreview.slice(0, 3).map((photo) => (
-                      <i key={photo.postId}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={`${photo.image}&w=120`} alt="" /></i>
-                    ))}
-                  </span>
-                ) : (
-                  <span className="svcFormPhotosIcon" aria-hidden="true"><Camera size={20} /></span>
-                )}
-                <span>
-                  {photoCount ? (
-                    <>
-                      <b>{toPersianDigits(photoCount)} نمونه وصل شده</b>
-                      <small>{draft.photoAsCover === false ? "آیکن می‌مونه و نمونه‌ها با دکمه باز می‌شن" : "نمونهٔ اصلی جای آیکن می‌شینه"}</small>
-                    </>
-                  ) : (
-                    <>
-                      <b>از نمونه‌کارهات یا گالری وصل کن</b>
-                      <small>مشتری قبل از نوبت می‌بینه این کار چه شکلیه. وصل نکنی، آیکن می‌مونه.</small>
-                    </>
-                  )}
+            <button type="button" className={`svcFormPhotosBtn${photoCount ? " has-photos" : ""}`} onClick={() => setPhotosOpen(true)}>
+              {photoCount ? (
+                <span className="svcFormPhotosStrip" aria-hidden="true">
+                  {photoPreview.slice(0, 3).map((photo) => (
+                    <i key={photo.postId}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={`${photo.image}&w=120`} alt="" /></i>
+                  ))}
                 </span>
-                {photoCount ? <span className="svcFormPhotosEdit">عوض کردن</span> : null}
-              </button>
-            </div>
+              ) : (
+                <span className="svcFormPhotosIcon" aria-hidden="true"><Camera size={18} /></span>
+              )}
+              <b>{photoCount ? `${toPersianDigits(photoCount)} نمونه` : "نمونه برای مشتری (اختیاری)"}</b>
+              {photoCount ? <span className="svcFormPhotosEdit">عوض کردن</span> : null}
+            </button>
 
             {!draft.price.trim() ? (
               <p className="svcFormNote">قیمت رو خالی بذاری، «توافقی» نوشته می‌شه.</p>

@@ -4,8 +4,7 @@ import { useState } from "react";
 import { Check, Plus, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
-import { ServiceIcon } from "../../components/ServiceIcon";
-import { ServiceCover, ServicePhotoChip, showsPhotoAsCover } from "../../components/ServicePhoto";
+import { ServiceLead } from "../../components/ServicePhoto";
 import { ServicePhotosEditor } from "../profile/ServicePhotosSheet";
 import { ServiceGroups } from "../../components/ServiceGroups";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
@@ -81,7 +80,7 @@ export function SalonServicesWorkspace({
                   aria-label={`ویرایش ${service.name}`}
                   onClick={() => onEdit?.(service)}
                 />
-                {showsPhotoAsCover(service) ? <ServiceCover photos={service.photos} size={76} /> : <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />}
+                <ServiceLead service={service} onPhotos={() => setPhotoService(service)} />
                 <div className="svcCardBody">
                   <div className="svcCardTitle"><strong>{service.name}</strong></div>
                   {service.hint ? <p className="svcCardHint">{service.hint}</p> : null}
@@ -89,7 +88,6 @@ export function SalonServicesWorkspace({
                     <span className="svcChip is-price">{service.price ? `${formatTomanNumber(parseTomanAmount(service.price))} تومان` : "قیمت بذار"}</span>
                     <span className="svcChip">{service.duration || "مدت بذار"}</span>
                     <DueServiceChip name={service.name} />
-                    <ServicePhotoChip service={service} onClick={() => setPhotoService(service)} />
                   </div>
                   <div className="serviceArtistPick">
                     <button

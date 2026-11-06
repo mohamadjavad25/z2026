@@ -87,7 +87,7 @@ export function ServicePhotosPicker({ name, emoji, initialIds = [], initialPhoto
       setUploading(false);
     }
   };
-  const label = submitLabel || (picked.length ? `ذخیره، ${toPersianDigits(picked.length)} نمونه` : "بدون نمونه");
+  const label = submitLabel || "تموم";
 
   return (
     <ProfileSheet open kicker="نمونه" title={`نمونه‌های ${name || "خدمت"}`} label={`نمونه‌های ${name || "خدمت"}`} onClose={onClose}>
@@ -96,11 +96,7 @@ export function ServicePhotosPicker({ name, emoji, initialIds = [], initialPhoto
           <p className="svcPhotosHint" role="status">یه لحظه...</p>
         ) : (
           <>
-            <p className="svcPhotosHint">
-              {works.length || own.length
-                ? `تا ${toPersianDigits(SERVICE_PHOTO_LIMIT)} تا انتخاب کن: از نمونه‌کارهات یا یه عکس تازه از گالری. اولی عکس اصلیه. وصل نکنی هم خدمت مثل قبل می‌مونه.`
-                : "هنوز نمونه‌کاری نذاشتی. یه عکس از گالری بذار، یا اول توی «نمونه‌کار» بذار و بعد از همین‌جا وصلش کن."}
-            </p>
+            <p className="svcPhotosHint">{items.length ? `تا ${toPersianDigits(SERVICE_PHOTO_LIMIT)} نمونه؛ اولی اصلیه.` : "یه عکس از گالری بذار."}</p>
             <div className="svcPhotosGrid">
               <button type="button" className="svcPhotosTile is-add" onClick={() => fileRef.current?.click()} disabled={uploading} aria-label="عکس از گالری">
                 <Camera size={22} />
@@ -122,29 +118,22 @@ export function ServicePhotosPicker({ name, emoji, initialIds = [], initialPhoto
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={`${item.image}&w=360`} alt="" loading="lazy" />
                     {on ? <span className="svcPhotosNum">{index === 0 ? <Check size={13} strokeWidth={3} /> : toPersianDigits(index + 1)}</span> : null}
-                    {on && index === 0 ? <em>اصلی</em> : item.fromGallery ? <em className="is-gallery">گالری</em> : null}
+                    {on && index === 0 ? <em>اصلی</em> : null}
                   </button>
                 );
               })}
             </div>
             {picked.length ? (
-              <fieldset className="svcPhotosMode">
-                <legend>تو فهرست خدمات چطور دیده بشه؟</legend>
-                <label className={asCover ? "is-on" : ""}>
-                  <input type="radio" name="svcPhotoMode" checked={asCover} onChange={() => setAsCover(true)} />
-                  <span className="svcPhotosModeRow">
-                    {cover ? <span className="svcModeThumb"><img src={`${cover.image}&w=120`} alt="" /></span> : <span className="svcModeThumb" />}
-                    <span><b>نمونه به‌جای آیکن</b><small>نمونهٔ اصلی همون‌جا می‌نشینه</small></span>
-                  </span>
-                </label>
-                <label className={asCover ? "" : "is-on"}>
-                  <input type="radio" name="svcPhotoMode" checked={!asCover} onChange={() => setAsCover(false)} />
-                  <span className="svcPhotosModeRow">
-                    <span className="svcModeThumb is-icon"><ServiceIcon emoji={emoji} name={name} size="sm" /></span>
-                    <span><b>آیکن بمونه</b><small>نمونه‌ها با یه دکمهٔ کوچیک «{toPersianDigits(picked.length)} نمونه» باز می‌شن</small></span>
-                  </span>
-                </label>
-              </fieldset>
+              <div className="svcPhotosSeg" role="radiogroup" aria-label="تو فهرست خدمات">
+                <button type="button" role="radio" aria-checked={asCover} className={asCover ? "is-on" : ""} onClick={() => setAsCover(true)}>
+                  {cover ? <img src={`${cover.image}&w=80`} alt="" /> : null}
+                  جای آیکن
+                </button>
+                <button type="button" role="radio" aria-checked={!asCover} className={asCover ? "" : "is-on"} onClick={() => setAsCover(false)}>
+                  <ServiceIcon emoji={emoji} name={name} size="xs" />
+                  آیکن بمونه
+                </button>
+              </div>
             ) : null}
           </>
         )}

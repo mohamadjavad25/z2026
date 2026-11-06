@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { CalendarCheck, Plus, Timer } from "lucide-react";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
-import { ServiceIcon } from "../../components/ServiceIcon";
-import { ServiceCover, ServicePhotoChip, showsPhotoAsCover } from "../../components/ServicePhoto";
+import { ServiceLead } from "../../components/ServicePhoto";
 import { ServicePhotosEditor } from "../profile/ServicePhotosSheet";
 import { ServiceGroups } from "../../components/ServiceGroups";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
@@ -57,7 +56,7 @@ export function ArtistServicesPanel({
                 aria-label={`ویرایش ${service.name}`}
                 onClick={() => onEdit?.(service)}
               />
-              {showsPhotoAsCover(service) ? <ServiceCover photos={service.photos} size={76} /> : <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />}
+              <ServiceLead service={service} onPhotos={() => setPhotoService(service)} />
               <div className="svcCardBody">
                 <div className="svcCardTitle">
                   <strong>{service.name}</strong>
@@ -69,7 +68,6 @@ export function ArtistServicesPanel({
                   <span className="svcChip"><Timer size={12} /> {service.duration}</span>
                   <span className="svcChip"><CalendarCheck size={12} /> نوبت می‌گیره</span>
                   <DueServiceChip name={service.name} />
-                  <ServicePhotoChip service={service} onClick={() => setPhotoService(service)} />
                 </div>
               </div>
             </article>

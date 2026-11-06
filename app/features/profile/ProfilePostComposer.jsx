@@ -364,7 +364,7 @@ export function ProfilePostComposer({
                         }}
                       >
                         {service.name}
-                        {full ? <small>پُره</small> : service.photoCount ? <small>{toPersianDigits(service.photoCount)} نمونه</small> : null}
+                        {full ? <small>پُره</small> : null}
                       </button>
                     );
                   })}
@@ -372,10 +372,7 @@ export function ProfilePostComposer({
                 {Array.isArray(value.serviceIds) && value.serviceIds.length ? (
                   <label className="pcLink">
                     <input type="checkbox" checked={!value.noLink} disabled={saving} onChange={(event) => patch({ noLink: !event.target.checked })} />
-                    <span>
-                      <b>این نمونه‌کار روی خدمت هم نشون داده بشه</b>
-                      <small>{value.noLink ? "فقط تو نمونه‌کارها می‌مونه و به خدمت وصل نمی‌شه." : "مشتری موقع انتخاب خدمت این نمونه‌کار رو می‌بینه. هر خدمت تا ۳ نمونه داره."}</small>
-                    </span>
+                    <b>روی خدمت هم نشون بده</b>
                   </label>
                 ) : null}
                 {(() => {
@@ -383,7 +380,7 @@ export function ProfilePostComposer({
                   const fullOnes = linkServices.filter((service) => value.serviceIds.includes(service.id)
                     && service.photoCount >= SERVICE_PHOTO_LIMIT && !(links.postServices?.[value.id] || []).includes(service.id));
                   return fullOnes.length ? (
-                    <small className="pcHint" role="status">«{fullOnes.map((service) => service.name).join("، ")}» الان {toPersianDigits(SERVICE_PHOTO_LIMIT)} نمونه داره؛ این نمونه‌کار بهش وصل نمی‌شه، مگه از «خدمات» یکی رو برداری.</small>
+                    <small className="pcHint" role="status">«{fullOnes.map((service) => service.name).join("، ")}» پُره‌ست؛ وصل نمی‌شه.</small>
                   ) : null;
                 })()}
               </>
