@@ -47,13 +47,40 @@ export const PHOTO_TOO_BIG = "عکس باید کمتر از ۱۵ مگ باشه."
 /** Some Android galleries hand over a photo with no type at all; the picker only offers images, so that one counts. */
 export const isPickedImage = (file) => Boolean(file) && (!file.type || file.type.startsWith("image/"));
 
-/**
- * The person is told in Persian, so nothing is thrown; this keeps us told as well, with what the phone said and what it
- * handed over. The health page shows these under the source "handled".
- */
-export function noteUnreadablePhoto(file, failure) {
+/** How long to wait before the second and third try. Short enough that a person only sees the photo arrive a moment late. */
+export const PHOTO_RETRY_WAITS_MS = [300, 900];
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// What we need to tell why one phone fails only sometimes: how long the app had been open and how new the photo was.
+function photoFacts(file, failure, tries) {
   const size = Math.round((Number(file?.size) || 0) / 1024);
-  reportClientError(new Error(`photo unreadable: ${failure?.name || "unknown"}, type "${file?.type || ""}", ${size} KB`), "handled");
+  const appOpen = typeof performance === "undefined" ? "?" : Math.round(performance.now() / 1000);
+  const age = file?.lastModified ? `${Math.round((Date.now() - file.lastModified) / 60000)} min` : "unknown";
+  const said = failure?.cause?.name || failure?.name || "unknown";
+  return `${said}, type "${file?.type || ""}", ${size} KB, tries ${tries}, app open ${appOpen}s, photo age ${age}`;
+}
+
+/**
+ * Runs `attempt` (anything that reads the picked photo) and tries again when it fails: on 2026-11-06 the owner's phone
+ * refused three photos with NotReadableError and handed the same three over minutes later. Rejects with the last failure
+ * once the tries run out. Either way we are told, under the source "handled" on the health page, so we can see whether
+ * trying again helps; the person is told in Persian by the caller.
+ */
+export async function retryPhotoRead(file, attempt) {
+  let failure;
+  for (let tries = 1; tries <= PHOTO_RETRY_WAITS_MS.length + 1; tries += 1) {
+    try {
+      const result = await attempt();
+      if (failure) reportClientError(new Error(`photo read on retry: ${photoFacts(file, failure, tries)}`), "handled");
+      return result;
+    } catch (error) {
+      failure = error;
+      if (tries <= PHOTO_RETRY_WAITS_MS.length) await wait(PHOTO_RETRY_WAITS_MS[tries - 1]);
+    }
+  }
+  reportClientError(new Error(`photo unreadable: ${photoFacts(file, failure, PHOTO_RETRY_WAITS_MS.length + 1)}`), "handled");
+  throw failure;
 }
 
 /** Resolves to a (usually much smaller) data URL. Never rejects -- falls
@@ -67,9 +94,8 @@ export async function compressImageToDataUrl(file, {
 } = {}) {
   let original = "";
   try {
-    original = await readFileAsDataUrl(file);
-  } catch (failure) {
-    noteUnreadablePhoto(file, failure);
+    original = await retryPhotoRead(file, () => readFileAsDataUrl(file));
+  } catch {
     return "";
   }
   try {

@@ -1,6 +1,6 @@
 "use client";
 
-import { isPickedImage, noteUnreadablePhoto } from "../../shared/lib/imageCompression";
+import { isPickedImage, retryPhotoRead } from "../../shared/lib/imageCompression";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /** Pictures and voice notes for the support chat, on the browser side. The server checks everything again (app/lib/supportMedia.js). */
@@ -22,10 +22,7 @@ const readAsDataUrl = (blob) =>
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
     // The browser's own words («The requested file could not be read…») would reach the person as the error.
-    reader.onerror = () => {
-      noteUnreadablePhoto(blob, reader.error);
-      reject(new Error("این عکس باز نشد؛ یه عکس دیگه بفرست."));
-    };
+    reader.onerror = () => reject(new Error("این عکس باز نشد؛ یه عکس دیگه بفرست.", { cause: reader.error }));
     reader.readAsDataURL(blob);
   });
 
@@ -37,8 +34,12 @@ export async function prepareImage(file) {
   if (!isPickedImage(file)) throw new Error("فقط عکس می‌شه فرستاد.");
   if (file.type === "image/gif") {
     if (file.size > 3 * 1024 * 1024) throw new Error("این GIF خیلی بزرگه.");
-    return readAsDataUrl(file);
+    return retryPhotoRead(file, () => readAsDataUrl(file));
   }
+  return retryPhotoRead(file, () => shrinkImage(file));
+}
+
+async function shrinkImage(file) {
   // Decoded straight from the file (blob: URLs are not allowed for pictures by the site's CSP); a data URL is the fallback.
   let image;
   try {
@@ -126,7 +127,7 @@ export function useVoiceRecorder({ onLimit } = {}) {
       setError("صدا خیلی کوتاه بود؛ میکروفون رو بزن و حرف بزن.");
       return null;
     }
-    return { data: await readAsDataUrl(blob), durationMs, blob };
+    return { data: await retryPhotoRead(blob, () => readAsDataUrl(blob)), durationMs, blob };
   }, [cleanup]);
 
   const start = useCallback(async () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { UNREADABLE_PHOTO, isPickedImage, noteUnreadablePhoto } from "../../shared/lib/imageCompression";
+import { UNREADABLE_PHOTO, isPickedImage, retryPhotoRead } from "../../shared/lib/imageCompression";
 import { Spinner } from "../../components/Spinner";
 import { useEffect, useRef, useState } from "react";
 import { Camera, Check, ChevronDown, Crop, Globe, ImagePlus, Lock, Pin, Store, Trash2, Upload } from "lucide-react";
@@ -136,9 +136,8 @@ export function ProfilePostComposer({
     }
     setPreparing(true);
     try {
-      setCropSrc(await prepareSource(file));
-    } catch (failure) {
-      noteUnreadablePhoto(file, failure);
+      setCropSrc(await retryPhotoRead(file, () => prepareSource(file)));
+    } catch {
       onNotify?.(UNREADABLE_PHOTO);
       if (startedFromPicker.current) onClose?.();
     } finally {
