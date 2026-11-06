@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { Check, Plus, UserRound } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
-import { ServiceIcon } from "../../components/ServiceIcon";
+import { ServiceLead } from "../../components/ServicePhoto";
+import { ServicePhotosEditor } from "../profile/ServicePhotosSheet";
 import { ServiceGroups } from "../../components/ServiceGroups";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
 import { Mascot } from "../../components/Mascot";
@@ -24,8 +26,11 @@ export function SalonServicesWorkspace({
   onCreate,
   onToggleArtist,
   onClearArtists,
-  onEdit
+  onEdit,
+  onPhotosChanged
 }) {
+  // The service whose sample photos are being picked.
+  const [photoService, setPhotoService] = useState(null);
   return (
     <>
       <div className="svcToolbar">
@@ -75,7 +80,7 @@ export function SalonServicesWorkspace({
                   aria-label={`ویرایش ${service.name}`}
                   onClick={() => onEdit?.(service)}
                 />
-                <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />
+                <ServiceLead service={service} onPhotos={() => setPhotoService(service)} />
                 <div className="svcCardBody">
                   <div className="svcCardTitle"><strong>{service.name}</strong></div>
                   {service.hint ? <p className="svcCardHint">{service.hint}</p> : null}
@@ -178,6 +183,13 @@ export function SalonServicesWorkspace({
           }}</ServiceGroups>
         )}
       </div>
+      {photoService ? (
+        <ServicePhotosEditor
+          service={services.find((item) => item.id === photoService.id) || photoService}
+          onClose={() => setPhotoService(null)}
+          onSaved={onPhotosChanged}
+        />
+      ) : null}
     </>
   );
 }

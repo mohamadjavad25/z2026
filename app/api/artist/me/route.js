@@ -1,3 +1,5 @@
+import { after } from "next/server";
+import { sweepServiceOnlyPosts } from "../../../lib/db/repos/posts.js";
 import { noticeClientBookedByProvider } from "../../../lib/bookingSms.js";
 import { error, json, notFound, requireUserRole, withErrorHandling, readObjectBody } from "../../../lib/http.js";
 import { checkWaitlistSoon } from "../../../lib/waitlist.js";
@@ -119,6 +121,8 @@ async function _POST(request) {
   if (typeof body.name !== "string" || !body.name.trim()) return error("اسم کار رو بنویس.", 400);
   const service = await artists.addArtistService(auth.user.id, body);
   if (service?.limit) return json({ error: SERVICE_LIMIT_MESSAGE, code: "SERVICE_LIMIT" }, { status: 409 });
+  // Gallery photos of services that nobody uses any more go away (after the answer is sent).
+  after(() => sweepServiceOnlyPosts(auth.user.id).catch(() => {}));
   return json({ data: { service } }, { status: 201 });
 }
 
@@ -133,6 +137,8 @@ async function _PATCH(request) {
   if (problem) return error(problem, 400);
   const service = await artists.updateArtistService(Number(body.id), auth.user.id, body);
   if (!service) return notFound();
+  // Gallery photos of services that nobody uses any more go away (after the answer is sent).
+  after(() => sweepServiceOnlyPosts(auth.user.id).catch(() => {}));
   return json({ data: { service } });
 }
 

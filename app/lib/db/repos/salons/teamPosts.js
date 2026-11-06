@@ -50,8 +50,9 @@ export async function listArtistTeamPosts(artistUserId, runner = null) {
  */
 export async function sendTeamPost(artistUserId, postId, salonUserId) {
   return withTransaction(null, async (db) => {
-    const post = await get(db, "SELECT id, is_public FROM posts WHERE id = $1 AND owner_user_id = $2", [postId, artistUserId]);
-    if (!post) return { ok: false, code: "NOT_FOUND" };
+    const post = await get(db, "SELECT id, is_public, in_portfolio FROM posts WHERE id = $1 AND owner_user_id = $2", [postId, artistUserId]);
+    // A service's own gallery photo is not a work: it cannot be sent to a salon.
+    if (!post || !post.in_portfolio) return { ok: false, code: "NOT_FOUND" };
     if (!post.is_public) return { ok: false, code: "PRIVATE" };
     const staff = await get(db, `
       SELECT id FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2 AND NOT is_owner ORDER BY id LIMIT 1 FOR UPDATE

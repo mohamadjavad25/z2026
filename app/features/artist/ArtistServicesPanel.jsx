@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { CalendarCheck, Plus, Timer } from "lucide-react";
 import { formatTomanNumber, parseTomanAmount } from "../../shared/lib/money";
-import { ServiceIcon } from "../../components/ServiceIcon";
+import { ServiceLead } from "../../components/ServicePhoto";
+import { ServicePhotosEditor } from "../profile/ServicePhotosSheet";
 import { ServiceGroups } from "../../components/ServiceGroups";
 import { ServiceIconStrip } from "../../components/ServiceIconStrip";
 import { ProfileEmptyState } from "../profile/ProfileEmptyState";
@@ -16,8 +18,11 @@ import { DueRemindersButton, DueServiceChip } from "../dueReminders/DueReminders
 export function ArtistServicesPanel({
   services = [],
   onCreate,
-  onEdit
+  onEdit,
+  onPhotosChanged
 }) {
+  // The service whose sample photos are being picked.
+  const [photoService, setPhotoService] = useState(null);
   return (
     <section className="artistServiceBoard" aria-label="مدیریت خدمات آرتیست">
       <div className="svcToolbar">
@@ -51,7 +56,7 @@ export function ArtistServicesPanel({
                 aria-label={`ویرایش ${service.name}`}
                 onClick={() => onEdit?.(service)}
               />
-              <ServiceIcon emoji={service.emoji} name={service.name} size="xl" />
+              <ServiceLead service={service} onPhotos={() => setPhotoService(service)} />
               <div className="svcCardBody">
                 <div className="svcCardTitle">
                   <strong>{service.name}</strong>
@@ -69,6 +74,13 @@ export function ArtistServicesPanel({
           )}</ServiceGroups>
         )}
       </div>
+      {photoService ? (
+        <ServicePhotosEditor
+          service={services.find((item) => item.id === photoService.id) || photoService}
+          onClose={() => setPhotoService(null)}
+          onSaved={onPhotosChanged}
+        />
+      ) : null}
     </section>
   );
 }

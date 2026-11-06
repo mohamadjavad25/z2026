@@ -2,8 +2,9 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowRight, Check, Plus, Search, Timer, Trash2 } from "lucide-react";
+import { ArrowRight, Camera, Check, Plus, Search, Timer, Trash2 } from "lucide-react";
 import { ServiceEmoji } from "../../components/ServiceEmoji";
+import { ServicePhotosPicker } from "./ServicePhotosSheet";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ServiceEmojiPicker } from "../../components/ServiceEmojiPicker";
 import { EMOJI_CATEGORIES } from "../../shared/constants/beautyEmoji";
@@ -15,8 +16,6 @@ import { useBackHandler } from "../../shared/hooks/useBackHandler";
 // The catalog is shown a page at a time: ~30 gradient SVG icons in one scroll box exhausted tile memory
 // on some Android phones and left static/clipped bands (see docs/DEVLOG.md), so only a few are mounted.
 const CATALOG_PAGE = 8;
-
-const DURATION_CHIPS = ["۱۵ دقیقه", "۳۰ دقیقه", "۴۵ دقیقه", "۶۰ دقیقه", "۹۰ دقیقه", "۱۲۰ دقیقه", "۱۸۰ دقیقه"];
 
 /**
  * Shared artist + salon service create/edit page.
@@ -47,6 +46,7 @@ export function ServiceComposerModal({
   onDelete
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [photosOpen, setPhotosOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("mine");
@@ -149,6 +149,8 @@ export function ServiceComposerModal({
     }
   };
   const hasName = Boolean(draft.name.trim());
+  const photoPreview = Array.isArray(draft.photoPreview) ? draft.photoPreview : [];
+  const photoCount = photoPreview.length;
   const addedCount = addedNames.size;
 
   return createPortal(
@@ -337,7 +339,7 @@ export function ServiceComposerModal({
                 ) : (
                   <span className="svcIconSlotEmpty"><Plus size={26} /></span>
                 )}
-                <small>{draft.emoji ? "عوض کردن آیکن" : "یه آیکن انتخاب کن"}</small>
+                <small>{draft.emoji || draft.name.trim() ? "عوض کردن آیکن" : "یه آیکن انتخاب کن"}</small>
               </button>
               <label className="svcField">
                 <span>اسم خدمت</span>
@@ -396,18 +398,8 @@ export function ServiceComposerModal({
               </label>
             </div>
 
-            <div className="svcChips" role="group" aria-label="انتخاب سریع مدت">
-              {DURATION_CHIPS.map((option) => (
-                <button
-                  type="button"
-                  key={option}
-                  className={draft.duration === option ? "on" : ""}
-                  onClick={() => onDraftChange?.({ duration: option })}
-                >
-                  {option.replace(" دقیقه", "′")}
-                </button>
-              ))}
-            </div>
+            {/* Suggested durations were taken off (owner, 2026-11-06); the gap stays so the page keeps its shape. */}
+            <div className="svcChipsGap" aria-hidden="true" />
 
             <label className="svcField">
               <span>توضیح کوتاه</span>
@@ -418,6 +410,20 @@ export function ServiceComposerModal({
                 rows={2}
               />
             </label>
+
+            <button type="button" className={`svcFormPhotosBtn${photoCount ? " has-photos" : ""}`} onClick={() => setPhotosOpen(true)}>
+              {photoCount ? (
+                <span className="svcFormPhotosStrip" aria-hidden="true">
+                  {photoPreview.slice(0, 3).map((photo) => (
+                    <i key={photo.postId}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={`${photo.image}&w=120`} alt="" /></i>
+                  ))}
+                </span>
+              ) : (
+                <span className="svcFormPhotosIcon" aria-hidden="true"><Camera size={18} /></span>
+              )}
+              <b>{photoCount ? `${toPersianDigits(photoCount)} نمونه` : "نمونه برای مشتری (اختیاری)"}</b>
+              {photoCount ? <span className="svcFormPhotosEdit">عوض کردن</span> : null}
+            </button>
 
             {!draft.price.trim() ? (
               <p className="svcFormNote">قیمت رو خالی بذاری، «توافقی» نوشته می‌شه.</p>
@@ -437,6 +443,21 @@ export function ServiceComposerModal({
           </form>
         )}
       </article>
+      {photosOpen ? (
+        <ServicePhotosPicker
+          name={draft.name}
+          emoji={draft.emoji}
+          initialIds={draft.photoIds || []}
+          initialPhotos={draft.photoPreview || []}
+          initialAsCover={draft.photoAsCover !== false}
+          submitLabel="تموم"
+          onClose={() => setPhotosOpen(false)}
+          onSubmit={({ ids, asCover, previews }) => {
+            onDraftChange?.({ photoIds: ids, photoAsCover: asCover, photoPreview: previews, photoDirty: true });
+            setPhotosOpen(false);
+          }}
+        />
+      ) : null}
       <ServiceEmojiPicker
         open={pickerOpen}
         value={draft.emoji || ""}

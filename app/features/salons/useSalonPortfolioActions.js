@@ -38,7 +38,8 @@ export function useSalonPortfolioActions({
     setSalonWorkDraft({
       id: "new",
       title: "",
-      tag: salonServiceList[0]?.name || "",
+      // No service picked for you: the owner chooses (one service on the menu is picked by the composer itself).
+      tag: "",
       caption: "",
       image: "",
       isPublic: true,
@@ -59,6 +60,8 @@ export function useSalonPortfolioActions({
     const caption = String(salonWorkDraft.caption || "").trim();
     const isPublic = salonWorkDraft.isPublic !== false;
     const featured = Boolean(salonWorkDraft.featured);
+    // The services this work is a sample photo of (chosen in the composer); none when the owner turned the link off.
+    const serviceLink = Array.isArray(salonWorkDraft.serviceIds) ? { serviceIds: salonWorkDraft.noLink ? [] : salonWorkDraft.serviceIds } : {};
     if (!image) {
       shellNotify("اول یه عکس انتخاب کن.");
       return;
@@ -85,7 +88,8 @@ export function useSalonPortfolioActions({
           ...(image.startsWith("data:") ? { image } : {}),
           caption,
           isPublic,
-          featured
+          featured,
+          ...serviceLink
         });
         if (!ok) {
           shellNotify(payload.error || "ذخیره نشد؛ دوباره بزن.");
@@ -107,7 +111,8 @@ export function useSalonPortfolioActions({
           image,
           caption,
           isPublic,
-          featured
+          featured,
+          ...serviceLink
         });
         if (!ok) {
           shellNotify(payload.error || "نمونه‌کار ذخیره نشد؛ دوباره بزن.");

@@ -99,7 +99,9 @@ export function useArtistWorkActions({
       // URL, and echoing that back used to overwrite the stored image.
       ...(image.startsWith("data:") ? { image } : {}),
       isPublic: editingArtistWork.isPublic !== false,
-      featured: Boolean(editingArtistWork.featured)
+      featured: Boolean(editingArtistWork.featured),
+      // The services this work is a sample photo of (chosen in the composer); none when the owner turned the link off.
+      ...(Array.isArray(editingArtistWork.serviceIds) ? { serviceIds: editingArtistWork.noLink ? [] : editingArtistWork.serviceIds } : {})
     };
     if (artistWorkSaving) return;
     setArtistWorkSaving(true);

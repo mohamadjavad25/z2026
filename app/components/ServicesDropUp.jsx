@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarCheck, Check } from "lucide-react";
 import { ServiceIcon } from "./ServiceIcon";
 import { ServiceIconStrip } from "./ServiceIconStrip";
+import { ServiceCover, ServicePhotoPill, showsPhotoAsCover } from "./ServicePhoto";
+import { ServicePhotoViewer } from "./ServicePhotoViewer";
 import { EMOJI_CATEGORIES, getBeautyEmoji, guessBeautyEmojiId } from "../shared/constants/beautyEmoji";
 import { formatTomanNumber, parseTomanAmount } from "../shared/lib/money";
 import { toPersianDigits } from "../shared/lib/digits";
@@ -52,6 +54,8 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
   const [tab, setTab] = useState("all");
   // Kept while the menu is closed, so reopening it shows the same picks.
   const [pickedKeys, setPickedKeys] = useState([]);
+  // The service whose sample photos are open full size (null = none).
+  const [photoKey, setPhotoKey] = useState(null);
 
   // One matching service: it is already picked, so the client only confirms.
   useEffect(() => {
@@ -66,6 +70,8 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
+
+  useEffect(() => { if (!open) setPhotoKey(null); }, [open]);
 
   if (!open) return null;
 
@@ -128,10 +134,31 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                           key={key}
                           className={`sduItem${on ? " is-selected" : ""}${browseOnly ? " is-static" : ""}`}
                         >
-                          <ServiceIcon emoji={service.emoji} name={service.name} size="sm" />
+                          {showsPhotoAsCover(service) ? (
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              className="sduCoverBtn"
+                              aria-label={`نمونه‌های ${service.name}`}
+                              onClick={(event) => { event.stopPropagation(); setPhotoKey(key); }}
+                              onKeyDown={(event) => {
+                                if (event.key !== "Enter" && event.key !== " ") return;
+                                event.preventDefault();
+                                event.stopPropagation();
+                                setPhotoKey(key);
+                              }}
+                            >
+                              <ServiceCover photos={service.photos} size={56} />
+                            </span>
+                          ) : (
+                            <ServiceIcon emoji={service.emoji} name={service.name} size="sm" />
+                          )}
                           <span className="sduItemBody">
                             <b>{service.name}</b>
                             <small>{service.duration || "مدتش فرق می‌کنه"}</small>
+                            {service.photos?.length && !showsPhotoAsCover(service) ? (
+                              <ServicePhotoPill count={service.photos.length} label={`نمونه‌های ${service.name}`} onClick={() => setPhotoKey(key)} />
+                            ) : null}
                           </span>
                           {service.priceHidden ? null : (
                             <span className="sduItemPrice">
@@ -165,6 +192,13 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
           )}
         </div>
       </div>
+      <ServicePhotoViewer
+        service={photoKey ? list.find((service) => serviceKey(service) === photoKey) : null}
+        picked={photoKey ? pickedKeys.includes(photoKey) : false}
+        browseOnly={browseOnly}
+        onPick={() => { if (photoKey) toggle(photoKey); }}
+        onClose={() => setPhotoKey(null)}
+      />
     </>
   );
 }

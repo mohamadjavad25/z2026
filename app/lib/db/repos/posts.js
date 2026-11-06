@@ -2,6 +2,7 @@ import { getDb, all, get, run, withTransaction } from "../connection.js";
 import { uploadImageDataUrl, deleteStoredImage } from "../../storage.js";
 import { ensureMediaColumns } from "../mediaSchema.js";
 import { resendTeamPostAfterNewImage } from "./salons/teamPosts.js";
+import { setPostServices } from "./servicePhotos.js";
 
 // Both image/ownerAvatar are stored as raw data:<type>;base64,<data> strings
 // in the DB but shipped here as media-endpoint URLs, never inline -- this
@@ -21,6 +22,7 @@ function mapPost(row) {
     image: row.image ? `/api/media/post/${row.id}?v=${row.updated_at ? new Date(row.updated_at).getTime() : 0}` : "",
     caption: row.caption || "",
     isPublic: Boolean(row.is_public),
+    inPortfolio: row.in_portfolio !== false,
     featured: Boolean(row.featured),
     saves: String(row.saves_count || 0),
     views: String(row.views_count || 0),
@@ -35,7 +37,7 @@ function mapPost(row) {
 }
 
 const postSelect = `
-  SELECT p.id, p.owner_user_id, p.title, p.tag, p.caption, p.is_public, p.featured, p.saves_count, p.views_count, p.created_at, p.updated_at, p.image_url,
+  SELECT p.id, p.owner_user_id, p.title, p.tag, p.caption, p.is_public, p.in_portfolio, p.featured, p.saves_count, p.views_count, p.created_at, p.updated_at, p.image_url,
     (p.image <> '' OR p.image_url IS NOT NULL) AS image,
     u.name AS owner_name,
     u.type AS owner_type,
@@ -100,7 +102,7 @@ async function countPinned(db, ownerUserId, exceptId = 0) {
 async function syncOwnerPostCount(db, ownerUserId) {
   await run(db, `
     UPDATE salons SET post_count = (
-      SELECT COUNT(*) FROM posts WHERE owner_user_id = $1 AND is_public
+      SELECT COUNT(*) FROM posts WHERE owner_user_id = $1 AND is_public AND in_portfolio
     ) WHERE user_id = $1
   `, [ownerUserId]);
 }
@@ -113,7 +115,7 @@ export async function listPostsByOwner(ownerUserId, runner = null, { publicOnly 
   const db = runner || (await getDb());
   const rows = await all(db, `
     ${postSelect}
-    WHERE p.owner_user_id = $1 ${publicOnly ? "AND p.is_public" : ""}
+    WHERE p.owner_user_id = $1 AND p.in_portfolio ${publicOnly ? "AND p.is_public" : ""}
     ORDER BY p.featured DESC, p.created_at DESC, p.id DESC
   `, [ownerUserId]);
   return rows.map(mapPost);
@@ -128,7 +130,9 @@ export async function getPostById(id, runner = null) {
 export async function getVisiblePost(id, viewerUserId = null, runner = null) {
   const post = await getPostById(id, runner);
   if (!post) return null;
-  if (post.isPublic || (viewerUserId && Number(viewerUserId) === Number(post.ownerUserId))) return post;
+  const isOwner = viewerUserId && Number(viewerUserId) === Number(post.ownerUserId);
+  // A service's own gallery photo is only a picture on that service, not a post anyone can open.
+  if (isOwner || (post.isPublic && post.inPortfolio)) return post;
   return null;
 }
 
@@ -165,8 +169,8 @@ export async function createPost(ownerUserId, data, runner = null, options = {})
   const thumb = image ? asThumb(data.thumb) : "";
   const pinned = Boolean(data.featured) && (await countPinned(db, ownerUserId)) < POST_LIMITS.pinned;
   const info = await run(db, `
-    INSERT INTO posts (owner_user_id, title, tag, image, thumb, caption, is_public, featured)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    INSERT INTO posts (owner_user_id, title, tag, image, thumb, caption, is_public, featured, in_portfolio)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING id
   `, [
     ownerUserId,
@@ -176,10 +180,14 @@ export async function createPost(ownerUserId, data, runner = null, options = {})
     thumb,
     clip(data.caption, POST_LIMITS.caption),
     data.isPublic !== false,
-    pinned
+    pinned,
+    // false = a service's own gallery photo: same picture pipeline, but not a work in the portfolio.
+    data.inPortfolio !== false
   ]);
   const postId = Number(info.rows[0].id);
   await syncOwnerPostCount(db, ownerUserId);
+  // The services this post is a sample photo of (service_photos); left out = no link.
+  if (Array.isArray(data.serviceIds)) await setPostServices(ownerUserId, postId, data.serviceIds);
   // Best-effort move to external storage (see app/lib/storage.js).
   if (image) {
     const stored = await get(db, "SELECT updated_at::text AS stamp FROM posts WHERE id = $1", [postId]);
@@ -234,6 +242,7 @@ export async function updatePost(id, ownerUserId, data, runner = null, options =
     imageChanged ? asThumb(data.thumb) : ""
   ]);
   await syncOwnerPostCount(db, ownerUserId);
+  if (Array.isArray(data.serviceIds)) await setPostServices(ownerUserId, id, data.serviceIds);
   if (imageChanged) {
     // A salon approved the old picture, not this one: it goes back to «درخواست‌های تیم» (owner's decision 2026-10-26).
     await resendTeamPostAfterNewImage(id, db);
@@ -300,3 +309,28 @@ export async function listSavedPosts(userId) {
   `, [userId]);
   return rows.map(mapPost);
 }
+
+/**
+ * Removes a service's gallery photos nobody uses any more: posts outside the portfolio that no service links to and
+ * that are older than two hours (an open service form may still be about to link a photo it just uploaded).
+ */
+export async function sweepServiceOnlyPosts(ownerUserId, runner = null) {
+  const db = runner || (await getDb());
+  const rows = await all(db, `
+    SELECT p.id FROM posts p
+    WHERE p.owner_user_id = $1 AND NOT p.in_portfolio AND p.created_at < NOW() - INTERVAL '2 hours'
+      AND NOT EXISTS (SELECT 1 FROM service_photos sp WHERE sp.post_id = p.id)
+  `, [ownerUserId]);
+  for (const row of rows) await deletePost(row.id, ownerUserId, db);
+  return rows.length;
+}
+
+/** How many gallery-only posts (a service's own photos, outside the portfolio) this owner holds. */
+export async function countServiceOnlyPosts(ownerUserId, runner = null) {
+  const db = runner || (await getDb());
+  const row = await get(db, "SELECT COUNT(*)::int AS n FROM posts WHERE owner_user_id = $1 AND NOT in_portfolio", [ownerUserId]);
+  return row.n;
+}
+
+/** The most gallery-only posts one owner can hold: three for each of the 100 services (they are swept when unused). */
+export const MAX_SERVICE_ONLY_POSTS = 300;

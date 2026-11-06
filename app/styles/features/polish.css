@@ -876,7 +876,7 @@ body:has([role="dialog"], [aria-modal="true"], .scOverlay, .supOverlay) .cbtPill
 .svcModeSwitch button[aria-selected="true"] { color: inherit; }
 .artistWorkUploadEmpty span { color: var(--n-700) !important; }
 .artistWorkRow .artistWorkField > span, .artistWorkRow label.artistWorkField > span { color: var(--n-700); }
-.artistWorkForm .pcHint, .artistWorkForm .pcPin i { color: var(--n-700) !important; }
+.artistWorkForm .pcHint { color: var(--n-700) !important; }
 
 /* ═══ Profile completeness: one slim row (2026-10-23) ═══════════════════════ */
 .profileCompleteness {

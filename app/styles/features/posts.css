@@ -48,9 +48,11 @@
 .pcPin > span { display: grid; flex: 1; gap: 2px; }
 .pcPin b { font-size: 0.82rem; font-weight: 900; }
 .pcPin small { color: var(--n-700); font-size: 0.68rem; font-weight: 700; }
-.pcPin i { font-style: normal; padding: 3px 10px; border-radius: 999px; background: var(--n-100); color: var(--n-600); font-size: 0.68rem; font-weight: 900; }
+.pcSwitch { position: relative; flex: none; width: 44px; height: 26px; border-radius: 999px; background: var(--n-300); transition: background-color 0.18s; }
+.pcSwitch::after { content: ""; position: absolute; top: 3px; inset-inline-start: 3px; width: 20px; height: 20px; border-radius: 999px; background: var(--n-0); box-shadow: 0 1px 4px rgb(var(--shadow-rgb) / 0.3); transition: inset-inline-start 0.18s; }
 .pcPin.is-on { border-color: var(--n-900); }
-.pcPin.is-on i { background: var(--fill-strong); color: var(--n-0); }
+.pcPin.is-on .pcSwitch { background: var(--fill-strong); }
+.pcPin.is-on .pcSwitch::after { inset-inline-start: 21px; }
 .pcPin:disabled { opacity: 0.55; cursor: default; }
 .pcPin.is-static { cursor: default; border-style: dashed; }
 .pcPin.is-static small { color: var(--n-600); }

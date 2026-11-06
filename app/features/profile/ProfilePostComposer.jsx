@@ -8,6 +8,8 @@ import { createPortal } from "react-dom";
 import { ImageCropper } from "../../components/ImageCropper";
 import { SheetClose } from "../../components/SheetClose";
 import { toPersianDigits } from "../../shared/lib/digits";
+import { apiFetch } from "../../shared/api/client";
+import { SERVICE_PHOTO_LIMIT } from "./ServicePhotosSheet";
 
 // A photo this small and no bigger than MAX_SOURCE_SIDE goes to the crop step untouched.
 const SMALL_ENOUGH_BYTES = 4 * 1024 * 1024;
@@ -187,6 +189,28 @@ export function ProfilePostComposer({
       : prev));
   }, [needsAutoPick, onlyChoice, onChange]);
 
+  // The owner's services (id, how many sample photos each has) and which services this post is linked to. A post is the
+  // sample photo of the services picked here (up to 3 photos per service); without it only the category (tag) is saved.
+  const [links, setLinks] = useState(null);
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    let alive = true;
+    apiFetch("/api/service-photos").then(({ ok, payload }) => { if (alive) setLinks(ok ? payload?.data || null : null); }).catch(() => {});
+    return () => { alive = false; };
+  }, [isOpen]);
+  const linkServices = links?.services || [];
+  const needsLinkInit = isOpen && Boolean(value) && linkServices.length > 0 && value.serviceIds === undefined;
+  useEffect(() => {
+    if (!needsLinkInit) return;
+    onChange?.((prev) => {
+      if (!prev || prev.serviceIds !== undefined) return prev;
+      const known = links.postServices?.[prev.id] || [];
+      const byTag = linkServices.find((item) => item.name === String(prev.tag || "").trim());
+      const ids = known.length ? known : byTag ? [byTag.id] : linkServices.length === 1 ? [linkServices[0].id] : [];
+      return { ...prev, serviceIds: ids, noLink: false };
+    });
+  }, [needsLinkInit, links, linkServices, onChange]);
+
   if (!value || typeof document === "undefined") return null;
 
   // Categories are exactly the services on the menu; no free typing.
@@ -196,7 +220,7 @@ export function ProfilePostComposer({
     !String(value.title || "").trim() ? "عنوان" : "",
     // A category can only be asked for when the menu has services to pick from; with an empty
     // menu the post goes out without one instead of leaving the button stuck.
-    tagChoices.length && !String(value.tag || "").trim() ? "دسته" : ""
+    (tagChoices.length || linkServices.length) && !String(value.tag || "").trim() ? "دسته" : ""
   ].filter(Boolean);
   const canSubmit = missing.length === 0;
   const isPrivate = value.isPublic === false;
@@ -315,7 +339,51 @@ export function ProfilePostComposer({
         <form className="artistWorkForm" onSubmit={onSubmit}>
           <div className="artistWorkField artistWorkCategoryField">
             <span>این کار مال کدوم خدمته؟</span>
-            {tagChoices.length ? (
+            {linkServices.length ? (
+              <>
+                <div className="pcTags" role="group" aria-label="انتخاب خدمت">
+                  {linkServices.map((service) => {
+                    const chosen = Array.isArray(value.serviceIds) && value.serviceIds.includes(service.id);
+                    const mine = (links.postServices?.[value.id] || []).includes(service.id);
+                    const full = service.photoCount >= SERVICE_PHOTO_LIMIT && !mine;
+                    return (
+                      <button
+                        type="button"
+                        key={service.id}
+                        aria-pressed={chosen}
+                        className={chosen ? "is-on" : ""}
+                        disabled={saving}
+                        onClick={() => {
+                          const current = Array.isArray(value.serviceIds) ? value.serviceIds : [];
+                          const next = chosen ? current.filter((id) => id !== service.id) : [...current, service.id];
+                          const tag = linkServices.find((item) => item.id === next[0])?.name || "";
+                          const title = String(value.title || "").trim();
+                          // The title follows the first service while it is blank or still just a service name.
+                          patch(!title || linkServices.some((item) => item.name === title) ? { serviceIds: next, tag, title: tag } : { serviceIds: next, tag });
+                        }}
+                      >
+                        {service.name}
+                        {full ? <small>پُره</small> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+                {Array.isArray(value.serviceIds) && value.serviceIds.length && !isPrivate ? (
+                  <button type="button" className={`pcPin${value.noLink ? "" : " is-on"}`} aria-pressed={!value.noLink} disabled={saving} onClick={() => patch({ noLink: !value.noLink })}>
+                    <span><b>روی خدمت هم نشون بده</b></span>
+                    <i className="pcSwitch" aria-hidden="true" />
+                  </button>
+                ) : null}
+                {(() => {
+                  if (value.noLink || !Array.isArray(value.serviceIds)) return null;
+                  const fullOnes = linkServices.filter((service) => value.serviceIds.includes(service.id)
+                    && service.photoCount >= SERVICE_PHOTO_LIMIT && !(links.postServices?.[value.id] || []).includes(service.id));
+                  return fullOnes.length ? (
+                    <small className="pcHint" role="status">«{fullOnes.map((service) => service.name).join("، ")}» پُره‌ست؛ وصل نمی‌شه.</small>
+                  ) : null;
+                })()}
+              </>
+            ) : tagChoices.length ? (
               <div className="pcTags" role="radiogroup" aria-label="انتخاب خدمت">
                 {tagChoices.map((tag) => (
                   <button
@@ -325,8 +393,6 @@ export function ProfilePostComposer({
                     aria-checked={value.tag === tag}
                     className={value.tag === tag ? "is-on" : ""}
                     disabled={saving}
-                    // The title follows the service while it is blank or still just a service
-                    // name; a title the user typed stays as it is.
                     onClick={() => {
                       const title = String(value.title || "").trim();
                       patch(!title || tagChoices.includes(title) ? { tag, title: tag } : { tag });
@@ -380,7 +446,7 @@ export function ProfilePostComposer({
                   <Lock size={15} /> فقط من
                 </button>
               </div>
-              <small className="pcHint">{isPrivate ? "توی صفحه‌ت و جستجو دیده نمی‌شه." : "توی صفحه‌ت دیده می‌شه."}</small>
+              {isPrivate ? <small className="pcHint">فقط خودت می‌بینیش.</small> : null}
             </div>
           ) : null}
 
@@ -395,9 +461,9 @@ export function ProfilePostComposer({
               <Pin size={16} />
               <span>
                 <b>سنجاقش کن اول ویترین</b>
-                <small>{pinDisabled ? `بیشتر از ${toPersianDigits(pinLimit)} تا سنجاق نمی‌شه؛ اول یکی رو بردار.` : "کارهای سنجاق‌شده همیشه اول دیده می‌شن."}</small>
+                {pinDisabled ? <small>{`بیشتر از ${toPersianDigits(pinLimit)} تا سنجاق نمی‌شه؛ اول یکی رو بردار.`}</small> : null}
               </span>
-              <i>{value.featured ? "روشن" : "خاموش"}</i>
+              <i className="pcSwitch" aria-hidden="true" />
             </button>
           ) : null}
 
@@ -456,17 +522,18 @@ function SalonSendRow({ team, on, touched, isPrivate, saving, onToggle }) {
         <Store size={16} />
         <span>
           <b>{team.name}</b>
-          <small>{team.name} این پست رو اضافه نکرد.</small>
+          <small>اضافه‌ش نکرد.</small>
         </span>
       </div>
     );
   }
+  // A short status line only when there is something to say: waiting, already there, being taken off, or not possible.
   const hint = isPrivate
-    ? "پست «فقط من» رو نمی‌شه برای سالن فرستاد."
+    ? "برای «فقط من» نمی‌شه."
     : !on
-      ? touched && team.status ? `از صفحهٔ ${team.name} برداشته می‌شه.` : `اگه بفرستی و ${team.name} قبول کنه، با اسمت توی صفحه‌ش میاد.`
-      : touched && !team.status ? `بعد از ذخیره می‌ره پیش ${team.name} تا قبولش کنه.`
-        : team.status === "approved" ? `توی صفحهٔ ${team.name} هست.` : `منتظر تأیید ${team.name}.`;
+      ? touched && team.status ? "برداشته می‌شه." : ""
+      : touched && !team.status ? `بعد از تأیید ${team.name} می‌آد.`
+        : team.status === "approved" ? "توی صفحه‌شه." : `منتظر تأیید ${team.name}.`;
   const shownOn = on && !isPrivate;
   return (
     <button
@@ -479,9 +546,9 @@ function SalonSendRow({ team, on, touched, isPrivate, saving, onToggle }) {
       <Store size={16} />
       <span>
         <b>برای صفحهٔ {team.name} هم بفرست</b>
-        <small>{hint}</small>
+        {hint ? <small>{hint}</small> : null}
       </span>
-      <i>{shownOn ? "روشن" : "خاموش"}</i>
+      <i className="pcSwitch" aria-hidden="true" />
     </button>
   );
 }

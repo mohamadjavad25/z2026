@@ -340,6 +340,7 @@ export function ProfilePanelBody() {
                           onToggleArtist={toggleSalonServiceArtist}
                           onClearArtists={(service) => assignSalonServiceArtist(service, null)}
                           onEdit={editArtistService}
+                          onPhotosChanged={refreshSalonSystemData}
                         />
                         </DueRemindersSection>
                       )}
@@ -486,6 +487,7 @@ export function ProfilePanelBody() {
                     services={artistServiceList}
                     onCreate={openArtistServiceCreate}
                     onEdit={editArtistService}
+                    onPhotosChanged={refreshArtistWorkspace}
                   />
                 </DueRemindersSection>
               )}
