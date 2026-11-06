@@ -468,7 +468,9 @@ describe("today, the end of the day and slots that already passed", () => {
   it("a Friday (default closed day) is refused with SALON_CLOSED for both the weekday name and the key", async () => {
     let fridayOffset = 1;
     while (plain(weekdayAhead(fridayOffset)) !== plain("جمعه")) fridayOffset += 1;
-    for (const dayText of [keyAhead(fridayOffset), "جمعه"]) {
+    // On a Friday the word «جمعه» means today, and 11:00 may already be past: the server then says «این ساعت گذشته» first.
+    const dayTexts = todayIsFriday ? [keyAhead(fridayOffset)] : [keyAhead(fridayOffset), "جمعه"];
+    for (const dayText of dayTexts) {
       const salon = await newSalon();
       const client = await newClient();
       const res = await bookAtSalon(client.api, salon, client, { day: dayText, time: "۱۱:۰۰" });
