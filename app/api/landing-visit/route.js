@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { checkIpRateLimit } from "../../lib/rateLimit.js";
+import { LANDING_VISIT_PER_IP_MIN } from "../../lib/limits.js";
 import { withErrorHandling } from "../../lib/http.js";
 import { countLandingVisit, VISIT_KINDS } from "../../lib/db/repos/landingVisits.js";
 
@@ -10,7 +11,7 @@ export const runtime = "nodejs";
 const schema = z.object({ source: z.string().max(24).optional(), kind: z.enum(VISIT_KINDS) });
 
 async function _POST(request) {
-  const limited = await checkIpRateLimit(request, "landing-visit", 30, 60 * 1000);
+  const limited = await checkIpRateLimit(request, "landing-visit", LANDING_VISIT_PER_IP_MIN, 60 * 1000);
   if (!limited.ok) return NextResponse.json({ ok: false }, { status: 429 });
   let body;
   try {

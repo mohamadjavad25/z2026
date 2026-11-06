@@ -3,6 +3,7 @@ import { requireUser, withErrorHandling } from "../../../../lib/http.js";
 import { ensureDb } from "../../../../lib/db/connection.js";
 import { strictDayKey } from "../../../../lib/validation/bookingSlot.js";
 import { checkIpRateLimit, checkRateLimit } from "../../../../lib/rateLimit.js";
+import { AVAILABILITY_DAYS_GUEST_PER_IP_MIN } from "../../../../lib/limits.js";
 import { freeTimesForDay, readAvailabilityAsk, salonClosedToViewer } from "../../../../lib/salonAvailabilityAsk.js";
 
 export const runtime = "nodejs";
@@ -33,7 +34,7 @@ async function _GET(request) {
   const user = auth.ok ? auth.user : { id: 0, type: "client", guest: true };
   // One question here is up to 14 days of work, so it has its own, smaller allowance.
   const limited = user.guest
-    ? await checkIpRateLimit(request, "availability-days-guest", 30, 60_000)
+    ? await checkIpRateLimit(request, "availability-days-guest", AVAILABILITY_DAYS_GUEST_PER_IP_MIN, 60_000)
     : await checkRateLimit(`availability-days:${user.id}`, 60, 60_000);
   if (!limited.ok) return noStoreJson({ error: "یه کم زیاد زدی؛ چند لحظه صبر کن." }, { status: 429 });
 
