@@ -14,7 +14,7 @@ export async function sweepWelcomeSurvey(now = new Date()) {
   result.candidates = people.length;
   for (const person of people) {
     if (!(await claimPush(person.id))) continue;
-    const sent = await sendPushToUser(person.id, { ...pushText(person), url: "/", ttl: 24 * 3600 }).catch(() => null);
+    const sent = await sendPushToUser(person.id, { ...pushText(person), url: "/", ttl: 24 * 3600, appFirst: true }).catch(() => null);
     if (sent?.sent) result.sent += 1;
   }
   return result;

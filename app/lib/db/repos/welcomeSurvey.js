@@ -23,10 +23,14 @@ const FACTS = `
              + (SELECT COUNT(*) FROM artist_bookings b WHERE b.client_user_id = u.id)::int AS bookings
   ) f`;
 
+/** Away long enough to be asked (owner 2026-11-06): not seen for three days, or already pushed (they come back by tapping it). */
+const AWAY_DAYS = 3;
+const AWAY = `(s.pushed_at IS NOT NULL OR (u.last_seen_at IS NOT NULL AND u.last_seen_at <= NOW() - INTERVAL '${AWAY_DAYS} days'))`;
+
 const DUE = `
   u.suspended_at IS NULL AND u.type IN ('artist', 'salon', 'client')
   AND u.created_at <= NOW() - INTERVAL '${FIRST_WAIT}'
-  AND s.answered_at IS NULL AND COALESCE(s.later_count, 0) < ${MAX_LATER}
+  AND ${AWAY} AND s.answered_at IS NULL AND COALESCE(s.later_count, 0) < ${MAX_LATER}
   AND (s.next_at IS NULL OR s.next_at <= NOW())
   AND CASE WHEN u.type = 'client' THEN f.bookings >= 1 ELSE f.posts >= ${STARTED} OR f.services >= ${STARTED} END`;
 
@@ -72,6 +76,15 @@ export async function saveAnswer(userId, { feel, parts, idea }) {
   `, [Number(userId), feel, kept, String(idea || "").trim().slice(0, MAX_IDEA)]);
 }
 
+/** They sent their note through the support form: the nudge is done for good. */
+export async function markDone(userId) {
+  const db = await getDb();
+  await run(db, `
+    INSERT INTO welcome_surveys (user_id, answered_at) VALUES ($1, NOW())
+    ON CONFLICT (user_id) DO UPDATE SET answered_at = NOW() WHERE welcome_surveys.answered_at IS NULL
+  `, [Number(userId)]);
+}
+
 export async function putOff(userId) {
   const db = await getDb();
   await run(db, `
@@ -86,7 +99,7 @@ export async function peopleToPush(limit = 100) {
   const db = await getDb();
   const rows = await all(db, `
     SELECT u.id, u.type, u.name, f.posts, f.services, f.bookings FROM users u ${FACTS}
-    WHERE ${DUE} AND s.pushed_at IS NULL
+    WHERE ${DUE} AND s.pushed_at IS NULL AND u.last_seen_at IS NOT NULL
       AND (EXISTS (SELECT 1 FROM push_subscriptions p WHERE p.user_id = u.id) OR EXISTS (SELECT 1 FROM native_push_tokens n WHERE n.user_id = u.id))
     ORDER BY u.id LIMIT $1
   `, [limit]);

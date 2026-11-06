@@ -18,6 +18,7 @@ const SUPPORT_TOPICS = {
   bug: "مشکل فنی",
   complaint: "شکایت",
   account: "حساب کاربری",
+  feedback: "نظر و پیشنهاد",
   other: "پیام"
 };
 

@@ -62,7 +62,7 @@ export const SEGMENT_LABEL = {
   incomplete: "سالن و آرتیستِ بدون خدمت"
 };
 
-export const CATEGORY_LABEL = { question: "سؤال", bug: "مشکل فنی", complaint: "شکایت", account: "مشکل حساب", other: "سایر" };
+export const CATEGORY_LABEL = { question: "سؤال", bug: "مشکل فنی", complaint: "شکایت", account: "مشکل حساب", feedback: "نظر و پیشنهاد", other: "سایر" };
 export const REASON_LABEL = { spam: "اسپم یا تبلیغ", inappropriate: "محتوای نامناسب", fake: "جعلی یا گمراه‌کننده", copyright: "کپی از دیگران", other: "سایر" };
 export const STATUS_LABEL = { open: "باز", in_progress: "در حال بررسی", closed: "بسته" };
 export const RESOLUTION_LABEL = { answered: "پاسخ داده شد", hidden_post: "پست پنهان شد", suspended_user: "حساب مسدود شد", dismissed: "ایرادی نبود", broadcast: "پیام همگانی" };

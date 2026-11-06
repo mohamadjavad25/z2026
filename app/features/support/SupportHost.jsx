@@ -10,7 +10,7 @@ import { onOpenSupport, onSupportRead, publishSupportUnread } from "./supportEve
  * home page (SupportButton) or from «ارتباط با پشتیبانی» in settings. It has no button of its own: the floating one
  * covered dates and buttons (owner's choice 2026-10-23). It also keeps the count of replies not read yet.
  */
-export function SupportHost() {
+export function SupportHost({ role = "client" }) {
   const [open, setOpen] = useState(null); // null = closed, otherwise { ticketId?, view? }
 
   const refresh = useCallback(async () => {
@@ -36,5 +36,5 @@ export function SupportHost() {
     };
   }, [refresh]);
 
-  return open ? <SupportCenter initial={open} onClose={() => { setOpen(null); refresh(); }} /> : null;
+  return open ? <SupportCenter initial={open} role={role} onClose={() => { setOpen(null); refresh(); }} /> : null;
 }

@@ -5,6 +5,7 @@ import { checkRateLimit } from "../../lib/rateLimit.js";
 import { clientIp } from "../../lib/adminAuth.js";
 import * as support from "../../lib/db/repos/support.js";
 import { parseAttachments } from "../../lib/supportMedia.js";
+import { ALL_FEEDBACK_SECTIONS, FEEDBACK_KINDS, feedbackSubject } from "../../shared/lib/feedback.js";
 import { smsAdminsSupport, supportTopic } from "../../lib/adminSms.js";
 
 export const runtime = "nodejs";
@@ -22,12 +23,24 @@ async function _POST(request) {
   const body = (await readJson(request)) || {};
   const user = await getUserFromRequest(request);
   const category = support.SUPPORT_CATEGORIES.includes(body.category) ? body.category : "other";
-  const subject = normalizeDigits(String(body.subject || "")).trim().slice(0, 120);
+  let subject = normalizeDigits(String(body.subject || "")).trim().slice(0, 120);
+  // «نظر و پیشنهاد»: a signed-in person's part, kind and optional stars, checked against the fixed lists.
+  let feedback = null;
+  if (category === "feedback") {
+    const section = String(body.section || "");
+    const stars = body.stars == null || body.stars === "" ? null : Number(body.stars);
+    if (!ALL_FEEDBACK_SECTIONS.includes(section) || !FEEDBACK_KINDS.includes(String(body.kind || ""))) return error("بخش و نوع نظرت رو انتخاب کن.", 400);
+    if (stars !== null && !(Number.isInteger(stars) && stars >= 1 && stars <= 5)) return error("ستاره باید از ۱ تا ۵ باشه.", 400);
+    feedback = { section, kind: String(body.kind), stars };
+    subject = feedbackSubject(section);
+  }
   const message = String(body.message || "").trim();
   const files = parseAttachments(body.attachments);
   if (!files.ok) return error(files.error, 400);
   // A signed-in person is in a chat, so «سلام» is enough. A guest gets one message, which has to say something.
   if (!files.items.length && !message) return error("پیامت رو بنویس.", 400);
+  if (category === "feedback" && message.length < 3) return error("یه کم بنویس چی شد.", 400);
+  if (category === "feedback" && !user) return error("برای نظر دادن اول وارد شو.", 401);
   if (!user && !files.items.length && message.length < 10) return error("یه کم بیشتر بنویس (دست‌کم ۱۰ حرف).", 400);
   if (message.length > 2000) return error("پیامت خیلی بلنده (حداکثر ۲۰۰۰ حرف).", 400);
 
@@ -42,7 +55,7 @@ async function _POST(request) {
     return error("زیاد پیام فرستادی؛ یه کم دیگه دوباره بزن.", 429);
   }
 
-  const ticket = await support.createTicket({ kind: "support", userId: user?.id ?? null, contactPhone: phone, category, subject, body: message, attachments: files.items });
+  const ticket = await support.createTicket({ kind: "support", userId: user?.id ?? null, contactPhone: phone, category, subject, body: message, attachments: files.items, feedback });
   smsAdminsSupport("support", { topic: supportTopic(category), who: user?.name || phone });
   return json({ data: { id: ticket.id } }, { status: 201 });
 }
