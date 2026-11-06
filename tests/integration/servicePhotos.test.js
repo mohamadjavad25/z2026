@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { TEST_BASE_URL } from "../globalSetup.js";
 import { createClient, registerUser } from "./helpers.js";
 
 // Sample photos on services (2026-11-06): a service shows up to 3 of its owner's own public portfolio posts.
@@ -135,5 +136,27 @@ describe("service photos", () => {
     const clientUser = createClient();
     await registerUser(clientUser, { type: "client", name: "Link Client" });
     expect((await clientUser.get("/api/service-photos")).status).toBe(403);
+  });
+
+  it("a gallery photo for one service is a post outside the portfolio: shown on the service, never in «نمونه‌کار»", async () => {
+    const salonClient = createClient();
+    const salon = await registerUser(salonClient, { type: "salon", name: "Gallery Salon" });
+    const service = (await salonClient.post("/api/salon-services", { name: "ابرو", price: "1", duration: "30 دقیقه" })).payload.data.service;
+    const work = await post(salonClient, "کار واقعی");
+    const only = await salonClient.post("/api/posts", { title: "ابرو", image: PNG, inPortfolio: false });
+    expect(only.status).toBe(201);
+    const onlyId = only.payload.data.post.id;
+
+    // Not in the owner's list, not on the public page's works.
+    expect((await salonClient.get("/api/posts")).payload.data.posts.map((item) => item.id)).toEqual([work]);
+    expect((await salonClient.get("/api/salon-portfolio")).payload.data.portfolio.map((item) => item.id)).toEqual([work]);
+    const page = (await createClient().get(`/api/salons/${salon.user.id}`)).payload.data.salon;
+    expect(page.portfolio.map((item) => item.id)).toEqual([work]);
+
+    // But it links to the service like a work, and its picture is served.
+    expect((await salonClient.put("/api/service-photos", { serviceId: service.id, postIds: [onlyId, work] })).payload.data.postIds).toEqual([onlyId, work]);
+    const photos = (await createClient().get(`/api/salons/${salon.user.id}`)).payload.data.salon.services[0].photos;
+    expect(photos.map((photo) => photo.postId)).toEqual([onlyId, work]);
+    expect((await fetch(`${TEST_BASE_URL}${photos[0].image}`)).status).toBe(200);
   });
 });

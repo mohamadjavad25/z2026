@@ -1,6 +1,8 @@
+import { after } from "next/server";
 import { error, json, notFound, requireUser, withErrorHandling, readObjectBody } from "../../lib/http.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import { ownerServiceLinks, setServicePhotos } from "../../lib/db/repos/servicePhotos.js";
+import { sweepServiceOnlyPosts } from "../../lib/db/repos/posts.js";
 
 export const runtime = "nodejs";
 
@@ -36,6 +38,8 @@ async function _PUT(request) {
   if (!Array.isArray(body.postIds)) return error("عکس‌ها درست نرسید؛ دوباره بزن.", 400);
   const saved = await setServicePhotos(kind, auth.user.id, serviceId, body.postIds, typeof body.photoAsCover === "boolean" ? { asCover: body.photoAsCover } : {});
   if (!saved) return notFound();
+  // Gallery photos of services that nobody uses any more go away (after the answer is sent).
+  after(() => sweepServiceOnlyPosts(auth.user.id).catch(() => {}));
   return json({ data: { postIds: saved } });
 }
 

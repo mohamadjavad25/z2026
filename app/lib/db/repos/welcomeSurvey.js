@@ -15,7 +15,7 @@ const MAX_IDEA = 1000;
 const FACTS = `
   LEFT JOIN welcome_surveys s ON s.user_id = u.id
   CROSS JOIN LATERAL (
-    SELECT (SELECT COUNT(*) FROM posts p WHERE p.owner_user_id = u.id)::int
+    SELECT (SELECT COUNT(*) FROM posts p WHERE p.owner_user_id = u.id AND p.in_portfolio)::int
              + (SELECT COUNT(*) FROM salon_portfolio sp WHERE sp.salon_user_id = u.id)::int AS posts,
            (SELECT COUNT(*) FROM artist_services a WHERE a.user_id = u.id)::int
              + (SELECT COUNT(*) FROM salon_services sv WHERE sv.salon_user_id = u.id)::int AS services,

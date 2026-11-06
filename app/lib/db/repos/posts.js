@@ -101,7 +101,7 @@ async function countPinned(db, ownerUserId, exceptId = 0) {
 async function syncOwnerPostCount(db, ownerUserId) {
   await run(db, `
     UPDATE salons SET post_count = (
-      SELECT COUNT(*) FROM posts WHERE owner_user_id = $1 AND is_public
+      SELECT COUNT(*) FROM posts WHERE owner_user_id = $1 AND is_public AND in_portfolio
     ) WHERE user_id = $1
   `, [ownerUserId]);
 }
@@ -114,7 +114,7 @@ export async function listPostsByOwner(ownerUserId, runner = null, { publicOnly 
   const db = runner || (await getDb());
   const rows = await all(db, `
     ${postSelect}
-    WHERE p.owner_user_id = $1 ${publicOnly ? "AND p.is_public" : ""}
+    WHERE p.owner_user_id = $1 AND p.in_portfolio ${publicOnly ? "AND p.is_public" : ""}
     ORDER BY p.featured DESC, p.created_at DESC, p.id DESC
   `, [ownerUserId]);
   return rows.map(mapPost);
@@ -166,8 +166,8 @@ export async function createPost(ownerUserId, data, runner = null, options = {})
   const thumb = image ? asThumb(data.thumb) : "";
   const pinned = Boolean(data.featured) && (await countPinned(db, ownerUserId)) < POST_LIMITS.pinned;
   const info = await run(db, `
-    INSERT INTO posts (owner_user_id, title, tag, image, thumb, caption, is_public, featured)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    INSERT INTO posts (owner_user_id, title, tag, image, thumb, caption, is_public, featured, in_portfolio)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING id
   `, [
     ownerUserId,
@@ -177,7 +177,9 @@ export async function createPost(ownerUserId, data, runner = null, options = {})
     thumb,
     clip(data.caption, POST_LIMITS.caption),
     data.isPublic !== false,
-    pinned
+    pinned,
+    // false = a service's own gallery photo: same picture pipeline, but not a work in the portfolio.
+    data.inPortfolio !== false
   ]);
   const postId = Number(info.rows[0].id);
   await syncOwnerPostCount(db, ownerUserId);
@@ -303,4 +305,19 @@ export async function listSavedPosts(userId) {
     ORDER BY s.created_at DESC
   `, [userId]);
   return rows.map(mapPost);
+}
+
+/**
+ * Removes a service's gallery photos nobody uses any more: posts outside the portfolio that no service links to and
+ * that are older than two hours (an open service form may still be about to link a photo it just uploaded).
+ */
+export async function sweepServiceOnlyPosts(ownerUserId, runner = null) {
+  const db = runner || (await getDb());
+  const rows = await all(db, `
+    SELECT p.id FROM posts p
+    WHERE p.owner_user_id = $1 AND NOT p.in_portfolio AND p.created_at < NOW() - INTERVAL '2 hours'
+      AND NOT EXISTS (SELECT 1 FROM service_photos sp WHERE sp.post_id = p.id)
+  `, [ownerUserId]);
+  for (const row of rows) await deletePost(row.id, ownerUserId, db);
+  return rows.length;
 }

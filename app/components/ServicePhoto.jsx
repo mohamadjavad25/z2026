@@ -11,7 +11,7 @@ export function ServiceCover({ photos, size = 56, count = true, className = "" }
     <span className={`svcCover ${className}`.trim()} style={{ "--cover": `${size}px` }} aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={`${list[0].image}&w=240`} alt="" loading="lazy" />
-      {count && list.length > 1 ? <i>{toPersianDigits(list.length)} عکس</i> : null}
+      {count && list.length > 1 ? <i>{toPersianDigits(list.length)} نمونه</i> : null}
     </span>
   );
 }
@@ -38,7 +38,7 @@ export function ServicePhotoPill({ count, onClick, label }) {
       }}
     >
       <Camera size={11} />
-      {toPersianDigits(count)} عکس
+      {toPersianDigits(count)} نمونه
     </span>
   );
 }
@@ -49,7 +49,7 @@ export function ServicePhotoChip({ service, onClick }) {
   return (
     <button type="button" className={`svcChip svcPhotoChip${count ? " has-photos" : ""}`} onClick={onClick}>
       <Camera size={12} />
-      {count ? `${toPersianDigits(count)} عکس نمونه${service.photoAsCover === false ? "، کنار آیکن" : ""}` : "عکس نمونه بذار"}
+      {count ? `${toPersianDigits(count)} نمونه${service.photoAsCover === false ? "، کنار آیکن" : ""}` : "نمونه بذار"}
     </button>
   );
 }

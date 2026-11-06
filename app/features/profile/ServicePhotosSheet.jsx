@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check } from "lucide-react";
+import { useRef } from "react";
+import { Camera, Check } from "lucide-react";
 import { apiFetch } from "../../shared/api/client";
+import { createPost } from "../../shared/api/posts";
+import { PHOTO_TOO_BIG, MAX_PICKED_PHOTO_BYTES, UNREADABLE_PHOTO, compressImageToDataUrl, isPickedImage } from "../../shared/lib/imageCompression";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ProfileSheet } from "./ProfileSheet";
@@ -11,18 +14,23 @@ import { ProfileSheet } from "./ProfileSheet";
 export const SERVICE_PHOTO_LIMIT = 3;
 
 /**
- * Owner — picks the sample photos of one service from their own public portfolio posts and decides how they show:
- * instead of the service icon (the default) or with the icon staying and only a small photo button. Nothing is
- * uploaded here: a photo is a post that is already in «نمونه‌کار». The first one picked is the cover.
+ * Owner — picks the samples of one service and decides how they show: instead of the service icon (the default) or
+ * with the icon staying and only a small button. A sample is one of the owner's own public works from «نمونه‌کار», or a
+ * photo picked from the phone's gallery just for this service (kept as a post outside the portfolio, see
+ * migration 074). The first one picked is the cover.
  *
  * Controlled by its caller: `onSubmit({ ids, asCover, previews })` gets the choice (a service card saves it through the
  * API, the service form keeps it in its draft until it is saved), `submitLabel` names the confirm button.
  */
-export function ServicePhotosPicker({ name, emoji, initialIds = [], initialAsCover = true, submitLabel = "", busy = false, error = "", onSubmit, onClose }) {
+export function ServicePhotosPicker({ name, emoji, initialIds = [], initialPhotos = [], initialAsCover = true, submitLabel = "", busy = false, error = "", onSubmit, onClose }) {
   const [posts, setPosts] = useState(null);
   const [picked, setPicked] = useState(initialIds);
   const [asCover, setAsCover] = useState(initialAsCover !== false);
   const [message, setMessage] = useState("");
+  // Gallery photos of this service (posts outside the portfolio): the ones it already has and the ones added now.
+  const [uploaded, setUploaded] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef(null);
 
   useEffect(() => {
     let alive = true;
@@ -46,45 +54,75 @@ export function ServicePhotosPicker({ name, emoji, initialIds = [], initialAsCov
     });
   };
 
-  const empty = posts && posts.length === 0;
-  const cover = posts?.find((post) => post.id === picked[0]);
+  const works = posts || [];
+  const own = [...initialPhotos.map((photo) => ({ id: photo.postId, image: photo.image, title: photo.title || "" })), ...uploaded]
+    .filter((item, index, list) => !works.some((work) => work.id === item.id) && list.findIndex((other) => other.id === item.id) === index);
+  const items = [...own.map((item) => ({ ...item, fromGallery: true })), ...works];
+  const cover = items.find((item) => item.id === picked[0]);
   const confirm = () => {
-    if (empty) { onClose?.(); return; }
-    const previews = picked.map((id) => posts.find((post) => post.id === id)).filter(Boolean).map((post) => ({ postId: post.id, image: post.image, title: post.title || "" }));
+    const previews = picked.map((id) => items.find((item) => item.id === id)).filter(Boolean).map((item) => ({ postId: item.id, image: item.image, title: item.title || "" }));
     onSubmit?.({ ids: picked, asCover, previews });
   };
-  const label = empty ? "باشه" : submitLabel || (picked.length ? `ذخیره، ${toPersianDigits(picked.length)} عکس` : "بدون عکس");
+
+  const addFromGallery = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setMessage("");
+    if (!isPickedImage(file)) { setMessage(UNREADABLE_PHOTO); return; }
+    if (file.size > MAX_PICKED_PHOTO_BYTES) { setMessage(PHOTO_TOO_BIG); return; }
+    if (picked.length >= SERVICE_PHOTO_LIMIT) { setMessage(`برای هر خدمت تا ${toPersianDigits(SERVICE_PHOTO_LIMIT)} نمونه می‌شه؛ یکی رو بردار.`); return; }
+    setUploading(true);
+    try {
+      const image = await compressImageToDataUrl(file);
+      if (!image) { setMessage(UNREADABLE_PHOTO); return; }
+      const { ok, payload } = await createPost({ title: name || "عکس خدمت", image, inPortfolio: false });
+      const post = payload?.data?.post;
+      if (!ok || !post) { setMessage(payload?.error || "عکس نرفت؛ دوباره بزن."); return; }
+      setUploaded((list) => [...list, { id: post.id, image: post.image, title: post.title || "" }]);
+      setPicked((current) => [...current, post.id]);
+    } catch {
+      setMessage("عکس نرفت؛ دوباره بزن.");
+    } finally {
+      setUploading(false);
+    }
+  };
+  const label = submitLabel || (picked.length ? `ذخیره، ${toPersianDigits(picked.length)} نمونه` : "بدون نمونه");
 
   return (
-    <ProfileSheet open kicker="عکس نمونه" title={`عکس‌های ${name || "خدمت"}`} label={`عکس‌های ${name || "خدمت"}`} onClose={onClose}>
+    <ProfileSheet open kicker="نمونه" title={`نمونه‌های ${name || "خدمت"}`} label={`نمونه‌های ${name || "خدمت"}`} onClose={onClose}>
       <div className="svcPhotosSheet">
         {posts === null ? (
           <p className="svcPhotosHint" role="status">یه لحظه...</p>
-        ) : empty ? (
-          <div className="svcPhotosEmpty" role="status">
-            <b>هنوز نمونه‌کاری نذاشتی</b>
-            <span>اولین کارت رو توی «نمونه‌کار» بذار؛ همون‌جا می‌تونی بگی مال کدوم خدمته، یا بعداً از همین‌جا وصلش کنی.</span>
-          </div>
         ) : (
           <>
-            <p className="svcPhotosHint">از نمونه‌کارهات تا {toPersianDigits(SERVICE_PHOTO_LIMIT)} تا انتخاب کن. اولی عکس اصلیه. وصل نکنی هم خدمت مثل قبل می‌مونه.</p>
+            <p className="svcPhotosHint">
+              {works.length || own.length
+                ? `تا ${toPersianDigits(SERVICE_PHOTO_LIMIT)} تا انتخاب کن: از نمونه‌کارهات یا یه عکس تازه از گالری. اولی عکس اصلیه. وصل نکنی هم خدمت مثل قبل می‌مونه.`
+                : "هنوز نمونه‌کاری نذاشتی. یه عکس از گالری بذار، یا اول توی «نمونه‌کار» بذار و بعد از همین‌جا وصلش کن."}
+            </p>
             <div className="svcPhotosGrid">
-              {posts.map((post) => {
-                const index = picked.indexOf(post.id);
+              <button type="button" className="svcPhotosTile is-add" onClick={() => fileRef.current?.click()} disabled={uploading} aria-label="عکس از گالری">
+                <Camera size={22} />
+                <span>{uploading ? "دارم می‌فرستم…" : "از گالری"}</span>
+              </button>
+              <input ref={fileRef} className="captureInput" type="file" accept="image/*" tabIndex={-1} aria-hidden="true" onChange={addFromGallery} />
+              {items.map((item) => {
+                const index = picked.indexOf(item.id);
                 const on = index >= 0;
                 return (
                   <button
                     type="button"
-                    key={post.id}
+                    key={item.id}
                     className={`svcPhotosTile${on ? " is-picked" : ""}`}
                     aria-pressed={on}
-                    aria-label={post.title || "نمونه‌کار"}
-                    onClick={() => toggle(post.id)}
+                    aria-label={item.title || "نمونه"}
+                    onClick={() => toggle(item.id)}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`${post.image}&w=360`} alt="" loading="lazy" />
+                    <img src={`${item.image}&w=360`} alt="" loading="lazy" />
                     {on ? <span className="svcPhotosNum">{index === 0 ? <Check size={13} strokeWidth={3} /> : toPersianDigits(index + 1)}</span> : null}
-                    {on && index === 0 ? <em>عکس اصلی</em> : null}
+                    {on && index === 0 ? <em>اصلی</em> : item.fromGallery ? <em className="is-gallery">گالری</em> : null}
                   </button>
                 );
               })}
@@ -96,14 +134,14 @@ export function ServicePhotosPicker({ name, emoji, initialIds = [], initialAsCov
                   <input type="radio" name="svcPhotoMode" checked={asCover} onChange={() => setAsCover(true)} />
                   <span className="svcPhotosModeRow">
                     {cover ? <span className="svcModeThumb"><img src={`${cover.image}&w=120`} alt="" /></span> : <span className="svcModeThumb" />}
-                    <span><b>عکس به‌جای آیکن</b><small>عکس اصلی همون‌جا می‌نشینه</small></span>
+                    <span><b>نمونه به‌جای آیکن</b><small>نمونهٔ اصلی همون‌جا می‌نشینه</small></span>
                   </span>
                 </label>
                 <label className={asCover ? "" : "is-on"}>
                   <input type="radio" name="svcPhotoMode" checked={!asCover} onChange={() => setAsCover(false)} />
                   <span className="svcPhotosModeRow">
                     <span className="svcModeThumb is-icon"><ServiceIcon emoji={emoji} name={name} size="sm" /></span>
-                    <span><b>آیکن بمونه</b><small>عکس‌ها با یه دکمهٔ کوچیک «{toPersianDigits(picked.length)} عکس» باز می‌شن</small></span>
+                    <span><b>آیکن بمونه</b><small>نمونه‌ها با یه دکمهٔ کوچیک «{toPersianDigits(picked.length)} نمونه» باز می‌شن</small></span>
                   </span>
                 </label>
               </fieldset>
@@ -111,7 +149,7 @@ export function ServicePhotosPicker({ name, emoji, initialIds = [], initialAsCov
           </>
         )}
         {message || error ? <p className="svcPhotosMsg" role="alert">{message || error}</p> : null}
-        <button type="button" className="svcPhotosSave" disabled={busy || posts === null} onClick={confirm}>
+        <button type="button" className="svcPhotosSave" disabled={busy || uploading || posts === null} onClick={confirm}>
           {busy ? "دارم ذخیره می‌کنم…" : label}
         </button>
       </div>
@@ -132,11 +170,11 @@ export function ServicePhotosEditor({ service, onClose, onSaved }) {
         method: "PUT",
         body: JSON.stringify({ serviceId: service.id, postIds: ids, photoAsCover: asCover })
       });
-      if (!ok) { setError(payload?.error || "عکس‌ها ذخیره نشد؛ دوباره بزن."); return; }
+      if (!ok) { setError(payload?.error || "نمونه‌ها ذخیره نشد؛ دوباره بزن."); return; }
       await onSaved?.();
       onClose?.();
     } catch {
-      setError("عکس‌ها ذخیره نشد؛ دوباره بزن.");
+      setError("نمونه‌ها ذخیره نشد؛ دوباره بزن.");
     } finally {
       setBusy(false);
     }
@@ -146,6 +184,7 @@ export function ServicePhotosEditor({ service, onClose, onSaved }) {
       name={service.name}
       emoji={service.emoji}
       initialIds={(service.photos || []).map((photo) => photo.postId)}
+      initialPhotos={service.photos || []}
       initialAsCover={service.photoAsCover !== false}
       busy={busy}
       error={error}

@@ -139,7 +139,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                               role="button"
                               tabIndex={0}
                               className="sduCoverBtn"
-                              aria-label={`عکس‌های ${service.name}`}
+                              aria-label={`نمونه‌های ${service.name}`}
                               onClick={(event) => { event.stopPropagation(); setPhotoKey(key); }}
                               onKeyDown={(event) => {
                                 if (event.key !== "Enter" && event.key !== " ") return;
@@ -157,7 +157,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                             <b>{service.name}</b>
                             <small>{service.duration || "مدتش فرق می‌کنه"}</small>
                             {service.photos?.length && !showsPhotoAsCover(service) ? (
-                              <ServicePhotoPill count={service.photos.length} label={`عکس‌های ${service.name}`} onClick={() => setPhotoKey(key)} />
+                              <ServicePhotoPill count={service.photos.length} label={`نمونه‌های ${service.name}`} onClick={() => setPhotoKey(key)} />
                             ) : null}
                           </span>
                           {service.priceHidden ? null : (

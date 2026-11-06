@@ -29,8 +29,8 @@ export function ServicePhotoViewer({ service, picked = false, browseOnly = false
 
   return (
     <>
-      <button type="button" className="sduDim spvDim" aria-label="بستن عکس‌ها" onClick={onClose} />
-      <div className="spvSheet" role="dialog" aria-modal="true" aria-label={`عکس‌های ${service.name}`}>
+      <button type="button" className="sduDim spvDim" aria-label="بستن نمونه‌ها" onClick={onClose} />
+      <div className="spvSheet" role="dialog" aria-modal="true" aria-label={`نمونه‌های ${service.name}`}>
         <div
           className="spvTrack"
           ref={track}

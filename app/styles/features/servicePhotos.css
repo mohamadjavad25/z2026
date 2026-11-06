@@ -86,3 +86,8 @@
 .artistWorkForm .pcLink input { flex: none; width: 20px; height: 20px; min-height: 0; padding: 0; margin: 0; accent-color: var(--violet-deep); }
 .pcLink b { display: block; font-size: 0.8rem; font-weight: 900; }
 .pcLink small { display: block; color: var(--n-600); font-size: 0.7rem; font-weight: 700; line-height: 1.7; }
+
+/* owner: the «از گالری» tile of the picker (a photo only for this service) and its small «گالری» mark */
+.svcPhotosTile.is-add { display: grid; place-content: center; justify-items: center; gap: 4px; border: 2px dashed var(--violet-deep); background: var(--violet-soft); color: var(--violet-deep); font: inherit; font-size: 0.72rem; font-weight: 900; }
+.svcPhotosTile.is-add:disabled { opacity: 0.6; }
+.svcPhotosTile em.is-gallery { background: rgb(var(--ink-rgb) / 0.62); }

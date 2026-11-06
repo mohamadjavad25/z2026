@@ -1,6 +1,8 @@
+import { after } from "next/server";
 import { error, json, notFound, requireUserRole, withErrorHandling, readObjectBody } from "../../lib/http.js";
 import { SERVICE_LIMIT_MESSAGE, serviceFieldsProblem } from "../../lib/validation/service.js";
 import * as salons from "../../lib/db/repos/salons.js";
+import { sweepServiceOnlyPosts } from "../../lib/db/repos/posts.js";
 
 export const runtime = "nodejs";
 
@@ -20,6 +22,8 @@ async function _POST(request) {
   if (typeof body.name !== "string" || !body.name.trim()) return error("اسم کار رو بنویس.", 400);
   const service = await salons.addSalonService(auth.user.id, body);
   if (service?.limit) return json({ error: SERVICE_LIMIT_MESSAGE, code: "SERVICE_LIMIT" }, { status: 409 });
+  // Gallery photos of services that nobody uses any more go away (after the answer is sent).
+  after(() => sweepServiceOnlyPosts(auth.user.id).catch(() => {}));
   return json({ data: { service } }, { status: 201 });
 }
 
@@ -31,6 +35,8 @@ async function _PATCH(request) {
   if (problem) return error(problem, 400);
   const service = await salons.updateSalonService(Number(body.id), auth.user.id, body);
   if (!service) return notFound();
+  // Gallery photos of services that nobody uses any more go away (after the answer is sent).
+  after(() => sweepServiceOnlyPosts(auth.user.id).catch(() => {}));
   return json({ data: { service } });
 }
 

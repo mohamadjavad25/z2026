@@ -424,7 +424,7 @@ export function ServiceComposerModal({
             </label>
 
             <div className="svcFormPhotos">
-              <span>عکس نمونه (اختیاری)</span>
+              <span>نمونه برای مشتری (اختیاری)</span>
               <button type="button" className={`svcFormPhotosBtn${photoCount ? " has-photos" : ""}`} onClick={() => setPhotosOpen(true)}>
                 {photoCount ? (
                   <span className="svcFormPhotosStrip" aria-hidden="true">
@@ -438,13 +438,13 @@ export function ServiceComposerModal({
                 <span>
                   {photoCount ? (
                     <>
-                      <b>{toPersianDigits(photoCount)} عکس وصل شده</b>
-                      <small>{draft.photoAsCover === false ? "آیکن می‌مونه و عکس‌ها با دکمه باز می‌شن" : "عکس اصلی جای آیکن می‌شینه"}</small>
+                      <b>{toPersianDigits(photoCount)} نمونه وصل شده</b>
+                      <small>{draft.photoAsCover === false ? "آیکن می‌مونه و نمونه‌ها با دکمه باز می‌شن" : "نمونهٔ اصلی جای آیکن می‌شینه"}</small>
                     </>
                   ) : (
                     <>
-                      <b>از نمونه‌کارهات وصل کن</b>
-                      <small>مشتری قبل از نوبت می‌بینه این کار چه شکلیه. وصل نکنی، همون آیکن می‌مونه.</small>
+                      <b>از نمونه‌کارهات یا گالری وصل کن</b>
+                      <small>مشتری قبل از نوبت می‌بینه این کار چه شکلیه. وصل نکنی، آیکن می‌مونه.</small>
                     </>
                   )}
                 </span>
