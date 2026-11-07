@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { TEST_BASE_URL } from "../globalSetup.js";
 import { newClient, newSalon, q } from "../integration/exitHelpers.js";
@@ -8,6 +9,7 @@ afterAll(closeBrowser);
 
 const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
 const PHOTO = fileURLToPath(new URL("../../scripts/screens/samples/work-1.jpg", import.meta.url));
+const PHOTO_DATA = `data:image/jpeg;base64,${readFileSync(PHOTO).toString("base64")}`;
 
 /** Sample photos on services (2026-11-06), in a real phone-sized browser: the owner's picker and the client's menu. */
 describe("sample photos on services (browser)", () => {
@@ -45,6 +47,49 @@ describe("sample photos on services (browser)", () => {
     await page.locator(".spvX").click();
     await page.locator(".spvSheet").waitFor({ state: "detached" });
     expect(await page.locator(".sduItem.is-selected").count()).toBe(1);
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+
+  it("a work that is a sample of a service shows the service in the post, and «همین رو می‌خوام» picks it in the menu", async () => {
+    const salon = await newSalon("Post Service Salon");
+    const service = (await salon.api.get("/api/salon-services")).payload.data.services[0];
+    const work = (await salon.api.post("/api/posts", { title: "نمونه", tag: service.name, image: PHOTO_DATA })).payload.data.post.id;
+    const plain = (await salon.api.post("/api/posts", { title: "ساده", tag: service.name, image: PHOTO_DATA })).payload.data.post.id;
+    expect((await salon.api.put("/api/service-photos", { serviceId: service.id, postIds: [work], photoAsCover: true })).ok).toBe(true);
+    const client = await newClient("Post Service Client");
+
+    const { page, context, problems } = await newPage({ cookie: client.api.cookie() });
+    page.setDefaultTimeout(8000);
+    await page.goto(`${TEST_BASE_URL}/?open=salon-${salon.id}`, { waitUntil: "networkidle" });
+    if (await page.locator(".sduPanel").count()) await page.locator(".sduDim").first().click({ position: { x: 10, y: 10 } });
+    await page.locator(".sduPanel").waitFor({ state: "detached" });
+
+    // The newest work has no service; the next one does.
+    const tiles = page.locator(".salonClientMosaicTile");
+    await tiles.first().click();
+    await page.locator(".pvSheet").waitFor();
+    const title = await page.locator(".pvTitleRow h3").innerText();
+    if (title === "ساده") {
+      expect(await page.locator(".pvService").count()).toBe(0);
+      await page.locator(".pvNav").first().click();
+    }
+    await page.locator(".pvService").waitFor();
+    expect(await page.locator(".pvService").innerText()).toContain(service.name);
+    await page.locator(".pvServiceBook").click();
+    await page.locator(".pvSheet").waitFor({ state: "detached" });
+    await page.locator(".sduPanel").waitFor();
+    expect(await page.locator(".sduItem.is-selected").count()).toBe(1);
+
+    // While a photo is open the menu steps aside, and the whole post is one tap away.
+    await page.locator(".sduCoverBtn").click();
+    await page.locator(".spvSheet").waitFor();
+    expect(await page.locator(".sduPanel").isVisible()).toBe(false);
+    expect(await page.locator(".spvPost").getAttribute("href")).toBe(`/p/${work}`);
+    await page.locator(".spvX").click();
+    await page.locator(".spvSheet").waitFor({ state: "detached" });
+    expect(await page.locator(".sduPanel").isVisible()).toBe(true);
+    expect(plain).toBeGreaterThan(0);
     expect(problems).toEqual([]);
     await context.close();
   });

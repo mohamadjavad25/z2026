@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, X } from "lucide-react";
 import { servicePriceText } from "../shared/lib/money";
 import { useBackHandler } from "../shared/hooks/useBackHandler";
 
 /**
  * Client — the big sample photos of one service, opened from its row in the services menu. Swipe sideways for the
- * next photo. «همین رو می‌خوام» picks the service (the same pick as tapping its row) and closes this; with
- * `browseOnly` (online booking paused) there is nothing to pick, so only «بستن» shows.
+ * next photo. «دیدن پست کامل» opens the work with its caption. «همین رو می‌خوام» picks the service (the same pick as
+ * tapping its row) and closes this; with `browseOnly` (online booking paused) there is nothing to pick, so only «بستن»
+ * shows. Drawn on the body, so the page's bottom bar cannot show over the dim layer.
  */
 export function ServicePhotoViewer({ service, picked = false, browseOnly = false, onPick, onClose }) {
   useBackHandler(Boolean(service), onClose);
@@ -25,7 +27,7 @@ export function ServicePhotoViewer({ service, picked = false, browseOnly = false
 
   if (!service || !photos.length) return null;
 
-  return (
+  return createPortal(
     <>
       <button type="button" className="sduDim spvDim" aria-label="بستن نمونه‌ها" onClick={onClose} />
       <div className="spvSheet" role="dialog" aria-modal="true" aria-label={`نمونه‌های ${service.name}`}>
@@ -55,12 +57,14 @@ export function ServicePhotoViewer({ service, picked = false, browseOnly = false
           <h3>{service.name}</h3>
           {service.priceHidden ? null : <span className="spvPrice">{servicePriceText(service.price) || "قیمت توافقی"}</span>}
         </div>
+        <a className="spvPost" href={`/p/${photos[index]?.postId}`}>دیدن پست کامل</a>
         {browseOnly ? null : (
           <button type="button" className={`spvPick${picked ? " is-picked" : ""}`} onClick={() => { onPick?.(); onClose(); }}>
             {picked ? <><Check size={16} strokeWidth={3} /> انتخاب شده</> : "همین رو می‌خوام"}
           </button>
         )}
       </div>
-    </>
+    </>,
+    document.body
   );
 }

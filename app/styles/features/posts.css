@@ -31,6 +31,11 @@
 .pvTag { flex: none; padding: 4px 11px; border-radius: 999px; background: var(--n-100); color: var(--n-800); font-size: 0.7rem; font-weight: 850; }
 /* Its natural height for a short caption; a long one scrolls inside this box and nothing else moves. */
 .pvCaption { flex: 0 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; margin: 0; padding-left: 2px; color: var(--n-800); font-size: 0.84rem; font-weight: 700; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
+.pvService { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 16px; background: var(--n-50); }
+.pvServiceText { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.pvServiceText b { font-size: 0.86rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pvServiceText small { color: var(--n-600); font-size: 0.72rem; font-weight: 800; }
+.pvServiceBook { flex: none; min-height: 40px; padding: 0 12px; border: 0; border-radius: 12px; background: var(--live-fill); color: var(--on-live-fill); font: inherit; font-size: 0.78rem; font-weight: 900; cursor: pointer; }
 .pvStats { flex: 0 0 auto; display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--n-600); font-size: 0.72rem; font-weight: 800; }
 .pvStats span { display: inline-flex; align-items: center; gap: 5px; }
 .pvActions { flex: 0 0 auto; display: flex; gap: 8px; padding-bottom: 6px; }

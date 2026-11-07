@@ -196,6 +196,7 @@ export function PublicArtistModal({
               browseOnly={Boolean(artist.onlineBookingPaused)}
               onConfirm={startBooking}
               onClose={() => setServicesOpen(false)}
+              onRequestOpen={() => setServicesOpen(true)}
             />
             <nav className="spvBar" aria-label="نوبت گرفتن">
               <button

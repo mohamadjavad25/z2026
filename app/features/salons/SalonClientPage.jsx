@@ -280,6 +280,7 @@ export function SalonClientPage({
               } : undefined);
             }}
             onClose={() => { setServicesOpen(false); setBookWith(null); }}
+            onRequestOpen={() => setServicesOpen(true)}
           />
           <nav className="spvBar" aria-label="نوبت گرفتن">
             <button

@@ -12,6 +12,7 @@ import { ServicePrice } from "./ServicePrice";
 import { toPersianDigits } from "../shared/lib/digits";
 import { bundleServices, serviceKey } from "../shared/lib/serviceBundle";
 import { useBackHandler } from "../shared/hooks/useBackHandler";
+import { setPostBooking } from "../shared/lib/postBooking";
 
 const OTHER = { id: "other", fa: "سایر" };
 
@@ -38,9 +39,10 @@ function groupServices(services) {
  * order picked, to `onConfirm`. Render it next to the `.spvBar`. It has no
  * header or close button (more room for the list); it closes from the bar's
  * «بستن», the dim backdrop, Back or Escape. `title` is its accessible name. With `browseOnly` (online booking
- * paused) the services are only shown: nothing to pick, no «رزرو».
+ * paused) the services are only shown: nothing to pick, no «رزرو». `onRequestOpen` opens the menu: a post that is a
+ * sample of a service picks it here through shared/lib/postBooking.
  */
-export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", browseOnly = false, note = "", onConfirm, onClose }) {
+export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", browseOnly = false, note = "", onConfirm, onClose, onRequestOpen }) {
   useBackHandler(open, onClose);
   const list = Array.isArray(services) ? services : [];
   // Services the client came for (a category tapped on «سالن و آرتیست من») are listed first, in a group of their own.
@@ -74,6 +76,18 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
 
   useEffect(() => { if (!open) setPhotoKey(null); }, [open]);
 
+  useEffect(() => {
+    if (browseOnly || !onRequestOpen) return undefined;
+    return setPostBooking({
+      services: list,
+      pick: (service) => {
+        const key = serviceKey(service);
+        setPickedKeys((keys) => (keys.includes(key) ? keys : [...keys, key]));
+        onRequestOpen();
+      }
+    });
+  }, [list, browseOnly, onRequestOpen]);
+
   if (!open) return null;
 
   const showTabs = groups.length > 2;
@@ -86,7 +100,7 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
   return (
     <>
       <button type="button" className="sduDim" aria-label="بستن فهرست خدمات" onClick={onClose} />
-      <div className="sduPanel" role="dialog" aria-modal="true" aria-label={title}>
+      <div className={`sduPanel${photoKey ? " is-behind" : ""}`} role="dialog" aria-modal="true" aria-label={title}>
         <div className="sduInner">
           {note ? <p className="sduNote">{note}</p> : null}
           {list.length === 0 ? (

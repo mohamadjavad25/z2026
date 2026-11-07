@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Bookmark, Calendar, ChevronLeft, ChevronRight, Eye, Flag, Lock, Pencil, Pin, Share2 } from "lucide-react";
 import { SheetClose } from "../../components/SheetClose";
+import { ServiceIcon } from "../../components/ServiceIcon";
+import { servicePriceText } from "../../shared/lib/money";
+import { postBookingFor } from "../../shared/lib/postBooking";
 import { ReportSheet } from "../support";
 import { formatPostAge, postCount } from "./postFormat";
 
@@ -69,6 +72,7 @@ export function PostViewer({
 
   const isPrivate = post.isPublic === false;
   const age = formatPostAge(post.createdAt);
+  const linked = canEdit ? null : postBookingFor(post.id);
 
   function handleTouchEnd(event) {
     const start = touchRef.current;
@@ -147,6 +151,17 @@ export function PostViewer({
             {/* The owner does not see how many saved it (owner, 2026-11-06). */}
             {!canEdit ? <span><Bookmark size={14} />{postCount(post.saves)} ذخیره</span> : null}
           </div>
+
+          {linked ? (
+            <div className="pvService">
+              <ServiceIcon emoji={linked.service.emoji} name={linked.service.name} size="sm" />
+              <span className="pvServiceText">
+                <b>{linked.service.name}</b>
+                {linked.service.priceHidden ? null : <small>{servicePriceText(linked.service.price) || "قیمت توافقی"}</small>}
+              </span>
+              <button type="button" className="pvServiceBook" onClick={() => { onClose?.(); linked.book(); }}>همین رو می‌خوام</button>
+            </div>
+          ) : null}
 
           {extra}
 
