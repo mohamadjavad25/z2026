@@ -61,6 +61,7 @@ export function usePublicArtistProfile({
   const publicArtistBookingBusyRef = useRef(false);
   // The salon page this artist was opened from: going back from the artist returns there instead of to an empty tab.
   const fromSalonRef = useRef(null);
+  const [publicArtistFromSalon, setPublicArtistFromSalon] = useState(null);
 
   const publicArtistPortfolio = useMemo(() => {
     if (!selectedPublicArtist?.name) return [];
@@ -157,6 +158,7 @@ export function usePublicArtistProfile({
   const closePublicArtistProfile = useCallback((options) => {
     const salon = fromSalonRef.current;
     fromSalonRef.current = null;
+    setPublicArtistFromSalon(null);
     if (options?.restoreSalon === true && salon && typeof onBackToSalon === "function") onBackToSalon(salon);
     setSelectedPublicArtist(null);
     setPublicArtistView("gallery");
@@ -169,6 +171,7 @@ export function usePublicArtistProfile({
   const openPublicArtistProfile = useCallback(async (artist, options) => {
     if (!artist) return;
     fromSalonRef.current = options?.fromSalon || null;
+    setPublicArtistFromSalon(options?.fromSalon ? { id: options.fromSalon.id, name: options.fromSalon.name || "" } : null);
     if (typeof onBeforeOpen === "function") onBeforeOpen();
     setPublicArtistView("gallery");
     setPublicArtistGalleryFilter("همه");
@@ -465,6 +468,7 @@ export function usePublicArtistProfile({
 
   return {
     selectedPublicArtist,
+    publicArtistFromSalon,
     setSelectedPublicArtist,
     publicArtistView,
     setPublicArtistView,

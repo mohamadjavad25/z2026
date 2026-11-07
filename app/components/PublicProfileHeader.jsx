@@ -16,6 +16,7 @@ export function PublicProfileHeader({
   avatarPosition = "50% 50%",
   name = "",
   area = "",
+  note = null,
   coverBadge = null,
   start = null,
   end = null,
@@ -42,7 +43,7 @@ export function PublicProfileHeader({
       </span>
       <div className="pphMeta">
         <h2>{name}</h2>
-        {area ? <p>{area}</p> : null}
+        {note || (area ? <p>{area}</p> : null)}
       </div>
     </header>
   );

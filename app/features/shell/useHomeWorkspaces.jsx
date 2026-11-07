@@ -96,6 +96,7 @@ export function useHomeWorkspaces({
 
   const {
     selectedPublicArtist,
+    publicArtistFromSalon,
     setSelectedPublicArtist,
     publicArtistView,
     setPublicArtistView,
@@ -266,6 +267,7 @@ export function useHomeWorkspaces({
     cancelPosterUpload,
     openSalonWorkspace,
     selectedPublicArtist,
+    publicArtistFromSalon,
     publicArtistView,
     setPublicArtistView,
     publicArtistGalleryFilter,

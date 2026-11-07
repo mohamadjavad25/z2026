@@ -20,4 +20,11 @@ describe("back from an artist opened on a salon page", () => {
     expect(hook).toContain("options?.restoreSalon === true");
     expect(hook).toContain("fromSalonRef.current = null");
   });
+
+  it("the artist page names the salon it came from and a tap goes back; no services means no booking bar", () => {
+    const modal = read("app/features/artist/PublicArtistModal.jsx");
+    expect(modal).toContain("onClick={onOpenSalon}");
+    expect(modal).toContain("artistPublicNoServices");
+    expect(read("app/features/shell/home/PublicArtistHost.jsx")).toContain("onOpenSalon={() => closePublicArtistProfile({ restoreSalon: true })}");
+  });
 });

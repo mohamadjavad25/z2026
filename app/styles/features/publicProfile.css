@@ -181,3 +181,8 @@
 .artistPublicGrid .artistPublicCardCopy { padding: 6px !important; }
 .artistPublicGrid .artistPublicCardCopy h3 { font-size: 0.64rem !important; line-height: 1.5; }
 .artistPublicGrid .artistPublicWorkTag, .artistPublicGrid .artistPublicCardCopy small { display: none !important; }
+
+/* «توی سالن …» under an artist's name when the page was opened from that salon's page; the salon's name is a button back to it. */
+.pphNote { justify-self: start; max-width: 100%; margin: 0; padding: 0; overflow: hidden; border: 0; background: none; color: var(--accent); font: inherit; font-size: 0.78rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.pphNote:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; border-radius: 6px; }
+.artistPublicNoServices { margin: 12px 20px 0; color: var(--n-600); font-size: 0.8rem; font-weight: 800; text-align: center; }
