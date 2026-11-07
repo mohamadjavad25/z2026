@@ -96,6 +96,7 @@ export function useHomeWorkspaces({
 
   const {
     selectedPublicArtist,
+    publicArtistFromSalon,
     setSelectedPublicArtist,
     publicArtistView,
     setPublicArtistView,
@@ -135,6 +136,7 @@ export function useHomeWorkspaces({
       setSelectedArtistProfile(null);
       setSelectedSalon(null);
     },
+    onBackToSalon: setSelectedSalon,
     onArtistBookingCreated: notifyArtistBookingCreated,
     onClientBooked
   });
@@ -265,6 +267,7 @@ export function useHomeWorkspaces({
     cancelPosterUpload,
     openSalonWorkspace,
     selectedPublicArtist,
+    publicArtistFromSalon,
     publicArtistView,
     setPublicArtistView,
     publicArtistGalleryFilter,
