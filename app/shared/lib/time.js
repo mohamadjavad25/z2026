@@ -4,14 +4,18 @@ export const PUBLIC_BOOKING_DAY_START = 9 * 60;
 export const PUBLIC_BOOKING_DAY_END = 21 * 60;
 export const PUBLIC_BOOKING_SLOT_STEP = 30;
 
+/**
+ * The booking day strip, from today in Iran. The labels are read back by their weekday name, so a list starting on the
+ * phone's own day (another country's clock) made «جمعه ۱۵ آبان» mean the Friday after it. Whole days of milliseconds stay
+ * right because Iran has no daylight saving.
+ */
 export function buildUpcomingWeekDays(count = 7) {
-  const weekdayFmt = new Intl.DateTimeFormat("fa-IR", { weekday: "long" });
-  const dayFmt = new Intl.DateTimeFormat("fa-IR", { day: "numeric" });
-  const monthFmt = new Intl.DateTimeFormat("fa-IR", { month: "long" });
-  const today = new Date();
+  const weekdayFmt = new Intl.DateTimeFormat("fa-IR", { weekday: "long", timeZone: "Asia/Tehran" });
+  const dayFmt = new Intl.DateTimeFormat("fa-IR", { day: "numeric", timeZone: "Asia/Tehran" });
+  const monthFmt = new Intl.DateTimeFormat("fa-IR", { month: "long", timeZone: "Asia/Tehran" });
+  const now = Date.now();
   return Array.from({ length: count }, (_, index) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() + index);
+    const date = new Date(now + index * 24 * 60 * 60 * 1000);
     return `${weekdayFmt.format(date)} ${dayFmt.format(date)} ${monthFmt.format(date)}`;
   });
 }
