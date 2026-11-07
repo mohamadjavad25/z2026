@@ -27,6 +27,7 @@
 .pphMeta h2 { margin: 0; overflow: hidden; color: var(--n-900); font-size: 0.95rem; font-weight: 900; line-height: 1.35; white-space: nowrap; text-overflow: ellipsis; }
 .pphMeta p { margin: 0; color: var(--n-600); font-size: 0.78rem; font-weight: 700; }
 /* The name sits where it does on the owner's own page (smaller, beside the logo); the artist's poster is taller, so it rises to meet it. */
+.pphHero.is-artist .pphMeta { position: relative; z-index: 3; } /* above the cover it rises into, or the cover hides the name */
 .pphHero.is-artist .pphMeta h2 { margin-top: -27px; }
 
 /* ── Under the header: chips, bio, follow / call (stays at the bottom) ── */
