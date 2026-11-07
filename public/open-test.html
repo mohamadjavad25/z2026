@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>فرفرو</title>
+<!--
+  Owner's test, 2026-11-07: a page outside Iran, opened from Instagram, that hands the visitor to the phone's real
+  browser. The address it opens is always on frfro.ir and only a salon or artist page, so it cannot send anyone elsewhere.
+  Open it as /open-test.html?to=/artists/4447
+-->
+<style>
+:root{--bg:#fbf8fd;--ink:#241d2e;--muted:#6c6178;--pink:#f3a6c8;--on-pink:#241d2e;--line:#e4dbec}
+@media (prefers-color-scheme:dark){:root{--bg:#17131d;--ink:#f4effa;--muted:#b2a6bf;--line:#3a3046}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:24px 16px;background:var(--bg);color:var(--ink);font-family:Vazirmatn,Tahoma,"Segoe UI",sans-serif;text-align:center}
+main{display:grid;gap:14px;width:min(360px,100%)}
+h1{margin:0;font-size:1.4rem}
+a,button{display:block;width:100%;min-height:52px;padding:14px;border:0;border-radius:16px;font:inherit;font-weight:800;text-decoration:none;cursor:pointer}
+#open{background:var(--pink);color:var(--on-pink)}
+#copy{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+small{color:var(--muted);direction:ltr}
+</style>
+</head>
+<body>
+<main>
+  <h1>نوبتت رو از فرفرو بگیر</h1>
+  <a id="open" href="#">باز کردن در کروم</a>
+  <button id="copy" type="button">کپی لینک</button>
+  <small id="address"></small>
+</main>
+<script>
+(function () {
+  var wanted = new URLSearchParams(location.search).get("to") || "";
+  var path = /^\/(artists|salons)\/[0-9]{1,15}$/.test(wanted) ? wanted : "/";
+  var target = "https://frfro.ir" + path;
+  var agent = navigator.userAgent || "";
+  var android = /Android/i.test(agent);
+  var iphone = /iPhone|iPad/i.test(agent);
+  var inApp = /Instagram|FBAN|FBAV/i.test(agent);
+  var open = document.getElementById("open");
+  var copy = document.getElementById("copy");
+
+  document.getElementById("address").textContent = target.replace("https://", "");
+  if (android) {
+    open.href = "intent://frfro.ir" + path + "#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=" + encodeURIComponent(target) + ";end";
+  } else if (iphone) {
+    open.href = "x-safari-https://frfro.ir" + path;
+    open.textContent = "باز کردن در سافاری";
+  } else {
+    open.href = target;
+    open.textContent = "باز کردن";
+  }
+
+  copy.addEventListener("click", function () {
+    navigator.clipboard.writeText(target).then(function () { copy.textContent = "کپی شد"; }, function () { copy.textContent = "انگشتت رو روی آدرس نگه دار"; });
+  });
+
+  if (inApp && android) setTimeout(function () { location.href = open.href; }, 400);
+})();
+</script>
+</body>
+</html>
