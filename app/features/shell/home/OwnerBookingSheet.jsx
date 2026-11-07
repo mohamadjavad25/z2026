@@ -10,7 +10,9 @@ import { findSalonHourForDateKey, isSalonHourOpen } from "../../../shared/lib/sa
 import { normalizeServices } from "../../booking/visitBookerModel";
 import { useHome } from "../HomeContext";
 
-const VISIT_DAYS = 7;
+// A salon or an artist may enter any date themselves (owner's decision of 2026-10-25; the 60 days are for clients only):
+// a year ahead, as far as their calendar goes. The form shows these a few weeks at a time.
+export const OWNER_VISIT_DAYS = 365;
 
 /**
  * «ایجاد رزرو» for a salon or an independent artist: VisitBooker with the owner's own data. The
@@ -39,8 +41,8 @@ export function OwnerBookingSheet() {
   const open = Boolean(bookingSheetOpen) && (type === "salon" || type === "artist");
 
   const services = useMemo(() => normalizeServices(role === "artist" ? artistServiceList : salonServiceList), [role, artistServiceList, salonServiceList]);
-  // The next seven days. The salon's closed days are shown but cannot be picked.
-  const days = useMemo(() => buildExactBookingDateTabs(VISIT_DAYS).map((tab) => ({
+  // The salon's closed days are shown but cannot be picked.
+  const days = useMemo(() => buildExactBookingDateTabs(OWNER_VISIT_DAYS).map((tab) => ({
     value: tab.dateKey,
     label: `${tab.label} ${tab.sub || ""}`.trim(),
     closed: role === "salon" && !isSalonHourOpen(findSalonHourForDateKey(salonHoursList, tab.dateKey))

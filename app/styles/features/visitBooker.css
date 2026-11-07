@@ -245,6 +245,7 @@ button.vbWho2[aria-expanded="true"] svg { transform: rotate(180deg); }
 .vbSoonest small { font-size: 0.7rem; font-weight: 800; }
 .vbSoonest b { font-size: 0.98rem; font-weight: 950; }
 .vbCalendar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.vbMoreDays { justify-self: center; }
 .vbDayCard { min-width: 0; display: grid; justify-items: center; gap: 0; padding: 8px 2px; border: 1.5px solid var(--vb-line); border-radius: 16px; background: var(--n-0); color: var(--vb-ink); font: inherit; cursor: pointer; transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease; }
 .vbDayCard:active { transform: scale(0.96); }
 .vbDayCard small { color: var(--vb-muted); font-size: 0.66rem; font-weight: 800; }

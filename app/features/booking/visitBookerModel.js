@@ -13,6 +13,10 @@ import { BOOKING_WAIT_CHOICES } from "../../shared/lib/bookingWindow.js";
  * Roles: "client" (asks a salon for a visit), "salon" (the salon enters its own customer),
  * "artist" (an independent artist enters their own customer).
  */
+/** The salon's and artist's form shows this many days at a time; «روزهای بعد» opens the next ones. */
+export const VISIT_DAYS_STEP = 28;
+/** How many days of the list to show so that `value`, the chosen day, is among them. */
+export const visitDaysShown = (days, value) => Math.max(1, Math.ceil((days.findIndex((item) => item.value === value) + 1) / VISIT_DAYS_STEP)) * VISIT_DAYS_STEP;
 export const MAX_VISIT_SERVICES = MAX_BOOKING_PARTS;
 /** Most people in one request (owner's decision 2026-10-22) and how many services each of them may have. */
 export const MAX_VISIT_PEOPLE = MAX_GROUP_PEOPLE;

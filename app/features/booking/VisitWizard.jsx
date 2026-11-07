@@ -6,7 +6,7 @@ import { ServiceIcon } from "../../components/ServiceIcon";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { PlanList, TimesList } from "./visitBookerParts";
 import { dayDate, dayShort } from "./clientWizardParts";
-import { MAX_VISIT_SERVICES, clockText, visitSummaryText } from "./visitBookerModel";
+import { MAX_VISIT_SERVICES, VISIT_DAYS_STEP, clockText, visitDaysShown, visitSummaryText } from "./visitBookerModel";
 
 const STEPS = ["who", "services", "day", "time", "confirm"];
 
@@ -45,6 +45,37 @@ function DayRail({ days, value, onPick }) {
         </button>
       ))}
     </div>
+  );
+}
+
+/**
+ * The day tiles (owner's decision 2026-11-04: the same tiles as the client's form, one day picker everywhere). The list
+ * can run a year ahead, so it opens a few weeks at a time, always far enough to show the chosen day.
+ */
+export function VisitDayTiles({ days, value, onPick }) {
+  const [shown, setShown] = useState(() => visitDaysShown(days, value));
+  return (
+    <>
+      <div className="vbCalendar" role="group" aria-label="روز">
+        {days.slice(0, shown).map((item) => (
+          <button
+            type="button"
+            key={item.value}
+            aria-pressed={value === item.value}
+            aria-disabled={item.closed || undefined}
+            className={`vbDayCard${value === item.value ? " is-on" : ""}${item.closed ? " is-off" : ""}`}
+            onClick={() => { if (!item.closed) onPick(item.value); }}
+          >
+            <small>{dayShort(item)}</small>
+            <b>{dayDate(item)}</b>
+            <em>{item.closed ? "تعطیل" : ""}</em>
+          </button>
+        ))}
+      </div>
+      {shown < days.length ? (
+        <button type="button" className="vbLink vbMoreDays" onClick={() => setShown(shown + VISIT_DAYS_STEP)}>روزهای بعد</button>
+      ) : null}
+    </>
   );
 }
 
@@ -242,33 +273,13 @@ export function VisitWizard({ role, title, state, controller, services, days, cu
 
           {current === "day" ? (
             <div className="vbAsk">
-              {/* The same day tiles the client's form has (owner's decision 2026-11-04: one day picker everywhere). */}
-              <div className="vbCalendar" role="group" aria-label="روز">
-                {days.map((item) => (
-                  <button
-                    type="button"
-                    key={item.value}
-                    aria-pressed={state.day === item.value}
-                    aria-disabled={item.closed || undefined}
-                    className={`vbDayCard${state.day === item.value ? " is-on" : ""}${item.closed ? " is-off" : ""}`}
-                    onClick={() => {
-                      if (item.closed) return;
-                      controller.setDay(item.value);
-                      go("time");
-                    }}
-                  >
-                    <small>{dayShort(item)}</small>
-                    <b>{dayDate(item)}</b>
-                    <em>{item.closed ? "تعطیل" : ""}</em>
-                  </button>
-                ))}
-              </div>
+              <VisitDayTiles days={days} value={state.day} onPick={(value) => { controller.setDay(value); go("time"); }} />
             </div>
           ) : null}
 
           {current === "time" ? (
             <div className="vbAsk">
-              <DayRail days={days} value={state.day} onPick={(value) => controller.setDay(value)} />
+              <DayRail days={days.slice(0, visitDaysShown(days, state.day))} value={state.day} onPick={(value) => controller.setDay(value)} />
               {noTimes ? (
                 <div className="vbNoTimes">
                   <span className="vbNoTimesIcon"><CalendarX size={26} aria-hidden="true" /></span>
