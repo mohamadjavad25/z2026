@@ -30,6 +30,7 @@ import { salonClientBookingDays, getPublicArtistServices } from "./constants";
  *   onNotice?: (msg: string) => void,
  *   onSelectPost?: (post: Record<string, unknown> | null) => void,
  *   onBeforeOpen?: () => void,
+ *   onBackToSalon?: (salon: unknown) => void,
  *   onArtistBookingCreated?: (artistUserId: number|string) => void | Promise<void>
  * }} options
  */
@@ -41,6 +42,7 @@ export function usePublicArtistProfile({
   onNotice,
   onSelectPost,
   onBeforeOpen,
+  onBackToSalon,
   onArtistBookingCreated,
   onClientBooked
 } = {}) {
@@ -57,6 +59,8 @@ export function usePublicArtistProfile({
   const [publicArtistBundle, setPublicArtistBundle] = useState(null);
   const [publicArtistBookingBusy, setPublicArtistBookingBusy] = useState(false);
   const publicArtistBookingBusyRef = useRef(false);
+  // The salon page this artist was opened from: going back from the artist returns there instead of to an empty tab.
+  const fromSalonRef = useRef(null);
 
   const publicArtistPortfolio = useMemo(() => {
     if (!selectedPublicArtist?.name) return [];
@@ -150,17 +154,21 @@ export function usePublicArtistProfile({
     ));
   }, []);
 
-  const closePublicArtistProfile = useCallback(() => {
+  const closePublicArtistProfile = useCallback((options) => {
+    const salon = fromSalonRef.current;
+    fromSalonRef.current = null;
+    if (options?.restoreSalon === true && salon && typeof onBackToSalon === "function") onBackToSalon(salon);
     setSelectedPublicArtist(null);
     setPublicArtistView("gallery");
     setPublicArtistGalleryFilter("همه");
     setPublicArtistBookingDay(salonClientBookingDays[0]);
     setPublicArtistBookingSlot("");
     setPublicArtistSelectedServiceId("");
-  }, []);
+  }, [onBackToSalon]);
 
-  const openPublicArtistProfile = useCallback(async (artist) => {
+  const openPublicArtistProfile = useCallback(async (artist, options) => {
     if (!artist) return;
+    fromSalonRef.current = options?.fromSalon || null;
     if (typeof onBeforeOpen === "function") onBeforeOpen();
     setPublicArtistView("gallery");
     setPublicArtistGalleryFilter("همه");

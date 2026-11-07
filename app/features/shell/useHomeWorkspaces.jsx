@@ -135,6 +135,7 @@ export function useHomeWorkspaces({
       setSelectedArtistProfile(null);
       setSelectedSalon(null);
     },
+    onBackToSalon: setSelectedSalon,
     onArtistBookingCreated: notifyArtistBookingCreated,
     onClientBooked
   });
