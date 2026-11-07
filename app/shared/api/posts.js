@@ -19,8 +19,9 @@ export async function getPosts() {
 }
 
 /** POST /api/posts → { data: { post } } status 201 */
-export async function createPost(body) {
+export async function createPost(body, options = {}) {
   return apiFetch("/api/posts", {
+    ...options,
     method: "POST",
     body: JSON.stringify(await withThumb(body))
   });

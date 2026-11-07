@@ -4,14 +4,16 @@ import { useEffect, useState } from "react";
 import { useRef } from "react";
 import { Camera, Check } from "lucide-react";
 import { apiFetch } from "../../shared/api/client";
-import { createPost } from "../../shared/api/posts";
 import { PHOTO_TOO_BIG, MAX_PICKED_PHOTO_BYTES, UNREADABLE_PHOTO, compressImageToDataUrl, isPickedImage } from "../../shared/lib/imageCompression";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { ProfileSheet } from "./ProfileSheet";
+import { PHOTO_NOT_SENT, uploadServicePhoto } from "./uploadServicePhoto";
 
 /** A service shows at most this many sample photos (same number as the server's MAX_SERVICE_PHOTOS). */
 export const SERVICE_PHOTO_LIMIT = 3;
+/** After this long the tile says the wait is the line's, not a frozen screen. */
+const SLOW_UPLOAD_MS = 10_000;
 
 /**
  * Owner — picks the samples of one service and decides how they show: instead of the service icon (the default) or
@@ -30,6 +32,7 @@ export function ServicePhotosPicker({ name, emoji, initialIds = [], initialPhoto
   // Gallery photos of this service (posts outside the portfolio): the ones it already has and the ones added now.
   const [uploaded, setUploaded] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [slow, setSlow] = useState(false);
   const fileRef = useRef(null);
 
   useEffect(() => {
@@ -41,6 +44,12 @@ export function ServicePhotosPicker({ name, emoji, initialIds = [], initialPhoto
     }).catch(() => { if (alive) setPosts([]); });
     return () => { alive = false; };
   }, []);
+
+  useEffect(() => {
+    if (!uploading) return undefined;
+    const timer = setTimeout(() => setSlow(true), SLOW_UPLOAD_MS);
+    return () => { clearTimeout(timer); setSlow(false); };
+  }, [uploading]);
 
   const toggle = (id) => {
     setMessage("");
@@ -76,13 +85,12 @@ export function ServicePhotosPicker({ name, emoji, initialIds = [], initialPhoto
     try {
       const image = await compressImageToDataUrl(file);
       if (!image) { setMessage(UNREADABLE_PHOTO); return; }
-      const { ok, payload } = await createPost({ title: name || "عکس خدمت", image, inPortfolio: false });
-      const post = payload?.data?.post;
-      if (!ok || !post) { setMessage(payload?.error || "عکس نرفت؛ دوباره بزن."); return; }
+      const { post, error: failed } = await uploadServicePhoto({ title: name || "عکس خدمت", image });
+      if (!post) { setMessage(failed); return; }
       setUploaded((list) => [...list, { id: post.id, image: post.image, title: post.title || "" }]);
       setPicked((current) => [...current, post.id]);
     } catch {
-      setMessage("عکس نرفت؛ دوباره بزن.");
+      setMessage(PHOTO_NOT_SENT);
     } finally {
       setUploading(false);
     }
@@ -100,7 +108,7 @@ export function ServicePhotosPicker({ name, emoji, initialIds = [], initialPhoto
             <div className="svcPhotosGrid">
               <button type="button" className="svcPhotosTile is-add" onClick={() => fileRef.current?.click()} disabled={uploading} aria-label="عکس از گالری">
                 <Camera size={22} />
-                <span>{uploading ? "دارم می‌فرستم…" : "از گالری"}</span>
+                <span>{uploading ? (slow ? "اینترنتت کنده؛ یه کم صبر کن…" : "دارم می‌فرستم…") : "از گالری"}</span>
               </button>
               <input ref={fileRef} className="captureInput" type="file" accept="image/*" tabIndex={-1} aria-hidden="true" onChange={addFromGallery} />
               {items.map((item) => {
