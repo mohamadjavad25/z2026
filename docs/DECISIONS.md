@@ -205,9 +205,6 @@ One line each, dated. Claude reads this before asking questions.
 - 2026-11-07: A work that is a sample of a service shows that service inside the post (name, price, «همین رو می‌خوام»); the tap closes the post and picks the service in the page's services menu (owner). For now this is on the salon's and artist's own page only, where the menu exists; not for the owner's own posts, a paused page or the home feed.
 - 2026-11-07: In a service's photo view, «دیدن پست کامل» opens the work's own page; the owner left this to Claude, and it stays because a service can carry a post with a caption worth reading.
 - 2026-11-07: Instagram stays off for everyone. Owner's test: a bio or story link opens only on a phone with the frfro Android app installed (the app claims frfro.ir links); a new customer has no app, so the link fails for exactly the person it is for. No Android-only switch-on. iPhone has never been tested from inside Instagram.
-<<<<<<< HEAD
 - 2026-11-07: Works are three equal cards across everywhere (own screen, salon page and its «همه» sheet, team artist sheet, artist page); on the public salon and artist pages the name is small and beside the logo, like on the owner's own page (`publicProfile.css`).
-=======
 - 2026-11-07: Marketing goes to artists and salons only for now, one concept for both. Salons and artists are not shown publicly to clients: a client adds their own salon or artist and books there, or signs up after the salon books for them and manages bookings from then on.
->>>>>>> origin/main
 - 2026-11-07: A salon page's team artist keeps the «صفحهٔ سارا» link, so clients can open an artist's own page (owner agreed); back from it returns to the salon page. An artist with no works gets a calmer page: today's hours, the works count and the services above an empty «سارا هنوز نمونه‌کاری نذاشته.» (mock-up shown to the owner, not built yet).
