@@ -6,7 +6,7 @@ import { artistVisitTimes } from "../../booking/artistVisitTimes";
 import { buildExactBookingDateTabs, mapArtistBooking } from "../../artist/bookingUtils";
 import { getArtistMe } from "../../../shared/api/artists";
 import { getSalonVisitPreview, getSalonVisitTimes } from "../../../shared/api/salons";
-import { findSalonHourForDateKey, isSalonHourOpen } from "../../../shared/lib/salonAvailability";
+import { findSalonHourForWeekday, isSalonHourOpen } from "../../../shared/lib/salonAvailability";
 import { normalizeServices } from "../../booking/visitBookerModel";
 import { useHome } from "../HomeContext";
 
@@ -41,14 +41,16 @@ export function OwnerBookingSheet() {
   const open = Boolean(bookingSheetOpen) && (type === "salon" || type === "artist");
 
   const services = useMemo(() => normalizeServices(role === "artist" ? artistServiceList : salonServiceList), [role, artistServiceList, salonServiceList]);
-  // The salon's closed days are shown but cannot be picked.
-  const days = useMemo(() => buildExactBookingDateTabs(OWNER_VISIT_DAYS).map((tab) => ({
+  // The salon's closed days are shown but cannot be picked. A year of days costs real time, and this sheet sits in every
+  // home screen, also closed: nothing is worked out until it opens, and a day's hours come from its weekday name.
+  const days = useMemo(() => (open ? buildExactBookingDateTabs(OWNER_VISIT_DAYS).map((tab) => ({
     value: tab.dateKey,
     label: `${tab.label} ${tab.sub || ""}`.trim(),
-    closed: role === "salon" && !isSalonHourOpen(findSalonHourForDateKey(salonHoursList, tab.dateKey))
+    closed: role === "salon" && !isSalonHourOpen(findSalonHourForWeekday(salonHoursList, tab.day))
+  })) : []
   // Worked out again each time the sheet opens, so a screen left open past midnight is not a day behind.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  })), [role, salonHoursList, open]);
+  ), [role, salonHoursList, open]);
 
   const salonUserId = createdProfile?.id;
   const source = role === "artist"
