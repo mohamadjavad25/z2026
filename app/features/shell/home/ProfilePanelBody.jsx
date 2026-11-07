@@ -5,6 +5,7 @@ import { openLocationSettings } from "../../profile/locationEvents";
 import { ProfileCompleteness, ProfileReadyCelebration } from "../../profile/ProfileCompleteness";
 import { HomeCards } from "./HomeCards";
 import { StoryNudgeCard } from "../../profile/StoryNudgeCard";
+import { INSTAGRAM_ON } from "../../../shared/lib/instagram";
 import { DueRemindersSection } from "../../dueReminders/DueReminders";
 import { BillingBanner } from "../../billing";
 import { SalonStaffWorkspace, SalonServicesWorkspace } from "../../salons";
@@ -294,7 +295,7 @@ export function ProfilePanelBody() {
                     }
                   }}
                 />
-                <StoryNudgeCard profile={createdProfile} onNotify={setAppToast} />
+                {INSTAGRAM_ON ? <StoryNudgeCard profile={createdProfile} onNotify={setAppToast} /> : null}
               </HomeCards>
             ) : null}
 

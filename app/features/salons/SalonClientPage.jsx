@@ -16,6 +16,7 @@ import {
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { LocationButton } from "../../components/LocationButton";
 import { folderPhotos, InstagramCoverBadge, InstagramWorksTile } from "../../components/InstagramFolder";
+import { INSTAGRAM_ON } from "../../shared/lib/instagram";
 import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { ServicesOnPage } from "../../components/ServicesOnPage";
@@ -125,7 +126,7 @@ export function SalonClientPage({
   const menuServices = bookWith ? bookWith.services : services;
   // «اینستاگرام» (owner's choice 2026-10-27): on the cover («ب») and as the last tile of the works («الف»), the folder
   // showing the salon's newest works.
-  const instagram = selectedSalon?.instagram || "";
+  const instagram = INSTAGRAM_ON ? selectedSalon?.instagram || "" : "";
   const instagramPhotos = folderPhotos(allPosts);
   const weekHours = Array.isArray(selectedSalon?.hours) ? selectedSalon.hours : [];
   const todayName = getTodayPersianWeekday();

@@ -2,12 +2,13 @@ import { describe, it, expect } from "vitest";
 import { profileTodos, progressOf } from "../../app/features/settings/profileProgress.js";
 
 describe("profile progress", () => {
-  it("lists five things for a salon and counts what is done", () => {
+  it("lists four things for a salon while Instagram is off, and counts what is done", () => {
     const todos = profileTodos({ type: "salon", data: { poster: "p.jpg", area: "تهران" }, hasDefaultAvatar: false, openDaysCount: 0 });
     const p = progressOf(todos);
-    expect(todos).toHaveLength(5);
-    expect(p).toMatchObject({ total: 5, done: 3, pct: 60 });
-    expect(p.left.map((t) => t.key)).toEqual(["hours", "instagram"]);
+    expect(todos).toHaveLength(4);
+    expect(todos.map((t) => t.key)).not.toContain("instagram");
+    expect(p).toMatchObject({ total: 4, done: 3, pct: 75 });
+    expect(p.left.map((t) => t.key)).toEqual(["hours"]);
   });
 
   it("gives a client two, the photo and place, and never asks for an email", () => {

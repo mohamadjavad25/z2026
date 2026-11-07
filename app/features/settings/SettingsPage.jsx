@@ -8,6 +8,7 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { ProfileLocationSettings } from "../profile/ProfileLocationSettings";
 import { ProfileInstagramSettings } from "../profile/ProfileInstagramSettings";
+import { INSTAGRAM_ON } from "../../shared/lib/instagram";
 import { AccountSettings } from "../profile/ProfileSettingsPanel";
 import { SalonHoursEditor } from "../profile/SalonHoursEditor";
 import { ImagePositionEditor } from "./ImagePositionEditor";
@@ -355,7 +356,7 @@ export function SettingsPage({
             />
           </TileSlot>
 
-          {isPro ? (
+          {isPro && INSTAGRAM_ON ? (
             <TileSlot id="instagram" pending={pendingKeys.has("instagram")}>
               <ProfileInstagramSettings
                 profileType={profile?.type}

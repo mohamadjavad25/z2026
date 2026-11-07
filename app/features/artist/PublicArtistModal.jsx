@@ -4,6 +4,7 @@ import { Bookmark, CalendarCheck, ChevronLeft, ChevronUp, Phone, Scissors, Share
 import { PublicProfileHeader } from "../../components/PublicProfileHeader";
 import { LocationButton } from "../../components/LocationButton";
 import { folderPhotos, InstagramRow } from "../../components/InstagramFolder";
+import { INSTAGRAM_ON } from "../../shared/lib/instagram";
 import { BookingPausedNote } from "../../components/BookingPausedNote";
 import { ServicesDropUp } from "../../components/ServicesDropUp";
 import { ServicesOnPage } from "../../components/ServicesOnPage";
@@ -165,7 +166,7 @@ export function PublicArtistModal({
             {/* Hours sit above the posts so a long gallery never buries them. */}
             <WeeklyHours rows={weekHours} todayName={todayName} />
             {/* «اینستاگرام» (owner's choice 2026-10-27, «ج»): one row under the hours, the folder showing their newest works. */}
-            {artist.instagram ? <InstagramRow instagram={artist.instagram} name={artist.name} photos={folderPhotos([featuredWork, ...(galleryRest || [])])} /> : null}
+            {INSTAGRAM_ON && artist.instagram ? <InstagramRow instagram={artist.instagram} name={artist.name} photos={folderPhotos([featuredWork, ...(galleryRest || [])])} /> : null}
 
             {/* Clients pick services from the «رزرو» bar; a visiting salon or artist has no bar, so it sees them here. */}
             {visitorBar ? <ServicesOnPage services={services} /> : null}

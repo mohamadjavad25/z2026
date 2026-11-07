@@ -4,6 +4,13 @@
  * Instagram names are 1–30 of a–z, 0–9, "." and "_", never starting or ending with "." and never "..".
  * Used by the settings card (to show the cleaned name) and by POST /api/profile (to store it).
  */
+/**
+ * Everything Instagram that people see in the app (owner, 2026-11-07, after links from Instagram kept failing in Iran):
+ * the Settings tile, the story maker and its home card, the «اینستاگرام» todo, the folder on public pages. Saved page
+ * names stay in the database and the API keeps working. Turn on to bring it all back.
+ */
+export const INSTAGRAM_ON = false;
+
 const NAME = /^(?!\.)(?!.*\.\.)(?!.*\.$)[a-z0-9._]{1,30}$/;
 // Instagram paths that are not a page: a pasted post or reel link must not save "p" or "reel" as the page.
 const NOT_A_PAGE = new Set(["p", "reel", "reels", "tv", "explore", "accounts", "direct", "about", "legal", "web", "developer"]);
