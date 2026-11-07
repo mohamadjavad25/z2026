@@ -111,11 +111,15 @@ export function rangesOverlap(startA, endA, startB, endB) {
   return startA < endB && startB < endA;
 }
 
+const WEEKDAY_ROW_NAMES = { Sat: "شنبه", Sun: "یکشنبه", Mon: "دوشنبه", Tue: "سه‌شنبه", Wed: "چهارشنبه", Thu: "پنجشنبه", Fri: "جمعه" };
+const tehranWeekdayFmt = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "Asia/Tehran" });
+
+/**
+ * Today's name in Iran, spelled as the hours rows store it. Never `getDay()` for this: that is the device's own clock, so
+ * a phone set to another country's time gets another «امروز» than the server's page (error report of 2026-11-07).
+ */
 export function getTodayPersianWeekday(date = new Date()) {
-  return new Intl.DateTimeFormat("fa-IR", {
-    weekday: "long",
-    timeZone: "Asia/Tehran"
-  }).format(date);
+  return WEEKDAY_ROW_NAMES[tehranWeekdayFmt.format(date)];
 }
 
 /** Minutes since midnight in Iran time — booking slots are stored as local Iran clocks. */

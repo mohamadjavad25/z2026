@@ -21,8 +21,8 @@ export async function closeBrowser() {
  *  `dueLater: false` keeps the
  *  «وقتش شده» pop-up a salon/artist gets over their home until they confirm (DueRemindersCard); by
  *  default it reads as «فعلاً نه» for the session. */
-export async function newPage({ width = 390, cookie = "", entered = true, dueLater = true } = {}) {
-  const context = await (await getBrowser()).newContext({ viewport: { width, height: 820 }, locale: "fa-IR" });
+export async function newPage({ width = 390, cookie = "", entered = true, dueLater = true, timezoneId } = {}) {
+  const context = await (await getBrowser()).newContext({ viewport: { width, height: 820 }, locale: "fa-IR", ...(timezoneId ? { timezoneId } : {}) });
   // Only the app under test: an outside host (the eNamad badge on the about page, map tiles, fonts) can hang from a CI
   // runner abroad, and «networkidle» then waits until every test times out (CI red from 2026-10-30, lesson 2026-11-04).
   await context.route((url) => !["localhost", "127.0.0.1"].includes(url.hostname), (route) => route.abort());

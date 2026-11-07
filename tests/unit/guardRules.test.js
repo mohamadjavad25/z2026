@@ -17,6 +17,11 @@ describe("guard: added lines", () => {
     expect(blocks([{ file: "app/admin/x.jsx", line: 1, text: "setAmount(parseTomanAmount(event.target.value))" }])).toHaveLength(0);
   });
 
+  it("stops a weekday name read from the phone's own clock", () => {
+    expect(blocks([{ file: "app/features/x.jsx", line: 1, text: "const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];" }])).toHaveLength(1);
+    expect(blocks([{ file: "app/features/x.jsx", line: 1, text: "const todayName = getTodayPersianWeekday();" }])).toHaveLength(0);
+  });
+
   it("stops «دنبال کردن» in the app", () => {
     expect(blocks([{ file: "app/features/x/Button.jsx", line: 1, text: "<b>دنبال کردن</b>" }])).toHaveLength(1);
   });

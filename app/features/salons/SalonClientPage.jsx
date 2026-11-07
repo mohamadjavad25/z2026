@@ -22,6 +22,7 @@ import { ServicesOnPage } from "../../components/ServicesOnPage";
 import { bundleServices } from "../../shared/lib/serviceBundle";
 import { trackAction, trackScreen } from "../../shared/lib/activity";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
+import { getTodayPersianWeekday } from "../../shared/lib/time";
 import { SalonClientGallery } from "./SalonClientGallery";
 import { SalonTeam } from "./SalonTeam";
 import { SheetClose } from "../../components/SheetClose";
@@ -37,8 +38,6 @@ import { ConnectToggle } from "../connect/ConnectToggle";
 // had this for the portfolio mosaic; it was just being starved by the
 // fallback array upstream).
 
-// JS getDay(): 0 = Sunday ... 6 = Saturday; the salon's hours rows are keyed by the Persian weekday name.
-const PERSIAN_WEEKDAYS = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"];
 
 // Posts shown on the page itself; the rest sit behind «مشاهده همه».
 const PORTFOLIO_PREVIEW = 6;
@@ -129,7 +128,7 @@ export function SalonClientPage({
   const instagram = selectedSalon?.instagram || "";
   const instagramPhotos = folderPhotos(allPosts);
   const weekHours = Array.isArray(selectedSalon?.hours) ? selectedSalon.hours : [];
-  const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
+  const todayName = getTodayPersianWeekday();
 
   return (
     <div className={`salonPanel mobilePage page-salons ${active ? "is-active" : ""}`} id="salons">

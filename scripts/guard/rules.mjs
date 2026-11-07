@@ -26,6 +26,7 @@ export function checkAddedLines(added) {
     const { file, text } = a;
     if (!isRuleText(file) && !file.endsWith(".md") && WRONG_NAMES.test(text)) hit("block", "The name is frfro / «فرفرو»; never Farfaroo, Frfru, Zibaban or «زیبابان».", a);
     if (isApp(file) && /parseTomanAmount\([^)]*price/i.test(text)) hit("block", "A service's price is free text: show it with servicePriceText, sum it with plainPriceAmount; digits pulled out of «از ۱ میلیون» read as «۱ تومان».", a);
+    if (isApp(file) && /\[[^\]]*\.getDay\(\)\s*\]/.test(text)) hit("block", "«امروز» is the day in Iran: use getTodayPersianWeekday, never getDay(), which reads the phone's own clock and breaks the page on a phone set to another country's time.", a);
     if (isApp(file) && /دنبال\s?کردن/.test(text)) hit("block", "The UI word for connecting is «وصل شدن», never «دنبال کردن».", a);
     if (file === "app/features/landing/constants.js" && /APP_DOWNLOADS_OPEN\s*=/.test(text)) hit("block", "APP_DOWNLOADS_OPEN changes only when the owner says so in this conversation.", a);
     if (/build\.gradle$/.test(file) && /^\s*versionName\b/.test(text) && !/versionName\s+"1\.0\.0"/.test(text)) hit("block", "App versionName stays \"1.0.0\" (owner's rule); raise only versionCode.", a);

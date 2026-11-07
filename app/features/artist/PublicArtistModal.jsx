@@ -12,6 +12,7 @@ import { ConnectToggle } from "../connect/ConnectToggle";
 import { bundleServices } from "../../shared/lib/serviceBundle";
 import { trackAction } from "../../shared/lib/activity";
 import { toLatinDigits } from "../../shared/lib/digits";
+import { getTodayPersianWeekday } from "../../shared/lib/time";
 import { DEFAULT_PERSON_AVATAR } from "../../shared/lib/defaultAvatar";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
 import { PublicArtistBookingPanel } from "./PublicArtistBookingPanel";
@@ -25,8 +26,6 @@ import { useEffect, useState } from "react";
 
 // Same decorative cover the artist's own panel shows until a poster is uploaded.
 const DEFAULT_COVER = "/artist-hero-doodle.webp";
-// JS getDay(): 0 = Sunday ... 6 = Saturday; hours rows are keyed by the Persian weekday name.
-const PERSIAN_WEEKDAYS = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"];
 
 export function PublicArtistModal({
   artist,
@@ -98,7 +97,7 @@ export function PublicArtistModal({
   if (!artist) return null;
 
   const weekHours = Array.isArray(artist.hours) ? artist.hours : [];
-  const todayName = PERSIAN_WEEKDAYS[new Date().getDay()];
+  const todayName = getTodayPersianWeekday();
   function startBooking(picked) {
     const service = bundleServices(picked);
     setServicesOpen(false);
