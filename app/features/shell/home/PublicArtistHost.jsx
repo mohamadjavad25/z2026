@@ -9,6 +9,7 @@ import { useHome } from "../HomeContext";
 export function PublicArtistHost() {
   const {
     selectedPublicArtist,
+    publicArtistFromSalon,
     publicArtistView,
     publicArtistPortfolio,
     publicArtistServices,
@@ -58,7 +59,9 @@ export function PublicArtistHost() {
           bookingSlot={publicArtistBookingSlot}
           parseDuration={parseServiceDurationMinutes}
           getCardStyle={getPortfolioCardStyle}
-          onClose={closePublicArtistProfile}
+          onClose={() => closePublicArtistProfile({ restoreSalon: true })}
+          salonName={publicArtistFromSalon?.name || ""}
+          onOpenSalon={() => closePublicArtistProfile({ restoreSalon: true })}
           onShare={shareArtistProfile}
           saved={isSavedPublicArtist}
           onSave={() => selectedPublicArtist && toggleSavePublicArtist(selectedPublicArtist)}
