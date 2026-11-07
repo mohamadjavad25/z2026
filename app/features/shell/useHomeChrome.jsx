@@ -191,7 +191,7 @@ export function useHomeChrome({
   // the app (sheets register themselves through SheetClose): an open artist or
   // salon page closes first, then a profile view goes back to the overview, then
   // any other tab goes back to the profile tab, and only then does back leave.
-  useBackHandler(Boolean(selectedPublicArtist), () => closePublicArtistProfile({ restoreSalon: true }), BACK_PRIORITY.page);
+  useBackHandler(Boolean(selectedPublicArtist), closePublicArtistProfile, BACK_PRIORITY.page);
   useBackHandler(Boolean(selectedSalon) && activeTab === "salons", closeSelectedSalon, BACK_PRIORITY.page);
   useBackHandler(
     Boolean(createdProfile) && activeTab === "profile" && (Boolean(salonWorkspace) || (profileView && profileView !== "overview")),

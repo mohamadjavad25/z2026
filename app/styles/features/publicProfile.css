@@ -24,10 +24,8 @@
 .pphAvatar img { width: 100%; height: 100%; object-fit: cover; }
 .pphAvatar b { font-size: 2.4rem; font-weight: 950; color: var(--n-900); }
 .pphMeta { min-height: calc(var(--pph-logo-top) + var(--pph-logo) - var(--pph-cover) + 8px); box-sizing: border-box; padding: 12px calc(var(--pph-logo-right) + var(--pph-logo) + 16px) 0 20px; display: grid; align-content: start; gap: 2px; }
-.pphMeta h2 { margin: 0; overflow: hidden; color: var(--n-900); font-size: 0.95rem; font-weight: 900; line-height: 1.35; white-space: nowrap; text-overflow: ellipsis; }
-.pphMeta p { margin: 0; color: var(--n-600); font-size: 0.78rem; font-weight: 700; }
-/* The name sits where it does on the owner's own page (smaller, beside the logo); the artist's poster is taller, so it rises to meet it. */
-.pphHero.is-artist .pphMeta h2 { margin-top: -27px; }
+.pphMeta h2 { margin: 0; overflow: hidden; color: var(--n-900); font-size: 1.38rem; font-weight: 850; line-height: 1.35; white-space: nowrap; text-overflow: ellipsis; }
+.pphMeta p { margin: 0; color: var(--n-600); font-size: 0.94rem; font-weight: 700; }
 
 /* ── Under the header: chips, bio, follow / call (stays at the bottom) ── */
 .pphInfo { margin: 16px 20px 0; display: grid; gap: 14px; }
@@ -172,17 +170,3 @@
 .sopGo { flex: none; color: var(--n-400); }
 .sopRow.is-static { cursor: default; }
 .sopRow.is-static:active { transform: none; background: var(--n-0); }
-
-/* ── Works: three equal cards in a row, everywhere clients see them (salon page, its «همه» sheet, a team artist's sheet,
-   artist page), the same as the owner's own «نمونه‌کار» screen. A work's shape never changes its size. ── */
-:root .salonClientMosaicGallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: auto; grid-auto-flow: row; gap: 8px; overflow: visible; padding: 0; }
-:root .salonClientMosaicGallery > .salonClientMosaicTile.salonClientMosaicTile { flex: none; width: auto; height: auto; min-height: 0; grid-column: auto; grid-row: auto; align-self: auto; aspect-ratio: 4 / 5; border-radius: 12px; scroll-snap-align: none; }
-.artistPublicGrid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-.artistPublicGrid .artistPublicCardCopy { padding: 6px !important; }
-.artistPublicGrid .artistPublicCardCopy h3 { font-size: 0.64rem !important; line-height: 1.5; }
-.artistPublicGrid .artistPublicWorkTag, .artistPublicGrid .artistPublicCardCopy small { display: none !important; }
-
-/* «توی سالن …» under an artist's name when the page was opened from that salon's page; the salon's name is a button back to it. */
-.pphNote { justify-self: start; max-width: 100%; margin: 0; padding: 0; overflow: hidden; border: 0; background: none; color: var(--accent); font: inherit; font-size: 0.78rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
-.pphNote:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; border-radius: 6px; }
-.artistPublicNoServices { margin: 12px 20px 0; color: var(--n-600); font-size: 0.8rem; font-weight: 800; text-align: center; }

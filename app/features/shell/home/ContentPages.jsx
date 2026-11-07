@@ -197,7 +197,7 @@ export function ContentPages() {
             onShare={shareSalonProfile}
             onTabChange={setSalonClientTab}
             onOpenBooking={openSalonClientBooking}
-            onOpenArtist={(member) => openPublicArtistProfile({ id: member.artistId, name: member.name, avatar: member.avatar }, { fromSalon: selectedSalon })}
+            onOpenArtist={(member) => openPublicArtistProfile({ id: member.artistId, name: member.name, avatar: member.avatar })}
             continueFor={continueService?.strip}
             onContinue={continueService?.onContinue}
             onDismissContinue={continueService?.dismiss}

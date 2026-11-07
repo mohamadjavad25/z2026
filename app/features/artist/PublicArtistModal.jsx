@@ -45,9 +45,6 @@ export function PublicArtistModal({
   parseDuration,
   getCardStyle,
   onClose,
-  // Opened from a salon's page: «توی سالن …» under the name, a tap goes back to that salon.
-  salonName = "",
-  onOpenSalon = null,
   onShare,
   onSave,
   onFollow,
@@ -128,7 +125,6 @@ export function PublicArtistModal({
             avatarAlt={artist.name ? `تصویر پروفایل ${artist.name}` : "تصویر پروفایل آرتیست"}
             avatarPosition={artist.avatarPosition || "50% 50%"}
             name={artist.name}
-            note={salonName && onOpenSalon ? <button type="button" className="pphNote" onClick={onOpenSalon}>توی {salonName}</button> : null}
             area={artist.area ? (String(artist.area).split("،")[0].replace(/^(شهر|روستای|دهستان)\s+/, "").trim() || String(artist.area).trim()) : ""}
             start={(
               <button type="button" className="pphRound" onClick={onClose} aria-label="بازگشت">
@@ -189,8 +185,7 @@ export function PublicArtistModal({
                 </>
             </div>
 
-            {/* No services yet: no booking bar, just the plain line (owner, 2026-11-07). */}
-            {visitorBar || !hasServices ? (hasServices || visitorBar ? null : <p className="artistPublicNoServices">{`${String(artist.name || "آرتیست").trim().split(/\s+/)[0]} هنوز کاری ثبت نکرده.`}</p>) : (
+            {visitorBar || (
             <>
             <ServicesDropUp
               open={servicesOpen}
