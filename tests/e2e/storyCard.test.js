@@ -2,6 +2,7 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { TEST_BASE_URL } from "../globalSetup.js";
 import { confirmedAt, directConfirmed, newArtist, newClient, teamSalon } from "../integration/exitHelpers.js";
+import { INSTAGRAM_ON } from "../../app/shared/lib/instagram.js";
 import { formatPersianDateKey } from "../../app/shared/lib/persianCalendar.js";
 import { getTehranClockMinutes, timeLabelToMinutes } from "../../app/shared/lib/time.js";
 import { closeBrowser, newPage } from "./browser.js";
@@ -59,7 +60,8 @@ async function openMaker(page) {
   await page.locator(".igStudioPicture img").first().waitFor({ timeout: 20000 });
 }
 
-describe("the story card on a salon's home (browser)", () => {
+// The story card and maker are off with the rest of Instagram (owner, 2026-11-07); these run again when INSTAGRAM_ON is true.
+describe.runIf(INSTAGRAM_ON)("the story card on a salon's home (browser)", () => {
   it("says how many times are free and never talks about a cancelled booking", async () => {
     const { salon, members } = await teamSalon("Story Salon", 2);
     await complete(salon.api);
@@ -137,7 +139,7 @@ describe("the story card on a salon's home (browser)", () => {
   });
 });
 
-describe("the story maker (browser)", () => {
+describe.runIf(INSTAGRAM_ON)("the story maker (browser)", () => {
   it("opens with frfro's suggestion: at most two days and four times a day, all marked, all changeable", async () => {
     const { salon } = await teamSalon("Maker Salon", 1);
     await complete(salon.api);
@@ -260,7 +262,7 @@ describe("the story maker (browser)", () => {
   });
 });
 
-describe("the story card on an artist's home (browser)", () => {
+describe.runIf(INSTAGRAM_ON)("the story card on an artist's home (browser)", () => {
   it("offers the artist's free times and makes a story", async () => {
     const artist = await newArtist("Story Artist");
     await complete(artist.api);
