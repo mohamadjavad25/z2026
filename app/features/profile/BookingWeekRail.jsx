@@ -8,6 +8,7 @@ import {
   formatPersianDayTitle,
   getPersianDateParts,
   getPersianMonthLabel,
+  isPersianDateKey,
   isWithinRollingWeek,
   PERSIAN_WEEKDAY_HEADERS,
   shiftPersianMonth
@@ -70,7 +71,6 @@ export function BookingWeekRail({
 
   const modalDayBookings = useMemo(() => {
     if (!activeCell || !activeModalDay) return [];
-    if (!isWithinRollingWeek(activeCell.date)) return [];
     return bookings.filter((booking) => matchBookingDay?.(booking, activeModalDay, activeCell.key));
   }, [bookings, activeCell, activeModalDay, matchBookingDay]);
 
@@ -83,7 +83,6 @@ export function BookingWeekRail({
 
   function cellCount(cell) {
     if (!cell) return 0;
-    if (!isWithinRollingWeek(cell.date)) return 0;
     if (typeof getDayCount === "function") return getDayCount(cell.weekday, cell.key);
     return bookings.filter((booking) => matchBookingDay?.(booking, cell.weekday, cell.key)).length;
   }
@@ -92,6 +91,16 @@ export function BookingWeekRail({
   const monthLabel = `${getPersianMonthLabel(viewYear, viewMonth)} ${toPersianDigits(viewYear)}`;
 
   function openHistory() {
+    // A day picked earlier from this calendar (any month): open on it.
+    if (isPersianDateKey(selectedDay)) {
+      const [year, month] = selectedDay.split("-").map(Number);
+      setViewYear(year);
+      setViewMonth(month);
+      setModalDay("");
+      setModalDateKey(selectedDay);
+      setHistoryOpen(true);
+      return;
+    }
     const todayCell = buildPersianMonthGrid(todayParts.year, todayParts.month).find((cell) => cell?.isToday);
     const preferredWeekday = selectedDay || tabs[0]?.day || todayCell?.weekday || "";
     const preferred = buildPersianMonthGrid(todayParts.year, todayParts.month).find((cell) => (
@@ -109,7 +118,8 @@ export function BookingWeekRail({
     if (!cell) return;
     setModalDay(cell.weekday);
     setModalDateKey(cell.key);
-    onSelectDay?.(cell.weekday);
+    // The date itself, not the weekday: a weekday name would mean that day of this week, not the one tapped.
+    onSelectDay?.(cell.key);
   }
 
   function moveMonth(delta) {
@@ -173,8 +183,9 @@ export function BookingWeekRail({
               </div>
               <div className="bookingWeekHistoryDateHeroStat">
                 <CalendarDays size={18} aria-hidden="true" />
-                <strong>{toPersianDigits(modalDayBookings.length)}</strong>
-                <small>نوبت</small>
+                {/* «۰ نوبت» read «• نوبت» (the Persian zero is a dot); an empty day says it in words. */}
+                {modalDayBookings.length ? <strong>{toPersianDigits(modalDayBookings.length)}</strong> : null}
+                <small>{modalDayBookings.length ? "نوبت" : "بدون نوبت"}</small>
               </div>
             </div>
 
@@ -225,7 +236,7 @@ export function BookingWeekRail({
 
             <div className="bookingWeekHistoryDateMeta">
               <span>نوبت‌های این ماه</span>
-              <b>{toPersianDigits(monthTotal)} نوبت</b>
+              <b>{monthTotal ? `${toPersianDigits(monthTotal)} نوبت` : "بدون نوبت"}</b>
             </div>
           </section>
 
@@ -234,7 +245,7 @@ export function BookingWeekRail({
               <span>نوبت‌های این روز</span>
               <b>{activeTitle?.full || activeModalDay}</b>
             </div>
-            <em>{toPersianDigits(modalDayBookings.length)} نوبت</em>
+            <em>{modalDayBookings.length ? `${toPersianDigits(modalDayBookings.length)} نوبت` : "بدون نوبت"}</em>
           </div>
 
           <div className="bookingWeekHistoryList todayScheduleList" aria-label={`نوبت‌های ${activeTitle?.full || activeModalDay}`}>

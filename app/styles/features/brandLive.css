@@ -236,3 +236,8 @@
 }
 .salonNotificationsPanel button.salonNoticeRow:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 .salonNotificationsPanel .salonNoticeGo { color: var(--n-500); }
+
+/* A calendar day with bookings is pink, so the month reads at a glance (the chosen day keeps its own look). */
+.bookingWeekHistoryCalDay.has-bookings:not(.is-active) { border-color: transparent; background: var(--brand-pink); color: var(--brand-ink); }
+.bookingWeekHistoryCalDay.has-bookings:not(.is-active) strong { color: var(--brand-ink); }
+.bookingWeekHistoryCalDay.has-bookings:not(.is-active) em { background: rgb(var(--ink-rgb) / 0.14); color: var(--brand-ink); }

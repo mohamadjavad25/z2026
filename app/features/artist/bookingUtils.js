@@ -51,7 +51,9 @@ export function isPublicArtistSlotBlocked(artist, day, slot, durationMinutes) {
 }
 
 export function getArtistBookingSortKey(booking) {
-  const day = getArtistBookingDayRank(booking?.date);
+  // A far date counts its real days ahead: every date past the rolling days shared one rank, so the hours alone ordered them.
+  const offset = isPersianDateKey(String(booking?.date || "").trim()) ? getBookingDateOffsetDays(booking.date) : null;
+  const day = offset !== null && offset > 2 ? offset : getArtistBookingDayRank(booking?.date);
   const [hours = "0", minutes = "0"] = toLatinDigits(booking?.time).split(":");
   return day * 1440 + (Number(hours) || 0) * 60 + (Number(minutes) || 0);
 }
