@@ -52,7 +52,7 @@ tar -czf "$ARCHIVE" -C "$DIST/app" .
 echo "    $(du -h "$ARCHIVE" | cut -f1) release archive"
 
 echo "==> Upload"
-scp -o StrictHostKeyChecking=accept-new "$ARCHIVE" "$USER_@$HOST:/tmp/frfro-release.tgz"
+bash "$ROOT/deploy/upload-release.sh" "$ARCHIVE" "$USER_@$HOST"
 
 echo "==> Database migrations (through an SSH tunnel to the server's Postgres)"
 DB_URL="$("${SSH[@]}" sudo /opt/frfro/bin/db-url.sh)"
