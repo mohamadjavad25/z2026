@@ -112,6 +112,7 @@ sudo ln -s /etc/nginx/sites-available/frfro /etc/nginx/sites-enabled/frfro
 sudo mkdir -p /var/www/frfro && sudo cp /srv/frfro/app/deploy/maintenance.html /var/www/frfro/   # صفحهٔ حالت نگهداری
 sudo nginx -t && sudo systemctl reload nginx
 sudo certbot --nginx -d frfro.ir -d www.frfro.ir   # بعد از وصل شدن دامنه به IP سرور
+# بعد از certbot، در خط `listen 443 ssl` کلمهٔ `http2` را اضافه کن (`listen 443 ssl http2;`)، چون سایت چند ده فایل کوچک دارد و با فیلترشکن این فرق را حس می‌کنند. بعدش `sudo nginx -t` و reload.
 ```
 
 nginx باید `X-Real-IP` را خودش بگذارد (در `deploy/nginx.conf` هست). محدودیت تلاش ورود، ثبت‌نام و کد پیامکی به‌ازای هر آدرس IP به همین وابسته است. پورت 3000 را در فایروال باز نکن:

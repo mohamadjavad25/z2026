@@ -9,9 +9,11 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { INSTAGRAM_INVALID_MESSAGE, normalizeInstagram } from "../../shared/lib/instagram";
 import { InstagramStorySheet, loadFreeSlots, loadWorks } from "./InstagramStorySheet";
 import { trackAction } from "../../shared/lib/activity";
+import { directMessageText, shortPublicPath } from "../../shared/lib/shortLink";
 
 // Toasts are one line: short.
 const BIO_COPIED = "کپی شد. حالا بذارش تو بیو اینستاگرامت.";
+const DIRECT_COPIED = "کپی شد. حالا توی دایرکت برای مشتری بفرستش.";
 
 /** The pill on the story card: what is worth posting right now. */
 function storyNews(slots) {
@@ -31,7 +33,7 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", av
   const [draft, setDraft] = useState(value ? `@${value}` : "");
   const [error, setError] = useState("");
   const [askClear, setAskClear] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState("");
   const [storyOpen, setStoryOpen] = useState(false);
   const [slots, setSlots] = useState(null);
   const [cover, setCover] = useState("");
@@ -67,6 +69,7 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", av
   const publicPath = `/${profileType === "salon" ? "salons" : "artists"}/${Number(profileId)}`;
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}${publicPath}` : publicPath;
   const shownUrl = publicUrl.replace(/^https?:\/\//, "");
+  const shownShortUrl = `${shownUrl.split("/")[0]}${shortPublicPath(profileType, profileId)}`;
   const example = profileType === "salon" ? "salon.roz" : "negar.nails";
   const changed = (normalizeInstagram(draft) ?? draft) !== value;
   const firstFree = slots?.find((day) => day.times.length)?.times[0] || "";
@@ -94,13 +97,13 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", av
     }
   }
 
-  async function copyLink() {
+  async function copy(which, text, doneMessage) {
     trackAction("share_link");
     try {
-      await navigator.clipboard.writeText(publicUrl);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2200);
-      onNotify?.(BIO_COPIED);
+      await navigator.clipboard.writeText(text);
+      setCopied(which);
+      window.setTimeout(() => setCopied(""), 2200);
+      onNotify?.(doneMessage);
     } catch {
       onNotify?.("کپی نشد؛ انگشتت رو روی لینک نگه دار و کپی کن.");
     }
@@ -148,12 +151,24 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", av
             <small>لینک بیو</small>
             <span dir="ltr">{shownUrl}</span>
           </div>
-          <button type="button" className={`igSettingsCopy${copied ? " is-done" : ""}`} onClick={copyLink}>
-            {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
-            {copied ? "کپی شد" : "کپی لینک"}
+          <button type="button" className={`igSettingsCopy${copied === "bio" ? " is-done" : ""}`} onClick={() => copy("bio", publicUrl, BIO_COPIED)}>
+            {copied === "bio" ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
+            {copied === "bio" ? "کپی شد" : "کپی لینک"}
           </button>
         </div>
         <p className="igSettingsHelp">بذارش تو بیو تا از اینستاگرام با یه لمس نوبت بگیرن.</p>
+
+        <div className="igSettingsBio">
+          <div className="igSettingsBioText">
+            <small>پیام دایرکت</small>
+            <span dir="ltr">{shownShortUrl}</span>
+          </div>
+          <button type="button" className={`igSettingsCopy${copied === "direct" ? " is-done" : ""}`} onClick={() => copy("direct", directMessageText(shownShortUrl), DIRECT_COPIED)}>
+            {copied === "direct" ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
+            {copied === "direct" ? "کپی شد" : "کپی پیام"}
+          </button>
+        </div>
+        <p className="igSettingsHelp">هر کی توی دایرکت نوبت خواست، اینو براش بفرست.</p>
 
         <button type="button" className="igSettingsStory" onClick={() => setStoryOpen(true)}>
           <span className="igSettingsStoryText">
