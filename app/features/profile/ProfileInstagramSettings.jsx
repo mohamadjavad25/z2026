@@ -9,7 +9,7 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { INSTAGRAM_INVALID_MESSAGE, normalizeInstagram } from "../../shared/lib/instagram";
 import { InstagramStorySheet, loadFreeSlots, loadWorks } from "./InstagramStorySheet";
 import { trackAction } from "../../shared/lib/activity";
-import { directMessageText, shortPublicPath } from "../../shared/lib/shortLink";
+import { shortPublicPath } from "../../shared/lib/shortLink";
 
 // Toasts are one line: short.
 const BIO_COPIED = "کپی شد. حالا بذارش تو بیو اینستاگرامت.";
@@ -160,15 +160,15 @@ export function ProfileInstagramSettings({ profileType, profileId, name = "", av
 
         <div className="igSettingsBio">
           <div className="igSettingsBioText">
-            <small>پیام دایرکت</small>
+            <small>لینک دایرکت</small>
             <span dir="ltr">{shownShortUrl}</span>
           </div>
-          <button type="button" className={`igSettingsCopy${copied === "direct" ? " is-done" : ""}`} onClick={() => copy("direct", directMessageText(shownShortUrl), DIRECT_COPIED)}>
+          <button type="button" className={`igSettingsCopy${copied === "direct" ? " is-done" : ""}`} onClick={() => copy("direct", shownShortUrl, DIRECT_COPIED)}>
             {copied === "direct" ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
-            {copied === "direct" ? "کپی شد" : "کپی پیام"}
+            {copied === "direct" ? "کپی شد" : "کپی لینک"}
           </button>
         </div>
-        <p className="igSettingsHelp">هر کی توی دایرکت نوبت خواست، اینو براش بفرست.</p>
+        <p className="igSettingsHelp">هر کی توی دایرکت نوبت خواست، فقط همین لینک رو براش بفرست.</p>
 
         <button type="button" className="igSettingsStory" onClick={() => setStoryOpen(true)}>
           <span className="igSettingsStoryText">

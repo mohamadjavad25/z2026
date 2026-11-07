@@ -24,8 +24,3 @@ export function publicPathFromShort(profileType, rawId) {
   if (!/^[0-9]{1,15}$/.test(digits) || Number(digits) <= 0) return "/";
   return `${PUBLIC_PAGES[profileType]}/${Number(digits)}`;
 }
-
-/** The ready message for Instagram direct: a customer can copy it there and open it outside Instagram. */
-export function directMessageText(shownAddress) {
-  return `سلام، برای نوبت گرفتن این لینک رو نگه دار، کپی کن و توی کروم یا سافاری بزن: ${shownAddress}`;
-}

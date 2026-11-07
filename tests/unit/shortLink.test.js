@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { GET as artistShort } from "../../app/a/[id]/route.js";
 import { GET as salonShort } from "../../app/s/[id]/route.js";
-import { directMessageText, publicPathFromShort, shortPublicPath } from "../../app/shared/lib/shortLink.js";
+import { publicPathFromShort, shortPublicPath } from "../../app/shared/lib/shortLink.js";
 
 describe("short public addresses", () => {
   it("builds the short path for each kind of page", () => {
@@ -27,9 +27,5 @@ describe("short public addresses", () => {
     expect(artist.headers.get("location")).toBe("/artists/4447");
     const salon = await salonShort(new Request("http://localhost:3000/s/9"), { params: Promise.resolve({ id: "۹" }) });
     expect(salon.headers.get("location")).toBe("/salons/9");
-  });
-
-  it("puts the address in the ready message", () => {
-    expect(directMessageText("frfro.ir/a/4447")).toContain("frfro.ir/a/4447");
   });
 });
