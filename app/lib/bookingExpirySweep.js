@@ -2,7 +2,7 @@ import { getDb, all, run } from "./db/connection.js";
 import { checkWaitlistSoon } from "./waitlist.js";
 import * as salons from "./db/repos/salons.js";
 import { sendPushToUser } from "./push.js";
-import { bookingWhen, smsBookingAnswer, smsNewBookingRequest } from "./bookingSms.js";
+import { bookingWhen, sendDueSmsBackups, smsBookingAnswer, smsNewBookingRequest } from "./bookingSms.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
 import { AWAITING_CLIENT } from "../shared/lib/bookingOffer.js";
 import { sendToFallbackArtist, sendToFallbackSalon } from "./bookingFallback.js";
@@ -151,7 +151,7 @@ function notifyClientOfExpiry(booking, moved = null, triedBackup = false) {
         : `${service}: سالن به‌موقع جواب نداد. یه ساعت یا سالن دیگه رو امتحان کن.`
     }).catch(() => null);
     // Someone no notification reaches (most iPhones) would otherwise never learn the request is over.
-    smsBookingAnswer(clientUserId, { providerUserId: salonUserId, bookingDate: booking.booking_date, time: booking.time, expired: true }, push);
+    smsBookingAnswer(clientUserId, { providerUserId: salonUserId, bookingDate: booking.booking_date, time: booking.time, expired: true, booking: { kind: "salon", id: booking.id } }, push);
   }
   // The owner-facing half of this fix — see recentlyExpiredSalonBookings in
   // HomeApp.jsx for the in-app counterpart. Before this, a salon that
@@ -169,7 +169,8 @@ function notifyClientOfExpiry(booking, moved = null, triedBackup = false) {
       body: `${moved.booking.client || "مشتری"}، ${moved.booking.service || service}، ${bookingWhen(moved.booking.booking_date, moved.booking.time)}`
     }).catch(() => null);
     smsNewBookingRequest(Number(moved.booking.salon_user_id), {
-      client: moved.booking.client, service: moved.booking.service || service, bookingDate: moved.booking.booking_date, time: moved.booking.time
+      client: moved.booking.client, service: moved.booking.service || service, bookingDate: moved.booking.booking_date, time: moved.booking.time,
+      booking: { kind: "salon", id: moved.booking.id }
     }, push);
   }
 }
@@ -193,7 +194,7 @@ function notifyClientOfArtistBookingExpiry(booking, moved = null, triedBackup = 
         : `${service}: آرتیست به‌موقع جواب نداد. یه ساعت یا آرتیست دیگه رو امتحان کن.`
     }).catch(() => null);
     // Someone no notification reaches (most iPhones) would otherwise never learn the request is over.
-    smsBookingAnswer(clientUserId, { providerUserId: artistUserId, bookingDate: booking.booking_date, time: booking.time, expired: true }, push);
+    smsBookingAnswer(clientUserId, { providerUserId: artistUserId, bookingDate: booking.booking_date, time: booking.time, expired: true, booking: { kind: "artist", id: booking.id } }, push);
   }
   void sendPushToUser(artistUserId, {
     title: "یه درخواست بی‌جواب موند",
@@ -208,7 +209,8 @@ function notifyClientOfArtistBookingExpiry(booking, moved = null, triedBackup = 
     }).catch(() => null);
     if (moved.booking.status !== "تایید شده") {
       smsNewBookingRequest(Number(moved.booking.artist_user_id), {
-        client: moved.booking.client_name, service: moved.booking.service || service, bookingDate: moved.booking.booking_date, time: moved.booking.time
+        client: moved.booking.client_name, service: moved.booking.service || service, bookingDate: moved.booking.booking_date, time: moved.booking.time,
+        booking: { kind: "artist", id: moved.booking.id }
       }, push);
     }
   }
@@ -332,6 +334,9 @@ export async function sweepExpiredBookingRequestsOnce() {
     // The next pass retries.
   }
 
+  // Held booking SMS whose ten minutes are up (bookingSms.js, owner 2026-11-08).
+  const smsBackups = await sendDueSmsBackups();
+
   return {
     expired: salonExpired + artistExpired,
     attempted: staleSalon.length + staleDirectArtist.length,
@@ -340,7 +345,8 @@ export async function sweepExpiredBookingRequestsOnce() {
     artistExpired,
     artistMoved,
     proposalsLapsed,
-    orphansClosed
+    orphansClosed,
+    smsBackups
   };
 }
 
