@@ -470,7 +470,7 @@ export async function updateSalonStaff(id, salonUserId, data) {
     access_level: data.accessLevel ?? data.access_level ?? current.access_level
   };
   const resolvedArtist = await resolveArtistUserForStaff(nextDraft, db);
-  // One seat per salon and artist (migration 078): an old unlinked row stays unlinked when the artist already has a row.
+  // One seat per salon and artist (migration 081): an old unlinked row stays unlinked when the artist already has a row.
   const seatTaken = !nextDraft.artist_user_id && resolvedArtist?.id
     ? await get(db, "SELECT 1 AS taken FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2 AND id <> $3", [salonUserId, resolvedArtist.id, id])
     : null;
