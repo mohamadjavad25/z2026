@@ -51,6 +51,9 @@ describe("a client can't request a time that starts too soon", () => {
     const clientApi = createClient();
     await registerUser(clientApi, { type: "client", name: "Soon Booker" });
     const body = (time) => ({ artistUserId: artist.user.id, service: "ناخن", bookingDate: today(), time });
+    // On the minute of :00 or :30 the next half-hour start is exactly 30 minutes away, which is allowed: no "too soon"
+    // slot exists then (CI ran at 14:00 Tehran on 2026-11-08 and got 201). Wait for the next minute.
+    if (getTehranClockMinutes(new Date()) % 30 === 0) await new Promise((resolve) => setTimeout(resolve, 61_000 - (Date.now() % 60_000)));
     const nowMinutes = getTehranClockMinutes(new Date());
     const nextHalfHour = (Math.floor(nowMinutes / 30) + 1) * 30;
     const soon = await clientApi.post("/api/artist/bookings", body(minutesToPersianTime(nextHalfHour)));
@@ -62,7 +65,7 @@ describe("a client can't request a time that starts too soon", () => {
     expect(own.status, JSON.stringify(own.payload)).toBe(201);
     const later = await clientApi.post("/api/artist/bookings", body(minutesToPersianTime(nextHalfHour + 120)));
     expect(later.status, JSON.stringify(later.payload)).toBe(201);
-  });
+  }, 120_000);
 });
 
 describe("the sweep closes a request at the earlier of: an hour after sending, or the appointment start", () => {
