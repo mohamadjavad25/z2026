@@ -1,4 +1,5 @@
 # The server's scheduled jobs; install as /etc/cron.d/frfro (root). Server clock is Asia/Tehran.
+# Same file as deploy/server/frfro.cron; both match what the main server runs (checked 2026-11-08).
 # These replace the frfro user's old crontab, which ran from the retired /srv/frfro/app checkout.
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -6,3 +7,4 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 */10 * * * * root /opt/frfro/bin/cron-call.sh send-reminders  >> /var/log/frfro-cron.log 2>&1
 17   * * * * root /opt/frfro/bin/cron-call.sh billing         >> /var/log/frfro-cron.log 2>&1
 30   3 * * * root /opt/frfro/bin/backup-db.sh                 >> /var/log/frfro-cron.log 2>&1
+*/5  * * * * root /opt/frfro/bin/cron-call.sh admin-watch     >> /var/log/frfro-cron.log 2>&1
