@@ -18,6 +18,7 @@ import {
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { sharedPhoneLabel } from "../salons/customers";
 import { ownerAttendanceState, reliabilityView } from "../../shared/lib/attendance";
+import { nowDate } from "../../shared/lib/clock.js";
 
 // Status-tone mapping, ownerType-aware — NOT a plain copy of
 // ClientBookingSettingsModal.jsx's getBookingStatusTone, because "تازه"
@@ -249,7 +250,7 @@ export const ScheduleRow = memo(function ScheduleRow({
 
   const chipClass = showStatusTag ? `is-status-${statusTone}` : `is-${phase || "upcoming"}`;
   // «میای؟» and the client's record across frfro (owner's decision of 2026-10-27), for the salon's or artist's eyes only.
-  const attend = !isClientBooking && statusTone === "done" ? ownerAttendanceState(booking.source, new Date(), booking.ownerType) : null;
+  const attend = !isClientBooking && statusTone === "done" ? ownerAttendanceState(booking.source, nowDate(), booking.ownerType) : null;
   const record = !isClientBooking ? reliabilityView(booking.source?.reliability) : null;
 
   // Cancelled, expired or finished: not a card, just a one-line message with its time.

@@ -1,4 +1,4 @@
-import { parseBookingTime, timeLabelToMinutes } from "../../shared/lib/time.js";
+import { parseBookingTime, parseClosingTime, timeLabelToMinutes } from "../../shared/lib/time.js";
 import { toPersianDigits } from "../../shared/lib/digits.js";
 import { parseBoundedInt } from "./numbers.js";
 
@@ -19,7 +19,7 @@ export function readHoursPatch(body, rows) {
   for (const [field, aliases] of [["openTime", ["openTime", "open_time"]], ["closeTime", ["closeTime", "close_time"]]]) {
     const key = aliases.find((alias) => body[alias] !== undefined && body[alias] !== null);
     if (!key) continue;
-    const time = parseBookingTime(body[key]);
+    const time = field === "closeTime" ? parseClosingTime(body[key]) : parseBookingTime(body[key]);
     if (!time) return { ok: false, error: "ساعت رو این‌جوری بنویس: ۱۰:۰۰" };
     patch[field] = toPersianDigits(time);
   }

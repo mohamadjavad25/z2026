@@ -141,13 +141,13 @@ export function TermsEditor({ value, onChange }) {
         <div className="collabFormRow">
           <TimeSelect
             value={value.from}
-            options={buildClockOptions(8 * 60, 21 * 60, 60)}
+            options={buildClockOptions(6 * 60, 23 * 60, 60)}
             onChange={(slot) => onChange({ from: slot })}
             label="ساعت شروع"
           />
           <TimeSelect
             value={value.to}
-            options={buildClockOptions(9 * 60, 23 * 60, 60)}
+            options={buildClockOptions(7 * 60, 24 * 60, 60)}
             onChange={(slot) => onChange({ to: slot })}
             label="ساعت پایان"
           />

@@ -14,6 +14,7 @@ import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { ConnectSheet } from "../connect/ConnectSheet";
 import { AddPlaceActions } from "./AddPlaceActions";
 import { isBookingAhead } from "./bookingStatus";
+import { nowDate } from "../../shared/lib/clock.js";
 
 const SHOWN_SERVICES = 4;
 
@@ -35,7 +36,7 @@ function newestFirst(a, b) {
 function todayStatus(place) {
   const hours = Array.isArray(place?.hours) ? place.hours : [];
   if (!hours.length) return null;
-  const today = hours.find((row) => row.day === getPersianWeekday(new Date()));
+  const today = hours.find((row) => row.day === getPersianWeekday(nowDate()));
   if (!today?.active) return { open: false, text: "امروز تعطیله" };
   return { open: true, text: `امروز تا ${toPersianDigits(today.close_time || "")} بازه` };
 }

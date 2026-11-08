@@ -171,7 +171,7 @@ export function toman(value) {
 
 /** Minutes from midnight → «۱۴:۳۰». */
 export function clockLabel(minutes) {
-  const m = Math.max(0, Math.min(1439, Math.round(minutes)));
+  const m = Math.max(0, Math.min(1440, Math.round(minutes))); // 24:00 is a real closing time
   return toPersianDigits(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
 }
 

@@ -22,6 +22,16 @@ describe("guard: added lines", () => {
     expect(blocks([{ file: "app/features/x.jsx", line: 1, text: "const todayName = getTodayPersianWeekday();" }])).toHaveLength(0);
   });
 
+  it("stops a calendar «now» read from the phone's own clock in app code", () => {
+    expect(blocks([{ file: "app/features/x.jsx", line: 1, text: "const today = formatPersianDateKey(new Date());" }])).toHaveLength(1);
+    expect(blocks([{ file: "app/shared/lib/x.js", line: 1, text: "export function f(now = new Date()) {" }])).toHaveLength(1);
+    expect(blocks([{ file: "app/features/x.jsx", line: 1, text: "const today = formatPersianDateKey(nowDate());" }])).toHaveLength(0);
+    expect(blocks([{ file: "app/features/x.jsx", line: 1, text: "const stamp = new Date(); // clock-ok" }])).toHaveLength(0);
+    expect(blocks([{ file: "app/shared/lib/x.js", line: 1, text: " * parses it with `new Date()` as UTC" }])).toHaveLength(0);
+    expect(blocks([{ file: "app/lib/db/repos/x.js", line: 1, text: "const now = new Date();" }])).toHaveLength(0);
+    expect(blocks([{ file: "app/shared/lib/clock.js", line: 1, text: "return new Date();" }])).toHaveLength(0);
+  });
+
   it("stops «دنبال کردن» in the app", () => {
     expect(blocks([{ file: "app/features/x/Button.jsx", line: 1, text: "<b>دنبال کردن</b>" }])).toHaveLength(1);
   });

@@ -82,7 +82,7 @@ export function TermsProposalSheet({ open, otherName, initial, busy, error, onSe
         <h4>ساعت</h4>
         <div className="tsRow">
             <div className="tsPair"><span>از ساعت</span><Stepper label="از ساعت" value={from} onChange={setFrom} min={0} max={23 * 60} step={30} format={clockLabel} /></div>
-            <div className="tsPair"><span>تا ساعت</span><Stepper label="تا ساعت" value={to} onChange={setTo} min={30} max={24 * 60 - 30} step={30} format={clockLabel} /></div>
+            <div className="tsPair"><span>تا ساعت</span><Stepper label="تا ساعت" value={to} onChange={setTo} min={30} max={24 * 60} step={30} format={clockLabel} /></div>
           </div>
       </section>
 

@@ -40,6 +40,7 @@ import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { AWAITING_CLIENT, bookingTimeOffer } from "../../shared/lib/bookingOffer";
 import { bookingStatusLabel, hasBookingEnded } from "../client/bookingStatus";
 import { CALL_FIRST_TEXT, CANCEL_WITH_NOTICE, CLIENT_CAN_CALL, NO_SHOW_HOURS, NO_SHOW_LABEL, NO_SHOW_UNDO_LABEL, PROPOSE_LABEL, noShowPhase, shortClock, startsSoon } from "../../shared/lib/providerRules";
+import { nowDate } from "../../shared/lib/clock.js";
 
 // Shown when a customer / staff member / source has no uploaded photo.
 const DEFAULT_AVATAR = "/profile-icon.svg";
@@ -262,7 +263,7 @@ function AutoAssignCard({ current, suggested, services, disabled, onAutoAssign }
  */
 function ClientTrust({ booking }) {
   const record = reliabilityView(booking?.reliability);
-  const attend = ownerAttendanceState({ ...booking, booking_date: booking?.booking_date || booking?.dateKey }, new Date(), booking?.ownerType === "artist" ? "artist" : "salon");
+  const attend = ownerAttendanceState({ ...booking, booking_date: booking?.booking_date || booking?.dateKey }, nowDate(), booking?.ownerType === "artist" ? "artist" : "salon");
   if (!record && !attend) return null;
   return (
     <div className={`sbmTrust${record?.warn ? " is-warn" : ""}`}>

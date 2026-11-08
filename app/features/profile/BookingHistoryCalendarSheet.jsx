@@ -12,6 +12,7 @@ import {
   shiftPersianMonth
 } from "../../shared/lib/persianCalendar";
 import { ProfileSheet } from "./ProfileSheet";
+import { nowDate } from "../../shared/lib/clock.js";
 
 /**
  * Month-calendar history picker for a ProfileHeroWeekStrip whose selection
@@ -40,7 +41,7 @@ export function BookingHistoryCalendarSheet({
   emptyDayLabel = "نوبتی نیست",
   renderBooking
 }) {
-  const todayParts = useMemo(() => getPersianDateParts(new Date()), []);
+  const todayParts = useMemo(() => getPersianDateParts(nowDate()), []);
   const [viewYear, setViewYear] = useState(todayParts.year);
   const [viewMonth, setViewMonth] = useState(todayParts.month);
 

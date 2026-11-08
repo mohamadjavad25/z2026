@@ -1,4 +1,5 @@
 import { formatPersianDateKey } from "../../shared/lib/persianCalendar";
+import { nowDate } from "../../shared/lib/clock.js";
 
 /**
  * What the phone remembers about stories (storage failing in private mode only means it remembers less):
@@ -27,11 +28,11 @@ function write(key, value) {
 }
 
 export function postedToday() {
-  return read(POSTED_KEY) === formatPersianDateKey(new Date());
+  return read(POSTED_KEY) === formatPersianDateKey(nowDate());
 }
 
 export function markPosted() {
-  write(POSTED_KEY, formatPersianDateKey(new Date()));
+  write(POSTED_KEY, formatPersianDateKey(nowDate()));
   try {
     window.dispatchEvent(new Event(POSTED_EVENT));
   } catch {

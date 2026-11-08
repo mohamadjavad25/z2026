@@ -9,6 +9,7 @@ import { SalonOwnerTeamCard } from "./SalonOwnerTeamCard";
 import { SalonCollabInbox } from "./SalonCollabInbox";
 import { WeekStrip } from "../team/WeekStrip";
 import { memberToday, weekFromHours } from "../team/teamWeek";
+import { nowDate } from "../../shared/lib/clock.js";
 
 const DEFAULT_AVATAR = "/profile-icon.svg";
 
@@ -40,7 +41,7 @@ export function SalonStaffWorkspace({
   const ownerMember = staffList.find((person) => person.is_owner) || null;
   // The manager's own card sits at the top (with its switch), so the cards below are the rest of the team.
   const teamList = onJoinAsOwner ? staffList.filter((person) => !person.is_owner) : staffList;
-  const now = new Date();
+  const now = nowDate();
   const rows = teamList.map((person) => {
     const week = weekFromHours(person.hours || [], now);
     return { person, week, today: memberToday(person, week, now) };

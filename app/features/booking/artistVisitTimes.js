@@ -1,6 +1,7 @@
 import { isSlotInPast } from "../../shared/lib/slots.js";
 import { bookingHoldsSlot } from "../../shared/lib/salonAvailability.js";
 import { buildPublicBookingSlots, isPublicArtistSlotBlocked } from "../artist/bookingUtils.js";
+import { nowDate } from "../../shared/lib/clock.js";
 
 // A time that starts in the next few minutes can't really be served (the customer isn't there yet,
 // the artist is mid-job), so today's list starts a little after "now".
@@ -18,7 +19,7 @@ export function artistBusySlots(bookings) {
  * `minutes` long: their day's grid, minus what has started, their break and their other bookings.
  * The server checks the same overlap when the booking is sent.
  */
-export function artistVisitTimes({ day, minutes, bookings, bookedSlots, breakTime, leaves = [], now = new Date() }) {
+export function artistVisitTimes({ day, minutes, bookings, bookedSlots, breakTime, leaves = [], now = nowDate() }) {
   const soon = new Date(now.getTime() + ARTIST_BOOKING_LEAD_MINUTES * 60_000);
   // A public page already has its busy list in the slot shape (bookedSlots); the owner's own list is mapped first.
   const artist = { breakTime, leaves, bookedSlots: bookedSlots || artistBusySlots(bookings) };

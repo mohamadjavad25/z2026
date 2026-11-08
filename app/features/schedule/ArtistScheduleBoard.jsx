@@ -16,6 +16,7 @@ import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { activeNowBreak, breakDaysText, hasDailyBreak } from "../../shared/lib/artistBreak";
 import { formatPersianDateKey } from "../../shared/lib/persianCalendar";
 import { LeaveLines, LeaveSheet, useArtistLeaves } from "../team/LeaveSheet";
+import { nowDate } from "../../shared/lib/clock.js";
 
 /**
  * Artist owner — bookings/schedule tab.
@@ -134,7 +135,7 @@ export function ArtistScheduleBoard({
           ) : null}
         </div>
         {/* Today's «now» break first, then the daily window with its days (shared/lib/artistBreak.js). */}
-        {activeNowBreak(breakTime, formatPersianDateKey(new Date())) ? (
+        {activeNowBreak(breakTime, formatPersianDateKey(nowDate())) ? (
           <div className="artistBreakBanner">
             <Coffee size={15} />
             <span>الان استراحتی تا <b>{breakTime.now.end}</b></span>

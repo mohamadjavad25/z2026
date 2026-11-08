@@ -14,6 +14,7 @@ import {
   shiftPersianMonth
 } from "../../shared/lib/persianCalendar";
 import { ProfileSheet } from "./ProfileSheet";
+import { nowDate } from "../../shared/lib/clock.js";
 
 export function BookingWeekRail({
   tabs = [],
@@ -31,7 +32,7 @@ export function BookingWeekRail({
   emptyDayLabel = "نوبتی نیست",
   ariaLabel = "انتخاب روز برنامه"
 }) {
-  const todayParts = useMemo(() => getPersianDateParts(new Date()), []);
+  const todayParts = useMemo(() => getPersianDateParts(nowDate()), []);
   const [internalHistoryOpen, setInternalHistoryOpen] = useState(false);
   const [modalDay, setModalDay] = useState("");
   const [modalDateKey, setModalDateKey] = useState("");

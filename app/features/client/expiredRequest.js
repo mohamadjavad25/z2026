@@ -1,12 +1,13 @@
 import { bookingPeople, parseBookingParts } from "../../shared/lib/bookingParts.js";
 import { hasBookingStarted, isPlaceGone } from "./bookingStatus.js";
+import { nowDate } from "../../shared/lib/clock.js";
 
 /**
  * «سالن بی‌جواب» (owner's decision 2026-10-22): a request nobody answered in time (status «منقضی شده») that has not
  * already been sent on to a backup and whose appointment is still to come gets two ways forward.
  * Salon requests only; an unanswered direct artist request keeps its own backup-artist flow.
  */
-export function canRetryExpired(booking, now = new Date()) {
+export function canRetryExpired(booking, now = nowDate()) {
   return Boolean(booking)
     && booking.bookingSource !== "artist"
     && booking.status === "منقضی شده"

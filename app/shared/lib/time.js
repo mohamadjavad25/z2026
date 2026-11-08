@@ -68,6 +68,12 @@ export function parseBookingTime(value) {
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
+/** A closing time: like parseBookingTime, and also "24:00" (open until midnight). A visit can never start at 24:00. */
+export function parseClosingTime(value) {
+  if (typeof value === "string" && /^0*24:0{2}$/.test(toAsciiDigits(value.trim()))) return "24:00";
+  return parseBookingTime(value);
+}
+
 export function minutesToPersianTime(totalMinutes) {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
@@ -155,7 +161,8 @@ export function shortPersianWeekday(day) {
   return map[day] || String(day || "").slice(0, 1);
 }
 
-export const SALON_HOUR_TIME_OPTIONS = buildClockOptions(8 * 60, 23 * 60, 60);
+// Owner's decision of 2026-11-08: working hours run from 6:00 to 24:00. 24:00 is only ever a closing time.
+export const SALON_HOUR_TIME_OPTIONS = buildClockOptions(6 * 60, 24 * 60, 60);
 
 // SQLite CURRENT_TIMESTAMP strings are UTC with no offset marker ("YYYY-MM-DD
 // HH:MM:SS"); append "Z" so Date parses them as UTC instead of silently
