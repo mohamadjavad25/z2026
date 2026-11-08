@@ -34,7 +34,7 @@ The owner wants each new page as a NEW artifact (never update the old ones).
 
 ## Step 1: what is left, in order
 
-1. Check the booking preview route `app/api/salon-bookings/preview/route.js`: it returns the whole `getSalon()` object (with `phone`) to anyone, guests too. Strip `phone` there (and look for other routes that return getSalon()/getPublicArtist() whole).
+1. Checked: the booking preview route only uses getSalon() inside, it does not send the phone. Still look once for other routes that return getSalon()/getPublicArtist() whole.
 2. Integration tests: login phone visibility (stranger signed in: no phone; connected client, client with a booking, team artist, the account itself: phone), push subscribe refuses `https://127.0.0.1/...` and `http://...`, accepts `https://fcm.googleapis.com/fcm/send/x`.
 3. Unit tests (tests/unit): clock.js (`learnServerTime` offset, ignores under 90 s and slow replies), apiFetch time limit, `isRetryableConnectError`, `isKnownPushEndpoint` / `isSafeToPost`.
 4. Working hours 6:00 to 24:00: `SALON_HOUR_TIME_OPTIONS` in `app/shared/lib/time.js` (around line 157) and `app/lib/validation/hours.js` (line 33). First find how 24:00 is stored and how slots, opening-hours checks and the artist's hours treat an end of 24:00 (midnight); add tests.
