@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Plus, UserRound } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Minus, Plus, UserRound, Users } from "lucide-react";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { servicePriceText } from "../../shared/lib/money";
 import { ServiceLead } from "../../components/ServicePhoto";
@@ -31,6 +31,32 @@ export function SalonServicesWorkspace({
 }) {
   // The service whose sample photos are being picked.
   const [photoService, setPhotoService] = useState(null);
+  // Design sample: the order of a service's artists, per service, on this screen only.
+  const [artistOrder, setArtistOrder] = useState({});
+  const [groupSheet, setGroupSheet] = useState(null);
+  const orderedPicked = (serviceId, ids) => {
+    const saved = (artistOrder[serviceId] || []).filter((id) => ids.includes(id));
+    return [...saved, ...ids.filter((id) => !saved.includes(id))];
+  };
+  const moveArtist = (serviceId, picked, index, step) => {
+    const next = [...picked];
+    [next[index], next[index + step]] = [next[index + step], next[index]];
+    setArtistOrder((current) => ({ ...current, [serviceId]: next }));
+  };
+  const idsOf = (service) => (Array.isArray(service.staff_ids)
+    ? service.staff_ids.map(String)
+    : String(service.staff_ids || "").trim()
+      ? String(service.staff_ids).split(",").map((id) => id.trim()).filter(Boolean)
+      : service.staff_id ? [String(service.staff_id)] : []);
+  // «آرتیست‌های ناخن»: one artist on or off for every service of a group at once.
+  const group = groupSheet ? { ...groupSheet, items: services.filter((service) => groupSheet.ids.includes(service.id)) } : null;
+  const toggleGroupArtist = (personId) => {
+    const id = String(personId);
+    const onAll = group.items.every((service) => idsOf(service).includes(id));
+    group.items.forEach((service) => {
+      if (idsOf(service).includes(id) === onAll) onToggleArtist?.(service, personId);
+    });
+  };
   return (
     <>
       <div className="svcToolbar">
@@ -51,7 +77,19 @@ export function SalonServicesWorkspace({
             onAction={onCreate}
           />
         ) : (
-          <ServiceGroups services={services}>{(service) => {
+          <ServiceGroups
+            services={services}
+            action={staffList.length ? (item) => (
+              <button
+                type="button"
+                className="svcGroupArtists"
+                onClick={() => setGroupSheet({ fa: item.fa, ids: item.items.map((service) => service.id) })}
+              >
+                <Users size={13} aria-hidden="true" />
+                آرتیست‌ها
+              </button>
+            ) : null}
+          >{(service) => {
             const selectedArtistIds = Array.isArray(service.staff_ids)
               ? service.staff_ids.map(String)
               : String(service.staff_ids || "").trim()
@@ -138,35 +176,61 @@ export function SalonServicesWorkspace({
                           <p className="sasEmpty">هنوز کسی توی تیمت نیست. از «پرسنل» یه آرتیست دعوت کن، یا اگه خودت این کار رو می‌کنی «خودم هم کار می‌کنم» رو بزن.</p>
                         ) : (
                           <>
-                            <p className="sasHint">آرتیست‌هایی که کارشون به این خدمت می‌خوره خودکار انتخاب می‌شن؛ هر کدوم رو نخواستی بردار، یا یکی دیگه اضافه کن.</p>
-                            {staffList.map((person) => {
-                              const selected = selectedArtistIds.includes(String(person.id));
-                              const avatar = person.avatar || person.staff_avatar || "";
+                            {/* Design sample (2026-11-08): the picked ones first, numbered, with arrows; the rest below.
+                                The order is kept only on this screen for now (not saved). */}
+                            {(() => {
+                              const picked = orderedPicked(service.id, selectedArtistIds);
+                              const others = staffList.filter((person) => !selectedArtistIds.includes(String(person.id)));
+                              const row = (person, rank) => {
+                                const selected = rank > 0;
+                                const avatar = person.avatar || person.staff_avatar || "";
+                                return (
+                                  <div className={`sasLine${selected ? " is-selected" : ""}`} key={person.id || person.name}>
+                                    <button
+                                      type="button"
+                                      role="option"
+                                      aria-selected={selected}
+                                      className={`sasRow${selected ? " is-selected" : ""}`}
+                                      onClick={() => onToggleArtist?.(service, person.id)}
+                                    >
+                                      <span className={`sasAvatar ${avatar ? "hasImage" : ""}`} aria-hidden="true">
+                                        {avatar ? <img src={avatar} alt="" /> : String(person.name || "آ").slice(0, 1)}
+                                      </span>
+                                      <span className="sasName">
+                                        <b>{person.name}{person.is_owner ? " (خودم)" : ""}</b>
+                                        <small>
+                                          {person.role || person.artist_service || "آرتیست"}
+                                          {autoIds.includes(String(person.id)) ? (
+                                            <em className={`sasAuto${selected ? "" : " is-off"}`}>{selected ? "خودکار" : "برداشتی"}</em>
+                                          ) : selected ? <em className="sasAuto is-manual">دستی</em> : null}
+                                        </small>
+                                      </span>
+                                      <span className="sasCheck" aria-hidden="true">{selected ? toPersianDigits(rank) : null}</span>
+                                    </button>
+                                    {selected && picked.length > 1 ? (
+                                      <span className="sasMove">
+                                        <button type="button" disabled={rank === 1} aria-label={`بالاتر بردن ${person.name}`} onClick={() => moveArtist(service.id, picked, rank - 1, -1)}>
+                                          <ChevronUp size={14} strokeWidth={3} />
+                                        </button>
+                                        <button type="button" disabled={rank === picked.length} aria-label={`پایین‌تر بردن ${person.name}`} onClick={() => moveArtist(service.id, picked, rank - 1, 1)}>
+                                          <ChevronDown size={14} strokeWidth={3} />
+                                        </button>
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                );
+                              };
                               return (
-                                <button
-                                  type="button"
-                                  role="option"
-                                  aria-selected={selected}
-                                  className={`sasRow${selected ? " is-selected" : ""}`}
-                                  key={person.id || person.name}
-                                  onClick={() => onToggleArtist?.(service, person.id)}
-                                >
-                                  <span className={`sasAvatar ${avatar ? "hasImage" : ""}`} aria-hidden="true">
-                                    {avatar ? <img src={avatar} alt="" /> : String(person.name || "آ").slice(0, 1)}
-                                  </span>
-                                  <span className="sasName">
-                                    <b>{person.name}{person.is_owner ? " (خودم)" : ""}</b>
-                                    <small>
-                                      {person.role || person.artist_service || "آرتیست"}
-                                      {autoIds.includes(String(person.id)) ? (
-                                        <em className={`sasAuto${selected ? "" : " is-off"}`}>{selected ? "خودکار" : "برداشتی"}</em>
-                                      ) : selected ? <em className="sasAuto is-manual">دستی</em> : null}
-                                    </small>
-                                  </span>
-                                  <span className="sasCheck" aria-hidden="true">{selected ? <Check size={15} /> : null}</span>
-                                </button>
+                                <>
+                                  {picked.map((id, index) => {
+                                    const person = staffList.find((item) => String(item.id) === id);
+                                    return person ? row(person, index + 1) : null;
+                                  })}
+                                  {others.length ? <p className="sasSplit">بقیهٔ تیم</p> : null}
+                                  {others.map((person) => row(person, 0))}
+                                </>
                               );
-                            })}
+                            })()}
                             {selectedArtistIds.length ? (
                               <button type="button" className="sasClear" onClick={() => onClearArtists?.(service)}>
                                 همه رو بردار
@@ -183,6 +247,43 @@ export function SalonServicesWorkspace({
           }}</ServiceGroups>
         )}
       </div>
+      <ProfileSheet
+        open={Boolean(group)}
+        kicker={group ? `${toPersianDigits(group.items.length)} خدمت` : ""}
+        title={group ? `آرتیست‌های ${group.fa}` : ""}
+        panelClassName="sasSheet"
+        onClose={() => setGroupSheet(null)}
+      >
+        {group ? (
+          <div className="sasBody" role="listbox" aria-label={`آرتیست‌های ${group.fa}`} aria-multiselectable="true">
+            {staffList.map((person) => {
+              const id = String(person.id);
+              const count = group.items.filter((service) => idsOf(service).includes(id)).length;
+              const all = count === group.items.length;
+              const avatar = person.avatar || person.staff_avatar || "";
+              return (
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={all}
+                  className={`sasRow${all ? " is-selected" : count ? " is-some" : ""}`}
+                  key={person.id || person.name}
+                  onClick={() => toggleGroupArtist(person.id)}
+                >
+                  <span className={`sasAvatar ${avatar ? "hasImage" : ""}`} aria-hidden="true">
+                    {avatar ? <img src={avatar} alt="" /> : String(person.name || "آ").slice(0, 1)}
+                  </span>
+                  <span className="sasName">
+                    <b>{person.name}{person.is_owner ? " (خودم)" : ""}</b>
+                    <small>{all ? "همهٔ خدمت‌ها" : count ? `${toPersianDigits(count)} از ${toPersianDigits(group.items.length)} خدمت` : person.role || person.artist_service || "آرتیست"}</small>
+                  </span>
+                  <span className="sasCheck" aria-hidden="true">{all ? <Check size={15} /> : count ? <Minus size={15} /> : null}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+      </ProfileSheet>
       {photoService ? (
         <ServicePhotosEditor
           service={services.find((item) => item.id === photoService.id) || photoService}

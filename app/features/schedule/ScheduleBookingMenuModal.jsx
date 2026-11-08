@@ -14,7 +14,6 @@ import {
   Clock3,
   Eye,
   Phone,
-  Scissors,
   Sparkles,
   Timer,
   TimerOff,
@@ -33,7 +32,7 @@ import { getArtistProposalTimes } from "../../shared/api/providerExit";
 import { bookingWaitMinutes, requestMinutesLeft } from "../../shared/lib/bookingWindow";
 import { RequestExpiryBadge } from "./RequestExpiryBadge";
 import { isMultiPartBooking, parseBookingParts, scheduleBookingParts } from "../../shared/lib/bookingParts";
-import { ArtistOptionList, BookingPartsEditor } from "./BookingPartsEditor";
+import { ArtistOptionList, ArtistPickSheet, BookingPartsEditor } from "./BookingPartsEditor";
 import { ArtistBookingPlace } from "./ArtistBookingPlace";
 import { getSalonBookingMoveTimes, getSalonBookingStaffOptions } from "../../shared/api/salons";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
@@ -228,11 +227,16 @@ function useStaffAvailability(booking, enabled) {
  * «چیدن خودکار»: what the system would do with this booking's artists. Offered when its split
  * differs from the current one; when a service has nobody and nobody is free, says so instead.
  */
-function AutoAssignCard({ current, suggested, services, disabled, onAutoAssign }) {
+function AutoAssignCard({ current, suggested, services, disabled, onAutoAssign, fresh = false }) {
   const missing = current.filter((name) => !name).length;
   const differs = suggested.some((name, index) => name !== (current[index] || ""));
   const offers = suggested.some(Boolean) && differs;
-  if (!offers && !missing) return null;
+  if (!offers && !missing) {
+    // The split already is the suggestion: say so in one small chip instead of nothing.
+    return fresh && suggested.some(Boolean) ? (
+      <p className="sbmAutoDone"><Sparkles size={13} aria-hidden="true" />خودکار چیده شد</p>
+    ) : null;
+  }
   if (!offers) {
     return (
       <p className="sbmAuto is-stuck">
@@ -407,16 +411,26 @@ export function ScheduleBookingMenuModal({
             <img src={avatar} alt="" />
           </span>
           <div className="sbmWho">
-            <small>
-              {timeView ? timeLabel : readOnly ? "جزئیات نوبت، فقط دیدنی" : showReview ? "درخواست نوبت تازه" : "جزئیات نوبت"}
-            </small>
+            {timeView || readOnly ? <small>{timeView ? timeLabel : "جزئیات نوبت، فقط دیدنی"}</small> : null}
             <b>{title}</b>
             <strong className={`clientBookingSettingsStatus is-${statusTone}${showReview ? " is-live" : ""}`}>
               <StatusIcon size={11} />
               {markedNoShow ? NO_SHOW_LABEL : booking.status === AWAITING_CLIENT ? AWAITING_CLIENT : bookingStatusLabel(booking.status || "درخواست", { ended: hasBookingEnded(booking), waitsOnSalon: Boolean(!isSalonOwner && sourceSalon.name && statusTone === "pending") })}
             </strong>
+            {/* The number is the call button (owner's review, 2026-11-08): one place for the phone, not a row plus a button. */}
+            {phone ? (
+              <button
+                type="button"
+                className="sbmCall"
+                aria-label={`تماس با ${title}`}
+                onClick={() => { window.location.href = `tel:${toLatinDigits(phone)}`; }}
+              >
+                <Phone size={13} aria-hidden="true" />
+                <span dir="ltr">{toPersianDigits(phone)}</span>
+              </button>
+            ) : null}
           </div>
-          {team.length ? (
+          {isSalonOwner ? null : team.length ? (
             <div className="sbmTeam" aria-label={`${isSalonOwner ? "آرتیست‌ها" : "سالن"}: ${team.map((person) => person.name).join("، ")}`}>
               <span className="sbmTeamFaces" aria-hidden="true">
                 {team.slice(0, 3).map((person) => (
@@ -429,47 +443,45 @@ export function ScheduleBookingMenuModal({
           ) : (
             <div className="sbmTeam is-empty">
               <span className="sbmTeamFaces" aria-hidden="true"><UserRound size={16} /></span>
-              <small>{isSalonOwner ? "بدون آرتیست" : "نوبت خودت"}</small>
+              <small>نوبت خودت</small>
             </div>
           )}
+          <button type="button" className="sbmX" aria-label="بستن" onClick={onClose}>
+            <X size={20} aria-hidden="true" />
+          </button>
         </div>
 
-        <div className="clientBookingSettingsTime">
-          <SegmentClock value={booking.time || "زمان"} size="sm" as="span" backgroundColor="transparent" />
-        </div>
+        {timeView ? (
+          <div className="clientBookingSettingsTime">
+            <SegmentClock value={booking.time || "زمان"} size="sm" as="span" backgroundColor="transparent" />
+          </div>
+        ) : null}
 
         {!timeView ? (
           <>
-            <div className="scheduleBookingDetails">
-              <div className="scheduleBookingDetail">
-                <CalendarCheck size={15} aria-hidden="true" />
-                <span>تاریخ</span>
-                <b>{dateLabel}</b>
-              </div>
-              {multiPart ? (
-                <div className="scheduleBookingDetail">
-                  <Clock3 size={15} aria-hidden="true" />
-                  <span>زمان</span>
-                  <b>
-                    {toPersianDigits(services[0].startLabel)} تا {toPersianDigits(services[services.length - 1].endLabel)}
-                    <small className="sbmCount">، {toPersianDigits(services.length)} خدمت</small>
-                  </b>
-                </div>
-              ) : (
-                <div className="scheduleBookingDetail">
-                  <Scissors size={15} aria-hidden="true" />
-                  <span>خدمت</span>
-                  <b className="svcInline"><ServiceIcon emoji={booking.service_emoji} name={booking.service} size="xs" />{booking.service || "خدمت زیبایی"}</b>
-                </div>
-              )}
-              {phone ? (
-                <div className="scheduleBookingDetail">
-                  <Phone size={15} aria-hidden="true" />
-                  <span>تلفن</span>
-                  <b dir="ltr" className="sbmPhone">{toPersianDigits(phone)}</b>
-                </div>
+            {/* One line for when (owner's review, 2026-11-08): the big clock and the date/time rows said it twice. */}
+            {/* «تغییر ساعت» lives on the line it changes (owner's review, 2026-11-08): no bar at the bottom. */}
+            <div className="sbmWhen">
+              <CalendarCheck size={16} aria-hidden="true" />
+              <b>{dateLabel}</b>
+              <span>
+                {multiPart
+                  ? `${toPersianDigits(services[0].startLabel)} تا ${toPersianDigits(services[services.length - 1].endLabel)}`
+                  : toPersianDigits(booking.time || "")}
+              </span>
+              {canMove ? (
+                <button type="button" className="sbmWhenEdit" disabled={actionDisabled} onClick={() => onViewChange?.("time")}>
+                  <Timer size={14} aria-hidden="true" />
+                  {timeLabel}
+                </button>
               ) : null}
             </div>
+            {multiPart ? null : (
+              <p className="sbmService">
+                <ServiceIcon emoji={booking.service_emoji} name={booking.service} size="sm" />
+                <b>{booking.service || "خدمت زیبایی"}</b>
+              </p>
+            )}
 
             <ClientTrust booking={booking} />
 
@@ -482,6 +494,7 @@ export function ScheduleBookingMenuModal({
                 services={multiPart ? parsedParts.length : 1}
                 disabled={actionDisabled}
                 onAutoAssign={onAutoAssign}
+                fresh={showReview}
               />
             ) : null}
 
@@ -512,7 +525,12 @@ export function ScheduleBookingMenuModal({
                   </span>
                   {canManage ? <ChevronDown size={16} className="scheduleBookingArtistChevron" aria-hidden="true" /> : null}
                 </button>
-                {canManage && artistPickerOpen ? (
+                <ArtistPickSheet
+                  open={canManage && artistPickerOpen}
+                  title={`آرتیست ${booking.service || "این نوبت"}`}
+                  subtitle={`${dateLabel}، ${toPersianDigits(booking.time || "")}`}
+                  onClose={() => setArtistPickerOpen(false)}
+                >
                   <ArtistOptionList
                     staffOptions={staffOptions}
                     current={booking.staff || ""}
@@ -528,7 +546,7 @@ export function ScheduleBookingMenuModal({
                       if (ok !== false) setArtistPickerOpen(false);
                     }}
                   />
-                ) : null}
+                </ArtistPickSheet>
               </div>
             ) : null}
 
@@ -641,8 +659,9 @@ export function ScheduleBookingMenuModal({
         )}
       </div>
 
-      <footer className="sbmFoot">
-        {showReview && !timeView ? (
+      {/* Only the answer stays at the bottom (owner's review, 2026-11-08): close is the × above, call is the number, the time is changed on its line. */}
+      {showReview && !timeView ? (
+        <footer className="sbmFoot">
           <div className="scheduleBookingReviewActions">
             <RequestExpiryBadge createdAt={createdAt} day={dateValue} time={booking.time} waitMinutes={waitMinutes} />
             <button type="button" className="is-approve" disabled={actionDisabled || (minutesLeft !== null && minutesLeft <= 0)} onClick={onApprove}>
@@ -654,37 +673,8 @@ export function ScheduleBookingMenuModal({
               رد
             </button>
           </div>
-        ) : null}
-        <nav className="sbmBar" aria-label="کارهای نوبت">
-          {canMove ? (
-            <button
-              type="button"
-              className={timeView ? "is-active" : ""}
-              aria-pressed={timeView}
-              disabled={actionDisabled}
-              onClick={() => onViewChange?.(timeView ? "menu" : "time")}
-            >
-              <Timer size={19} aria-hidden="true" />
-              <span>{timeLabel}</span>
-            </button>
-          ) : null}
-          <button
-            type="button"
-            disabled={!phone}
-            aria-label={phone ? `تماس با ${title}` : "شماره نداره"}
-            onClick={() => {
-              if (phone) window.location.href = `tel:${toLatinDigits(phone)}`;
-            }}
-          >
-            <Phone size={19} aria-hidden="true" />
-            <span>تماس</span>
-          </button>
-          <button type="button" className="is-close" onClick={onClose}>
-            <X size={19} aria-hidden="true" />
-            <span>بستن</span>
-          </button>
-        </nav>
-      </footer>
+        </footer>
+      ) : null}
     </div>
   );
 }

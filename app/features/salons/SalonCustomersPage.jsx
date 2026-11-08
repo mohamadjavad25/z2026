@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { askForAppUpdate } from "../../shared/lib/appUpdate";
 import { PageIcon } from "../../components/PageIcon";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { ArrowDownUp, CalendarCheck, Check, CalendarPlus, ContactRound, Link2, MessageSquare, Phone, Repeat2, Search, Sparkles, Trash2, UserPlus, Users, X } from "lucide-react";
+import { ArrowDownUp, Check, CalendarPlus, ContactRound, Link2, MessageSquare, Phone, Search, Sparkles, Trash2, UserPlus, X } from "lucide-react";
 import { ProfileSheet } from "../profile/ProfileSheet";
 import { bookingStatusLabel, bookingStatusTone, hasBookingEnded, isBookingActive, isBookingInPast } from "../client/bookingStatus";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
@@ -277,8 +277,6 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
   }
   const freshFollowers = useMemo(() => pickFreshFollowers(customers), [customers]);
   const waitingCount = useMemo(() => customers.filter((item) => item.noBookingYet).length, [customers]);
-  const repeatCount = useMemo(() => customers.filter((item) => item.visitCount >= 2).length, [customers]);
-  const upcomingCount = useMemo(() => customers.filter((item) => item.upcoming > 0).length, [customers]);
   const todayTime = useMemo(() => resolveRollingPersianDate("امروز").getTime(), []);
   const lapsedCount = useMemo(() => customers.filter((item) => isLapsed(item, todayTime)).length, [customers, todayTime]);
 
@@ -407,11 +405,6 @@ export function SalonCustomersPage({ active, bookings = [], followers = [], owne
 
       {customers.length ? (
         <>
-          <div className="cuTiles" aria-label="خلاصهٔ مشتری‌ها">
-            <span><Users size={16} /><b>{toPersianDigits(customers.length)}</b>مشتری</span>
-            <span><Repeat2 size={16} /><b>{toPersianDigits(repeatCount)}</b>دوباره اومدن</span>
-            <span><CalendarCheck size={16} /><b>{toPersianDigits(upcomingCount)}</b>نوبت پیش‌رو</span>
-          </div>
           <label className="salonCustomersSearch">
             <Search size={16} />
             <input
