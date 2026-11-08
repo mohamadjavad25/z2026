@@ -30,10 +30,12 @@ export function alertAdminsServerError(error) {
     const shared = await checkRateLimit("admin-push:server-error", 1, QUIET_MS).catch(() => ({ ok: true }));
     if (!shared.ok) return;
     const dbDown = databaseLooksDown(error);
-    await pushAdmins({
+    const reached = await pushAdmins({
       title: dbDown ? "دیتابیس فرفرو جواب نمی‌ده" : "خطای سرور فرفرو",
       body: dbDown ? "کاربرها الان صفحهٔ خطا می‌بینن. سرور و دیتابیس رو نگاه کن." : "یه خطای جدی تو سایت افتاد. لاگ سرور رو نگاه کن.",
       tag: "server-error"
     });
+    // Nobody was reached (no list in memory yet): try again in a minute instead of staying quiet for ten.
+    if (!reached.size) lastSentAt = now - QUIET_MS + 60 * 1000;
   })().catch(() => {});
 }

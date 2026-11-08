@@ -1,6 +1,20 @@
 import { getDb, get } from "../connection.js";
 
 /**
+ * A salon's team as the viewer may see it. The salon itself gets the list as it is; anyone else gets each member's
+ * number only when canSeeLoginPhone allows that member, and never the private note the salon or an invite wrote.
+ */
+export async function teamListForViewer(staff, viewerUserId, salonUserId) {
+  const list = Array.isArray(staff) ? staff : [];
+  if (viewerUserId && Number(viewerUserId) === Number(salonUserId)) return list;
+  return Promise.all(list.map(async (member) => {
+    const { phone: _phone, artist_phone: _artistPhone, bio: _bio, artist_bio: _artistBio, ...shown } = member;
+    const allowed = member.artist_user_id && await canSeeLoginPhone(viewerUserId, member.artist_user_id);
+    return allowed ? { ...shown, phone: member.phone, artist_phone: member.artist_phone } : shown;
+  }));
+}
+
+/**
  * Who may see a salon's or artist's login phone on their page (owner's decision of 2026-11-08, HEALTH debt 13).
  *
  * The number is the account's login and SMS number, so a stranger who only opened the page does not get it. It is

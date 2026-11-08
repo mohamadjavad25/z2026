@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, registerUser, FAR_DAY, confirmedAt, joinSalonAsArtist, newArtist, newClient, newSalon } from "./exitHelpers.js";
+import { createClient, registerUser, FAR_DAY, confirmedAt, joinSalonAsArtist, newArtist, newClient, newSalon, q } from "./exitHelpers.js";
 
 // Owner's decision of 2026-11-08: a salon's or artist's login phone is seen by the account itself, a connected client, a
 // client with a booking there, and the other side of a team. Nobody else, signed in or not.
@@ -55,6 +55,55 @@ describe("who sees a salon's login phone", () => {
     expect((await joinSalonAsArtist(artist.api, salon.api, salon.id)).ok).toBe(true);
     expect(await salonPhoneFor(artist.api, salon)).toBe(salon.phone);
     expect(await artistPhoneFor(salon.api, artist)).toBe(artist.phone);
+  });
+});
+
+describe("a salon's team on its page", () => {
+  const staffOf = async (viewer, salon) => (await viewer.get(`/api/salons/${salon.id}`)).payload.data.salon.staff;
+
+  it("a member's number reaches neither a visitor, a stranger nor the page's HTML; the salon keeps it", async () => {
+    const salon = await newSalon("Phone Team Page");
+    const artist = await newArtist("Phone Team Page Artist");
+    const mate = await newArtist("Phone Team Page Mate");
+    for (const person of [artist, mate]) expect((await joinSalonAsArtist(person.api, salon.api, salon.id)).ok).toBe(true);
+    const stranger = await newClient("Phone Team Page Stranger");
+
+    for (const viewer of [createClient(), stranger.api, mate.api]) {
+      const member = (await staffOf(viewer, salon)).find((row) => row.artist_user_id === artist.id);
+      expect(member).toBeTruthy();
+      expect(member.artist_phone).toBeUndefined();
+      expect(member.phone).toBeUndefined();
+      expect(member.bio).toBeUndefined();
+    }
+    const own = (await staffOf(salon.api, salon)).find((row) => row.artist_user_id === artist.id);
+    expect(own.artist_phone).toBe(artist.phone);
+
+    const html = await (await fetch(`${process.env.TEST_BASE_URL}/salons/${salon.id}`)).text();
+    expect(html).not.toContain(artist.phone);
+  });
+
+  it("a client connected to one member sees that member's number only", async () => {
+    const salon = await newSalon("Phone Team One");
+    const artist = await newArtist("Phone Team One Artist");
+    const other = await newArtist("Phone Team One Other");
+    for (const person of [artist, other]) expect((await joinSalonAsArtist(person.api, salon.api, salon.id)).ok).toBe(true);
+    const client = await newClient("Phone Team One Client");
+    expect((await connect(client, artist)).ok).toBe(true);
+    const staff = await staffOf(client.api, salon);
+    expect(staff.find((row) => row.artist_user_id === artist.id).artist_phone).toBe(artist.phone);
+    expect(staff.find((row) => row.artist_user_id === other.id).artist_phone).toBeUndefined();
+  });
+
+  it("an old unlinked row of an artist who already has a seat does not break the salon's team", async () => {
+    const salon = await newSalon("Team Old Row");
+    const artist = await newArtist("Team Old Row Artist");
+    expect((await joinSalonAsArtist(artist.api, salon.api, salon.id)).ok).toBe(true);
+    await q(`INSERT INTO salon_staff (salon_user_id, name, phone, role, bio, booked, state, access_level)
+      SELECT salon_user_id, $2, $3, role, bio, booked, state, access_level FROM salon_staff WHERE artist_user_id = $1`, [artist.id, artist.user.name, artist.phone]);
+    expect((await salon.api.get("/api/salon-staff")).ok).toBe(true);
+    expect((await createClient().get(`/api/salons/${salon.id}`)).ok).toBe(true);
+    const seats = await q("SELECT COUNT(*)::int AS c FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2", [salon.id, artist.id]);
+    expect(seats[0].c).toBe(1);
   });
 });
 

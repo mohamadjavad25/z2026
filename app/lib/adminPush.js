@@ -13,6 +13,12 @@ import { logger } from "./logger.js";
  */
 let knownTokens = [];
 
+/** Keeps the in-memory list fresh for the moment the database is down (run by the 5-minute server watch). Never throws. */
+export async function rememberAdminTokens() {
+  if (!fcmConfigured()) return;
+  knownTokens = await adminPush.listFreshTokensForPhones(adminPhoneList()).catch(() => knownTokens);
+}
+
 export async function pushAdmins({ title, body, url = "/admin", tag = "" } = {}) {
   const reached = new Set();
   if (!fcmConfigured()) {

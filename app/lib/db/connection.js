@@ -190,6 +190,8 @@ function getPool() {
   // Postgres refuses a text value holding a NUL byte (error 22021), which turned a stray \u0000 in a name, a search
   // or a password into a 500. Every pooled connection drops that byte from its string parameters before sending.
   pool.on("connect", (client) => {
+    // pg takes its own listener off a client while it is checked out; a connection dropped mid-query must still be heard.
+    client.on("error", (error) => console.error("Postgres client error:", error.message));
     const query = client.query.bind(client);
     const clean = (value) => (typeof value === "string" && value.includes("\u0000") ? value.replaceAll("\u0000", "") : value);
     client.query = (first, second, ...rest) => {

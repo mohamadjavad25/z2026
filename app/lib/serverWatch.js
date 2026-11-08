@@ -5,6 +5,7 @@ import * as store from "./db/repos/adminNews.js";
 import { alertAdmins, tehranClock } from "./adminNews.js";
 import { activityBytes } from "./db/repos/activity.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
+import { rememberAdminTokens } from "./adminPush.js";
 
 /**
  * The server watch, run every 5 minutes by /api/cron/admin-watch: reads the machine's load, disk and memory, how long
@@ -152,6 +153,7 @@ export function judge(reading, state = {}, now = new Date()) {
 
 /** One watch round: read, judge, tell, save. Returns what it saw and told (for the cron's answer and the log). */
 export async function watchServer(origin, now = new Date()) {
+  await rememberAdminTokens();
   const reading = await readServer(origin);
   const { alerts, state, busyToday } = judge(reading, await store.readState("server"), now);
   await store.writeState("server", state);

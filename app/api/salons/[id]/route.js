@@ -5,7 +5,7 @@ import * as salons from "../../../lib/db/repos/salons.js";
 import { suspendedAccountIds } from "../../../lib/db/repos/users.js";
 import { PAGE_UNAVAILABLE_MESSAGE } from "../../../lib/billing/access.js";
 import { withErrorHandling } from "../../../lib/http.js";
-import { canSeeLoginPhone } from "../../../lib/db/repos/contactVisibility.js";
+import { canSeeLoginPhone, teamListForViewer } from "../../../lib/db/repos/contactVisibility.js";
 
 export const runtime = "nodejs";
 
@@ -35,6 +35,7 @@ async function _GET(request, context) {
   // client, a client with a booking there, or the other side of a team gets it (the app's «تماس با سالن»). Anyone
   // else, signed in or not, sees the page without it.
   if (!(await canSeeLoginPhone(viewer?.id, userId))) delete salon.phone;
+  salon.staff = await teamListForViewer(salon.staff, viewer?.id, userId);
   return NextResponse.json({ data: { salon } });
 }
 

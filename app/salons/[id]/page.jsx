@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { teamListForViewer } from "../../lib/db/repos/contactVisibility.js";
 import { PageUnavailable } from "../../components/PageUnavailable";
 import { suspendedAccountIds } from "../../lib/db/repos/users.js";
 import { ensureDb } from "../../lib/db/connection.js";
@@ -37,6 +38,7 @@ async function loadSalonFresh(id) {
   // crossing the "use client" SalonPublicPageClient RSC boundary.
   // The page never shows the number, and it is the owner's login phone: it stays out of the HTML.
   const { phone: _loginPhone, ...shown } = salon;
+  shown.staff = await teamListForViewer(salon.staff, null, userId);
   return JSON.parse(JSON.stringify(shown));
 }
 

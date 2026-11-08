@@ -51,6 +51,7 @@ export async function listSalonStaff(salonUserId, runner = null) {
         UPDATE salon_staff
         SET artist_user_id = $1, updated_at = CURRENT_TIMESTAMP
         WHERE id = $2 AND salon_user_id = $3
+          AND NOT EXISTS (SELECT 1 FROM salon_staff seat WHERE seat.salon_user_id = $3 AND seat.artist_user_id = $1)
       `, [artist.id, row.id, salonUserId]);
     }
     const staffAvatarUrl = artistAvatarUrl(artist);
@@ -469,7 +470,11 @@ export async function updateSalonStaff(id, salonUserId, data) {
     access_level: data.accessLevel ?? data.access_level ?? current.access_level
   };
   const resolvedArtist = await resolveArtistUserForStaff(nextDraft, db);
-  const artistUserId = nextDraft.artist_user_id || resolvedArtist?.id || null;
+  // One seat per salon and artist (migration 078): an old unlinked row stays unlinked when the artist already has a row.
+  const seatTaken = !nextDraft.artist_user_id && resolvedArtist?.id
+    ? await get(db, "SELECT 1 AS taken FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2 AND id <> $3", [salonUserId, resolvedArtist.id, id])
+    : null;
+  const artistUserId = nextDraft.artist_user_id || (seatTaken ? null : resolvedArtist?.id) || null;
   await run(db, `
     UPDATE salon_staff SET
       artist_user_id = $1, name = $2, phone = $3, role = $4, bio = $5, booked = $6, state = $7, access_level = $8, updated_at = CURRENT_TIMESTAMP
