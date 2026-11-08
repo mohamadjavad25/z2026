@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { PublicArtistModal } from "../../features/artist/PublicArtistModal";
-import { getPublicArtistServices, salonClientBookingDays } from "../../features/artist/constants";
+import { getPublicArtistServices, clientBookingDays } from "../../features/artist/constants";
 import { mapSharedPost } from "../../features/posts/mappers";
 import { parseServiceDurationMinutes } from "../../shared/lib/time";
 import { FollowSheet, useFollowGate } from "../../features/follow";
@@ -43,7 +43,7 @@ export function ArtistPublicPageClient({ artist }) {
 
   const [galleryFilter, setGalleryFilter] = useState("همه");
   const [selectedServiceId, setSelectedServiceId] = useState("");
-  const [bookingDay, setBookingDay] = useState(salonClientBookingDays[0]);
+  const [bookingDay, setBookingDay] = useState(() => clientBookingDays()[0]);
   const [bookingSlot, setBookingSlot] = useState("");
   // Taken times learned while sending, so the picker stops offering them; and the sent request, for the thank-you.
   const [taken, setTaken] = useState([]);

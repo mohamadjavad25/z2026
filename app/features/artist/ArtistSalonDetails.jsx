@@ -192,7 +192,7 @@ export function ArtistSelfSheet({ open, team, artistName, onClose, onChanged }) 
 
   const hint = (post) => {
     const status = statusOf(post.id);
-    if (status === "declined") return `${team.salonName} این پست رو اضافه نکرد.`;
+    if (status === "declined") return `${team.salonName} این نمونه‌کار رو اضافه نکرد.`;
     if (!post.isPublic) return "فقط خودت می‌بینی";
     if (status === "approved") return "روی صفحهٔ سالنه";
     if (status === "pending") return "منتظر جواب سالنه";
@@ -217,7 +217,7 @@ export function ArtistSelfSheet({ open, team, artistName, onClose, onChanged }) 
       </div>
 
       <section className="cwCard">
-        <b style={{ fontSize: "0.88rem" }}>کدوم پست‌هات روی صفحهٔ سالن باشن؟</b>
+        <b style={{ fontSize: "0.88rem" }}>کدوم نمونه‌کارهات روی صفحهٔ سالن باشن؟</b>
         {posts === null ? <p className="cwSub">یه لحظه…</p> : posts.length ? (
           <div>
             {posts.map((post) => {
@@ -247,7 +247,7 @@ export function ArtistSelfSheet({ open, team, artistName, onClose, onChanged }) 
           <p className="cwSub">هنوز نمونه‌کاری نذاشتی. از تب «نمونه‌کار» یکی بذار، بعد برای این سالن بفرستش.</p>
         )}
         {message ? <p className="cwSub" role="alert" style={{ color: "var(--danger)" }}>{message}</p> : null}
-        <p className="cwSub">هر پست وقتی سالن قبولش کنه روی صفحه‌ش میاد؛ هم‌زمان تا ۱۰ تا می‌تونن منتظر باشن.</p>
+        <p className="cwSub">هر نمونه‌کار وقتی سالن قبولش کنه روی صفحه‌ش میاد؛ هم‌زمان تا ۱۰ تا می‌تونن منتظر باشن.</p>
       </section>
     </ProfileSheet>
   );

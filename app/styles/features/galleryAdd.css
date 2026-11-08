@@ -72,15 +72,9 @@
   .profilePanel.page-profile:has(.createdProfile.is-artist) .profileGallery.has-add-tile { padding-top: 14px !important; }
 }
 
-/* The tile is explicitly pinned to row 1's rightmost grid cell, so it always stays put there no
-   matter how many posts exist -- post cards auto-place into whichever cells are left, flowing
-   around it, instead of the tile being pushed into row 2 once row 1 fills up (which is what
-   happened when it only had document order + .order to go on). The artist grid flows in the
-   page's natural RTL, where column 1 (the grid's own start) is already the rightmost column.
-   The salon grid instead forces `direction: ltr` on itself (see app/styles/legacy/part-10.css),
-   where the *last* column is the rightmost one -- both grids are 3 columns here. */
+/* The tile is pinned to row 1's first cell, the rightmost one: both the artist's and the salon's grids run in the
+   page's own right-to-left, so works follow it from the right with no gap, newest first (the salon's grid used to be
+   left-to-right, which left the first work at the far left; owner, 2026-11-08). Post cards auto-place around it. */
 @media (max-width: 760px) {
-  .galleryAddTile { grid-row: 1; }
-  .profilePanel.page-profile:has(.createdProfile.is-artist) .galleryAddTile { grid-column: 1; }
-  .salonWorkspacePanel.is-portfolio .galleryAddTile { grid-column: 3; }
+  .galleryAddTile { grid-row: 1; grid-column: 1; }
 }

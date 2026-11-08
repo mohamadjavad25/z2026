@@ -186,6 +186,7 @@ export function ProfileGallery({
                     />
                   )}
                   <div className="profileGalleryCardShade" aria-hidden="true" />
+                  {item.teamArtistName ? <span className="profileGalleryCardBy">{item.teamArtistName}</span> : null}
                   <div className="profileGalleryCardCopy">
                     {item.title || item.tag ? <h3>{item.title || item.tag}</h3> : null}
                   </div>

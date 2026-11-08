@@ -9,8 +9,7 @@ import { INSTAGRAM_ON } from "../../../shared/lib/instagram";
 import { DueRemindersSection } from "../../dueReminders/DueReminders";
 import { BillingBanner } from "../../billing";
 import { SalonStaffWorkspace, SalonServicesWorkspace } from "../../salons";
-import { ProfileGallery } from "../../profile/ProfileGallery";
-import { SalonTeamPostsPanel } from "../../salons/SalonTeamPostsPanel";
+import { SalonWorksTab } from "../../salons/SalonWorksTab";
 import { SalonScheduleDashboard, ArtistScheduleBoard } from "../../schedule";
 import { ArtistOverviewReviews, ArtistServicesPanel, ArtistCollabBoard } from "../../artist";
 import { ClientHome } from "../../client";
@@ -346,30 +345,32 @@ export function ProfilePanelBody() {
                         </DueRemindersSection>
                       )}
 
-                      {salonWorkspace === "portfolio" && <SalonTeamPostsPanel onNotify={setAppToast} />}
                       {salonWorkspace === "portfolio" && (
-                        <ProfileGallery
-                          label="نمونه‌کارها"
+                        <SalonWorksTab
                           items={salonPortfolioList}
-                          onAdd={() => openPortfolioComposer()}
-                          addLabel="نمونه‌کار تازه"
-                          getFallbackStyle={getPortfolioCardStyle}
-                          editingId={salonWorkDraft && salonWorkDraft.id !== "new" ? salonWorkDraft.id : null}
-                          onItemClick={(item) => setSalonPreviewWorkId(item.id)}
-                          composeValue={salonWorkDraft}
-                          onComposeChange={setSalonWorkDraft}
-                          onComposeClose={resetPortfolioComposer}
-                          onComposeSubmit={addSalonPortfolio}
-                          onComposeDelete={deleteSalonPortfolioFromComposer}
-                          onComposeNotify={setAppToast}
-                          onComposeImageClear={clearSalonWorkImage}
-                          composeTagOptions={salonWorkTagOptions}
-                          composeTagMenuOpen={salonWorkTagMenuOpen}
-                          onComposeTagMenuOpenChange={setSalonWorkTagMenuOpen}
-                          composeSaving={portfolioSaving}
-                          loading={salonWorkspaceLoading}
-                          composeAriaLabel={salonWorkDraft?.id === "new" ? "نمونه‌کار تازه" : "ویرایش نمونه‌کار"}
-                          composeSubmitLabel={salonWorkDraft?.id === "new" ? "بذارش" : "ذخیره کن"}
+                          onOpenWork={(item) => setSalonPreviewWorkId(item.id)}
+                          onNotify={setAppToast}
+                          galleryProps={{
+                            label: "نمونه‌کارها",
+                            onAdd: () => openPortfolioComposer(),
+                            addLabel: "نمونه‌کار تازه",
+                            getFallbackStyle: getPortfolioCardStyle,
+                            editingId: salonWorkDraft && salonWorkDraft.id !== "new" ? salonWorkDraft.id : null,
+                            composeValue: salonWorkDraft,
+                            onComposeChange: setSalonWorkDraft,
+                            onComposeClose: resetPortfolioComposer,
+                            onComposeSubmit: addSalonPortfolio,
+                            onComposeDelete: deleteSalonPortfolioFromComposer,
+                            onComposeNotify: setAppToast,
+                            onComposeImageClear: clearSalonWorkImage,
+                            composeTagOptions: salonWorkTagOptions,
+                            composeTagMenuOpen: salonWorkTagMenuOpen,
+                            onComposeTagMenuOpenChange: setSalonWorkTagMenuOpen,
+                            composeSaving: portfolioSaving,
+                            loading: salonWorkspaceLoading,
+                            composeAriaLabel: salonWorkDraft?.id === "new" ? "نمونه‌کار تازه" : "ویرایش نمونه‌کار",
+                            composeSubmitLabel: salonWorkDraft?.id === "new" ? "بذارش" : "ذخیره کن"
+                          }}
                         />
                       )}
                       </div>

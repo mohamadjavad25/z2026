@@ -98,12 +98,17 @@ describe("the team on a salon's page (browser)", () => {
     theirs.page.setDefaultTimeout(8000);
     await theirs.page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await theirs.page.locator(".profileModeRail button", { hasText: "نمونه‌کار" }).click();
-    const panel = theirs.page.locator(".teamPosts");
-    await panel.getByText("درخواست‌های تیم").waitFor();
-    expect(await panel.innerText()).toContain(artist.user.name);
-    await panel.getByRole("button", { name: /اضافه کن/ }).click();
+    // One pink row opens the waiting work; once added it sits on the salon's own grid with the artist's name.
+    await theirs.page.locator(".teamWaitRow", { hasText: "۱ نمونه‌کار منتظر جوابته" }).click();
+    const ask = theirs.page.locator(".teamWorkSheet");
+    expect(await ask.innerText()).toContain(artist.user.name);
+    await ask.getByRole("button", { name: "اضافه کن" }).click();
     await theirs.page.getByText("اضافه شد؛ توی صفحه‌ت با اسم آرتیست دیده می‌شه.").waitFor();
-    await panel.getByText("پست‌های تیم توی صفحه‌ت").waitFor();
+    await theirs.page.locator(".teamWaitRow").waitFor({ state: "detached" });
+    const tile = theirs.page.locator(".profileGalleryCard", { has: theirs.page.locator(".profileGalleryCardBy", { hasText: artist.user.name }) });
+    await tile.click();
+    await theirs.page.locator(".teamWorkSheet").getByRole("button", { name: "از صفحه‌م بردار" }).waitFor();
+    await theirs.page.keyboard.press("Escape");
     expect(theirs.problems).toEqual([]);
     await theirs.context.close();
 

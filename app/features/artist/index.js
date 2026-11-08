@@ -31,7 +31,7 @@ export {
   artistBookingHistoryFilters,
   artistBookingHistoryRank,
   getPublicArtistServices,
-  salonClientBookingDays
+  clientBookingDays
 } from "./constants";
 export { PublicArtistBookingPanel } from "./PublicArtistBookingPanel";
 export { PublicArtistGalleryPanel } from "./PublicArtistGalleryPanel";

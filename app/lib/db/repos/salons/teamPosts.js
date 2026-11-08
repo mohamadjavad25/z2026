@@ -88,11 +88,11 @@ export async function withdrawTeamPost(artistUserId, postId, salonUserId, runner
   return result.rowCount > 0;
 }
 
-/** What the salon sees in «درخواست‌های تیم» and «پست‌های تیم توی صفحه‌ت»: waiting and approved posts of current members. */
+/** What the salon sees on its «نمونه‌کار» tab: the row of works waiting for its answer and the team's works on its grid: waiting and approved posts of current members. */
 export async function listSalonTeamPosts(salonUserId, runner = null) {
   const db = runner || (await getDb());
   const rows = await all(db, `
-    SELECT tp.post_id, tp.status, tp.sent_at, p.title, p.tag, p.updated_at,
+    SELECT tp.post_id, tp.status, tp.sent_at, p.title, p.tag, p.updated_at, p.created_at,
       (p.image <> '' OR p.image_url IS NOT NULL) AS has_image,
       st.artist_user_id, COALESCE(NULLIF(st.name, ''), u.name) AS artist_name
     FROM salon_team_posts tp
@@ -108,7 +108,8 @@ export async function listSalonTeamPosts(salonUserId, runner = null) {
     image: mediaUrl(row),
     artistId: Number(row.artist_user_id),
     artistName: row.artist_name || "",
-    sentAt: row.sent_at
+    sentAt: row.sent_at,
+    createdAt: row.created_at
   });
   return {
     requests: rows.filter((row) => row.status === "pending").map(shape),
