@@ -39,7 +39,7 @@ describe("an artist's own entry never names the artist (or a forged id) as the c
     expect(Number(await clientOf(asked.payload.data.booking.id))).toBe(Number(client.user.id));
   }, 60_000);
 
-  it("migration 077 clears the rows already saved that way, and leaves real clients alone", async () => {
+  it("migration 080 clears the rows already saved that way, and leaves real clients alone", async () => {
     const artistApi = createClient();
     const artist = await registerUser(artistApi, { type: "artist", menu: true, name: "Old Entry Artist" });
     const clientApi = createClient();
@@ -50,7 +50,7 @@ describe("an artist's own entry never names the artist (or a forged id) as the c
     await connected;
     // As the old code saved it.
     await db.query("UPDATE artist_bookings SET client_user_id = artist_user_id WHERE id = $1", [own.payload.data.booking.id]);
-    const sql = readFileSync(new URL("../../migrations/077_artist_own_entry_no_client.sql", import.meta.url), "utf8");
+    const sql = readFileSync(new URL("../../migrations/080_artist_own_entry_no_client.sql", import.meta.url), "utf8");
     await db.query(sql);
     await db.query(sql);
     expect(await clientOf(own.payload.data.booking.id)).toBeNull();
