@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { Check, ChevronDown, ChevronUp, UserRound } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { toPersianDigits } from "../../shared/lib/digits";
@@ -84,6 +86,33 @@ export function ArtistOptionList({ staffOptions = [], current = "", availability
         </button>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * The artist list as a half-height sheet over the booking screen (owner's review, 2026-11-08): the
+ * screen underneath stays as it was. Closes on the backdrop and the phone's back button; picking
+ * someone closes it too (the caller does that).
+ */
+export function ArtistPickSheet({ open, title, subtitle, onClose, children }) {
+  const panelRef = useRef(null);
+  useBackHandler(open, () => onClose?.());
+  useEffect(() => {
+    if (open) panelRef.current?.focus({ preventScroll: true });
+  }, [open]);
+  if (!open || typeof document === "undefined") return null;
+  return createPortal(
+    <div className="bpeSheet" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
+      <div className="bpeSheetPanel" ref={panelRef} tabIndex={-1} onClick={(event) => event.stopPropagation()}>
+        <span className="bpeSheetGrip" aria-hidden="true" />
+        <div className="bpeSheetHead">
+          <b>{title}</b>
+          {subtitle ? <small>{subtitle}</small> : null}
+        </div>
+        {children}
+      </div>
+    </div>,
+    document.body
   );
 }
 
@@ -177,7 +206,12 @@ export function BookingPartsEditor({ booking, staffOptions = [], availability = 
               <span className="bpeWhoName">{part.staff ? staffLabel(person) || part.staff : "یه آرتیست انتخاب کن"}</span>
               {!disabled ? <ChevronDown size={14} aria-hidden="true" /> : null}
             </button>
-            {open ? (
+            <ArtistPickSheet
+              open={open}
+              title={`آرتیست ${part.service}`}
+              subtitle={`${toPersianDigits(part.startLabel)} تا ${toPersianDigits(part.endLabel)}`}
+              onClose={() => setOpenIndex(-1)}
+            >
               <ArtistOptionList
                 staffOptions={staffOptions}
                 current={part.staff}
@@ -186,7 +220,7 @@ export function BookingPartsEditor({ booking, staffOptions = [], availability = 
                 onPick={(name, active) => (active ? setOpenIndex(-1) : assign(index, name))}
                 onClear={part.staff ? () => assign(index, "") : null}
               />
-            ) : null}
+            </ArtistPickSheet>
           </div>
         );
       })}
