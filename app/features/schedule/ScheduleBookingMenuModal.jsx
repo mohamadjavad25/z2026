@@ -231,7 +231,12 @@ function AutoAssignCard({ current, suggested, services, disabled, onAutoAssign }
   const missing = current.filter((name) => !name).length;
   const differs = suggested.some((name, index) => name !== (current[index] || ""));
   const offers = suggested.some(Boolean) && differs;
-  if (!offers && !missing) return null;
+  if (!offers && !missing) {
+    // The split already is the suggestion: say so in one small chip instead of nothing.
+    return suggested.some(Boolean) ? (
+      <p className="sbmAutoDone"><Sparkles size={13} aria-hidden="true" />خودکار چیده شد</p>
+    ) : null;
+  }
   if (!offers) {
     return (
       <p className="sbmAuto is-stuck">
@@ -433,28 +438,27 @@ export function ScheduleBookingMenuModal({
           )}
         </div>
 
-        <div className="clientBookingSettingsTime">
-          <SegmentClock value={booking.time || "زمان"} size="sm" as="span" backgroundColor="transparent" />
-        </div>
+        {timeView ? (
+          <div className="clientBookingSettingsTime">
+            <SegmentClock value={booking.time || "زمان"} size="sm" as="span" backgroundColor="transparent" />
+          </div>
+        ) : null}
 
         {!timeView ? (
           <>
+            {/* One line for when (owner's review, 2026-11-08): the big clock and the date/time rows said it twice. */}
+            <p className="sbmWhen">
+              <CalendarCheck size={16} aria-hidden="true" />
+              <b>{dateLabel}</b>
+              <span>
+                {multiPart
+                  ? `${toPersianDigits(services[0].startLabel)} تا ${toPersianDigits(services[services.length - 1].endLabel)}`
+                  : toPersianDigits(booking.time || "")}
+              </span>
+              {multiPart ? <small>{toPersianDigits(services.length)} کار</small> : null}
+            </p>
             <div className="scheduleBookingDetails">
-              <div className="scheduleBookingDetail">
-                <CalendarCheck size={15} aria-hidden="true" />
-                <span>تاریخ</span>
-                <b>{dateLabel}</b>
-              </div>
-              {multiPart ? (
-                <div className="scheduleBookingDetail">
-                  <Clock3 size={15} aria-hidden="true" />
-                  <span>زمان</span>
-                  <b>
-                    {toPersianDigits(services[0].startLabel)} تا {toPersianDigits(services[services.length - 1].endLabel)}
-                    <small className="sbmCount">، {toPersianDigits(services.length)} خدمت</small>
-                  </b>
-                </div>
-              ) : (
+              {multiPart ? null : (
                 <div className="scheduleBookingDetail">
                   <Scissors size={15} aria-hidden="true" />
                   <span>خدمت</span>

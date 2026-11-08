@@ -1,0 +1,119 @@
+/* Design sample of 2026-11-08 (owner's review): the request screen's artists and the services' artists. */
+
+/* One line for when, instead of the big clock plus date and time rows */
+.sbmWhen{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--n-0);
+  box-shadow: inset 0 0 0 1px var(--n-100);
+  color: var(--n-900);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.sbmWhen svg{ color: var(--violet-deep); flex: none; }
+.sbmWhen b{ font-weight: 950; }
+.sbmWhen span{ font-weight: 900; }
+.sbmWhen small{ margin-inline-start: auto; padding: 3px 9px; border-radius: 999px; background: var(--violet-soft); color: var(--violet-deep); font-size: 0.7rem; font-weight: 900; }
+
+/* «خودکار چیده شد» */
+.sbmAutoDone{
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--violet-soft);
+  color: var(--violet-deep);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+/* The timeline: one piece per service, as long as its minutes */
+.bpeHead{ padding-bottom: 8px; }
+.bpeLine{ display: flex; gap: 3px; margin: 0 12px 10px; height: 44px; }
+.bpeSeg{
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 1px;
+  padding: 0 9px;
+  border-radius: 11px;
+  overflow: hidden;
+}
+.bpeSeg.is-violet{ background: var(--violet-soft); color: var(--violet-deep); }
+.bpeSeg.is-pink{ background: var(--pink-soft); color: var(--pink-deep); }
+.bpeSeg.is-empty{ background: var(--n-50); color: var(--n-500); box-shadow: inset 0 0 0 1.5px var(--brand-pink); }
+.bpeSeg b, .bpeSeg small{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bpeSeg b{ font-size: 0.78rem; font-weight: 950; }
+.bpeSeg small{ font-size: 0.64rem; font-weight: 800; opacity: 0.85; }
+.bpeAll{ background: var(--violet-soft); color: var(--violet-deep); }
+
+/* The list: chosen one violet, «بقیهٔ تیم» folded */
+.bpeList button.is-selected{ border-color: var(--brand-violet); background: var(--violet-soft); }
+.bpeList button.is-selected > svg{ color: var(--violet-deep); }
+.bpeList .bpeRest{ border-style: dashed; background: transparent; color: var(--n-600); }
+.bpeTags i.is-busy{ color: var(--n-500); }
+
+/* Approve pink (anything with a client), decline small and quiet */
+.sbmFoot .scheduleBookingReviewActions{ grid-template-columns: 2fr 1fr; }
+.sbmFoot .scheduleBookingReviewActions button.is-approve{
+  background: var(--live-fill);
+  color: var(--on-live-fill);
+  border-color: transparent;
+}
+.sbmFoot .scheduleBookingReviewActions button.is-decline{
+  background: var(--n-0);
+  color: var(--n-700);
+  border-color: var(--n-150);
+}
+
+/* Services: the «+» on each card, a moving pink-to-violet gradient */
+.serviceArtistAvatar.is-plus{
+  border: 0;
+  color: var(--n-0);
+  background: linear-gradient(120deg, var(--brand-pink), var(--brand-violet), var(--brand-pink));
+  background-size: 220% 220%;
+  animation: rqaGlow 3.2s ease-in-out infinite;
+}
+@keyframes rqaGlow{
+  0%, 100%{ background-position: 0% 50%; }
+  50%{ background-position: 100% 50%; }
+}
+
+/* The artists sheet of one service: numbered, ordered, violet */
+.sasLine{ display: flex; align-items: center; gap: 6px; }
+.sasLine .sasRow{ flex: 1; min-width: 0; }
+.sasRow.is-selected{ box-shadow: inset 0 0 0 1.5px var(--brand-violet); background: var(--n-0); }
+.sasRow.is-selected .sasCheck{ background: var(--violet-deep); color: var(--n-0); font-size: 0.78rem; font-weight: 950; }
+.sasRow.is-some .sasCheck{ background: var(--violet-soft); color: var(--violet-deep); box-shadow: none; }
+.sasMove{ display: grid; gap: 4px; }
+.sasMove button{ width: 32px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 9px; background: var(--violet-soft); color: var(--violet-deep); cursor: pointer; }
+.sasMove button:disabled{ opacity: 0.3; cursor: default; }
+.sasSplit{ margin: 6px 4px 0; color: var(--n-500); font-size: 0.72rem; font-weight: 900; }
+
+/* «آرتیست‌ها» on each group of services */
+.svcGroupArtists{
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--violet-soft);
+  color: var(--violet-deep);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .serviceArtistAvatar.is-plus{ animation: none; }
+}

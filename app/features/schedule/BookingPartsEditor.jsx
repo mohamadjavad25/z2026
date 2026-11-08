@@ -29,10 +29,18 @@ export function ArtistOptionList({ staffOptions = [], current = "", availability
     return info.skilled ? 0 : 2;
   };
   const people = [...staffOptions].sort((a, b) => rank(a) - rank(b));
+  // Who does this service comes first; the rest of the team waits behind «بقیهٔ تیم» (owner's review, 2026-11-08),
+  // unless nobody does it, the picked one is among them, or we do not know yet.
+  const [showRest, setShowRest] = useState(false);
+  const skilled = people.filter((person) => infoOf(person)?.skilled);
+  const restHasCurrent = people.some((person) => person.name === current && !infoOf(person)?.skilled);
+  const fold = Boolean(availability) && skilled.length > 0 && !restHasCurrent && !showRest;
+  const shown = fold ? skilled : people;
+  const hidden = people.length - shown.length;
 
   return (
     <div className="bpeList" role="listbox" aria-label={label}>
-      {people.map((option) => {
+      {shown.map((option) => {
         const active = option.name === current;
         const info = infoOf(option);
         const busy = Boolean(info && !info.free) && !active;
@@ -53,17 +61,22 @@ export function ArtistOptionList({ staffOptions = [], current = "", availability
               <b>{staffLabel(option)}</b>
               <small>{option.role || option.artist_service || "آرتیست"}</small>
             </span>
-            {info ? (
+            {info && !active ? (
               <span className="bpeTags">
-                {info.skilled ? <i className="is-skill">کار همین خدمت</i> : null}
                 {info.away ? <i className="is-away">{info.away}</i> : null}
-                {active ? null : info.free ? <i className="is-free">آزاد</i> : <i className="is-busy">نوبت داره</i>}
+                {info.free ? <i className="is-free">آزاد</i> : <i className="is-busy">اون ساعت نوبت داره</i>}
               </span>
             ) : null}
             {active ? <Check size={16} /> : null}
           </button>
         );
       })}
+      {fold && hidden > 0 ? (
+        <button type="button" className="bpeRest" onClick={() => setShowRest(true)}>
+          <span className="bpeOption"><b>بقیهٔ تیم</b><small>{toPersianDigits(hidden)} نفر که این کار رو نمی‌کنن</small></span>
+          <ChevronDown size={16} aria-hidden="true" />
+        </button>
+      ) : null}
       {onClear ? (
         <button type="button" role="option" aria-selected={false} disabled={disabled} onClick={onClear}>
           <span className="scheduleStaffAvatar" aria-hidden="true"><UserRound size={15} /></span>
@@ -99,22 +112,33 @@ export function BookingPartsEditor({ booking, staffOptions = [], availability = 
   const giveAllTo = (staff) => send(parts.map((part) => ({ ...part, staff })));
   const firstStaff = parts.find((part) => part.staff)?.staff || "";
   const allSame = parts.every((part) => part.staff === firstStaff);
-  // «همه با …» only when that artist is free for every service (or availability is unknown).
+  // «همه با …» only when that artist does every service and is free for each (owner's review, 2026-11-08).
   const canGiveAll = firstStaff && !allSame && parts.every((part, index) => {
+    if (part.staff === firstStaff) return true;
     const info = availability[index]?.get(firstStaff);
-    return !info || info.free || part.staff === firstStaff;
+    return Boolean(info && info.free && info.skilled);
   });
+  const total = parts.reduce((sum, part) => sum + (Number(part.minutes) || 0), 0) || parts.length;
 
   return (
     <div className="bpeBox">
       <div className="bpeHead">
-        <span>
-          <b>تقسیم بین آرتیست‌ها</b>
-          <small>کارها پشت سر هم از {toPersianDigits(parts[0].startLabel)} شروع می‌شن.</small>
-        </span>
+        <b>تقسیم بین آرتیست‌ها</b>
         {!disabled && canGiveAll ? (
           <button type="button" className="bpeAll" onClick={() => giveAllTo(firstStaff)}>همه با {firstStaff}</button>
         ) : null}
+      </div>
+      <div className="bpeLine" aria-hidden="true">
+        {parts.map((part, index) => (
+          <span
+            key={`${part.service}-${index}`}
+            className={`bpeSeg ${index % 2 ? "is-pink" : "is-violet"}${part.staff ? "" : " is-empty"}`}
+            style={{ flexGrow: (Number(part.minutes) || 1) / total }}
+          >
+            <b>{part.staff ? part.staff.split(" ")[0] : "؟"}</b>
+            <small>{part.service}</small>
+          </span>
+        ))}
       </div>
       {parts.map((part, index) => {
         const person = staffOptions.find((item) => item.name === part.staff);
