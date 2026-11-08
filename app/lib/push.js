@@ -1,7 +1,8 @@
 import webpush from "web-push";
 import * as pushRepo from "./db/repos/push.js";
 import * as nativePush from "./db/repos/nativePush.js";
-import { fcmConfigured, sendFcm } from "./fcm.js";
+import { fcmConfigured, fcmThrowReason, sendFcm } from "./fcm.js";
+import { logger } from "./logger.js";
 
 /**
  * Push notifications, two kinds side by side:
@@ -47,12 +48,19 @@ async function sendWebPush(userId, payload, ttl) {
 async function sendAppPush(userId, message, ttl) {
   if (!fcmConfigured()) return 0;
   const tokens = await nativePush.listFreshTokens(userId);
+  if (!tokens.length) return 0;
   let sent = 0;
+  const failures = [];
   await Promise.all(tokens.map(async (row) => {
-    const result = await sendFcm(row.token, { ...message, ttl }).catch(() => ({ ok: false, gone: false }));
+    const result = await sendFcm(row.token, { ...message, ttl }).catch((error) => ({ ok: false, gone: false, reason: fcmThrowReason(error) }));
     if (result.ok) sent += 1;
-    else if (result.gone) await nativePush.removeTokenById(row.id);
+    else {
+      failures.push(result.reason || "failed");
+      if (result.gone) await nativePush.removeTokenById(row.id);
+    }
   }));
+  // One line per app push (user id only, never the text): «did they get it?» is answered from the server log.
+  logger[sent ? "info" : "warn"]("push.app", { userId: Number(userId), apps: tokens.length, accepted: sent, ...(failures.length ? { failures } : {}) });
   return sent;
 }
 

@@ -74,7 +74,7 @@ describe("fcm", () => {
       return new Response(JSON.stringify({ error: { status: "NOT_FOUND", details: [{ errorCode: "UNREGISTERED" }] } }), { status: 404 });
     }));
     const fcm = await loadFcm(accountB64);
-    expect(await fcm.sendFcm("old", { title: "x" })).toEqual({ ok: false, gone: true });
+    expect(await fcm.sendFcm("old", { title: "x" })).toMatchObject({ ok: false, gone: true });
   });
 
   it("keeps the token on a passing outage", async () => {
@@ -83,6 +83,6 @@ describe("fcm", () => {
       return new Response(JSON.stringify({ error: { status: "UNAVAILABLE" } }), { status: 503 });
     }));
     const fcm = await loadFcm(accountB64);
-    expect(await fcm.sendFcm("ok", { title: "x" })).toEqual({ ok: false, gone: false });
+    expect(await fcm.sendFcm("ok", { title: "x" })).toMatchObject({ ok: false, gone: false });
   });
 });

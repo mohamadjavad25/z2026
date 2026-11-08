@@ -84,5 +84,9 @@ export async function sendFcm(token, { title, body, url = "/", ttl = 86400, tag 
   const gone = response.status === 404 || codes.includes("UNREGISTERED")
     || (response.status === 400 && codes.includes("INVALID_ARGUMENT") && /token/i.test(String(payload?.error?.message || "")));
   if (response.status === 401) cached = { token: "", expiresAt: 0 };
-  return { ok: false, gone };
+  // `reason` is Google's short code («UNREGISTERED», «QUOTA_EXCEEDED») for the log line in push.js / adminPush.js.
+  return { ok: false, gone, reason: `${response.status} ${String(payload?.error?.status || "")}`.trim() };
 }
+
+/** A short reason for a send that threw before Google answered (timeout, network blocked, Google auth refused). */
+export const fcmThrowReason = (error) => String(error?.cause?.code || error?.name || error?.message || "error").slice(0, 60);
