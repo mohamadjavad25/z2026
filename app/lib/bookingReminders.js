@@ -1,7 +1,7 @@
 import { getDb, all, get } from "./db/connection.js";
 import { sendPushToUser } from "./push.js";
 import { smsBookingReminder } from "./bookingSms.js";
-import { bookingStartMs, dueReminderKind } from "../shared/lib/reminderTiming.js";
+import { bookingStartMs, dueReminderKind, eveningForEarlyVisit } from "../shared/lib/reminderTiming.js";
 import { formatPersianDateKey } from "../shared/lib/persianCalendar.js";
 import { formatRelativeBookingDayLabel } from "../shared/lib/persianCalendar.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
@@ -90,7 +90,7 @@ export async function sweepBookingReminders(now = new Date()) {
   const due = [];
   const night = tehranNight(now);
   for (const booking of await loadCandidates(db, now)) {
-    const kind = dueReminderKind(booking.booking_date, booking.time, now);
+    const kind = eveningForEarlyVisit(dueReminderKind(booking.booking_date, booking.time, now), booking.time, now);
     if (kind === "day" && night) continue;
     if (kind) due.push({ booking, kind });
   }
@@ -117,6 +117,11 @@ export async function sweepBookingReminders(now = new Date()) {
     const ttl = (bookingStartMs(booking.booking_date, booking.time, now) - now.getTime()) / 1000;
     const push = await sendPushToUser(booking.client_user_id, { ...message, url: "/", ttl }).catch(() => ({ sent: 0 }));
     result.sent += push.sent || 0;
+    // A visit before 8:00 was just told in the evening: its phone is not woken two hours before. Someone the evening
+    // notice did not reach keeps the normal two-hour one, with its SMS (whose text says «امروز», so never in the evening).
+    if (kind === "evening" && (push.sent || 0) > 0) {
+      await get(db, "INSERT INTO booking_reminders (source, booking_id, kind) VALUES ($1::text, $2::int, $3::text) ON CONFLICT DO NOTHING RETURNING booking_id", [booking.source, booking.id, reminderClaimKind("soon", booking)]);
+    }
     if (kind === "soon") smsBookingReminder(booking.client_user_id, { providerName: booking.place, time: booking.time, payerUserId: booking.owner_user_id }, push);
   };
   let next = 0;
