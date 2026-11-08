@@ -8,11 +8,11 @@ import { toPersianDigits } from "../../../shared/lib/digits.js";
 export const runtime = "nodejs";
 
 const REFUSALS = {
-  NOT_FOUND: [404, "این پست رو پیدا نکردیم."],
-  PRIVATE: [400, "پست «فقط من» رو نمی‌شه برای سالن فرستاد. اول بذارش برای همه."],
+  NOT_FOUND: [404, "این نمونه‌کار رو پیدا نکردیم."],
+  PRIVATE: [400, "نمونه‌کار «فقط من» رو نمی‌شه برای سالن فرستاد. اول بذارش برای همه."],
   NOT_MEMBER: [404, "تو دیگه توی تیم این سالن نیستی."],
-  DECLINED: [409, "این سالن قبلاً این پست رو نخواست؛ دوباره نمی‌شه فرستادش."],
-  LIMIT: [429, `${toPersianDigits(String(TEAM_POST_PENDING_LIMIT))} تا پستت منتظر تأیید این سالنه. وقتی جواب داد، بقیه رو بفرست.`]
+  DECLINED: [409, "این سالن قبلاً این نمونه‌کار رو نخواست؛ دوباره نمی‌شه فرستادش."],
+  LIMIT: [429, `${toPersianDigits(String(TEAM_POST_PENDING_LIMIT))} تا نمونه‌کارت منتظر تأیید این سالنه. وقتی جواب داد، بقیه رو بفرست.`]
 };
 
 /** GET /api/artist/team-posts -> { teams: [{ salonId, name }], statuses: { [postId]: { [salonId]: status } } } */
@@ -51,8 +51,8 @@ async function _POST(request) {
     const artist = await users.getUserLiteById(auth.user.id).catch(() => null);
     const name = String(artist?.name || "").trim() || "یکی از تیمت";
     void sendPushToUser(salonUserId, {
-      title: "یه پست تازه از تیمت",
-      body: `${name} یه پست فرستاده که توی صفحه‌ت بیاد. توی نمونه‌کارها ببینش.`,
+      title: "یه نمونه‌کار تازه از تیمت",
+      body: `${name} یه نمونه‌کار فرستاده که توی صفحه‌ت بیاد. توی نمونه‌کار ببینش.`,
       url: "/"
     }).catch(() => {});
   }

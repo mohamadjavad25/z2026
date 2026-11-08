@@ -77,7 +77,6 @@
 .cuNewTag { background: var(--live-fill); color: var(--on-live-fill); }
 
 /* 10 · the count of team post requests waiting for the salon, and the dot on the bell when something is unread */
-.teamPostsBlock h3 span { background: var(--live-fill); color: var(--on-live-fill); }
 .profileHeroActions button.has-notifications::after,
 .profileHero.is-salon .profileHeroActions.is-salonTopActions button:first-child.has-notifications::after { background: var(--live-fill); }
 

@@ -776,7 +776,6 @@
     width: 100% !important;
     max-width: none !important;
     display: grid !important;
-    direction: ltr !important;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 10px !important;
     justify-content: stretch !important;
@@ -795,7 +794,6 @@
     aspect-ratio: 4 / 5 !important;
     justify-self: start !important;
     margin: 0 !important;
-    direction: rtl !important;
   }
 
   /* The title text/padding were sized for the old, much wider card. */

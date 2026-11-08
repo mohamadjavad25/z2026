@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { MapPin, Store, Timer } from "lucide-react";
 import { LocationButton } from "../../components/LocationButton";
@@ -8,9 +8,9 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { servicePriceText } from "../../shared/lib/money";
 import { BookingSlotPicker } from "../../components/BookingSlotPicker";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
-import { salonClientBookingDays } from "./constants";
+import { clientBookingDays } from "./constants";
 import { isTooSoonToRequest } from "../../shared/lib/bookingWindow";
-import { getTehranClockMinutes, timeLabelToMinutes } from "../../shared/lib/time";
+import { buildUpcomingWeekDays, getTehranClockMinutes, timeLabelToMinutes } from "../../shared/lib/time";
 import { resolveRollingPersianDateKey } from "../../shared/lib/persianCalendar";
 import { workplaceOn } from "../../shared/lib/artistPlace";
 import { slotsInHours } from "../../shared/lib/artistFreeTimes";
@@ -76,14 +76,18 @@ export function PublicArtistBookingPanel({
     )
   );
 
-  const states = artistDayStates(artist, salonClientBookingDays, durationMinutes);
-  const daysIn = (state) => salonClientBookingDays.filter((day) => states[day] === state);
-  const statesKey = salonClientBookingDays.map((day) => states[day]).join("|");
+  // Sixty days ahead, like a salon; worked out again when the day changes, so a page left open overnight moves on.
+  const todayLabel = buildUpcomingWeekDays(1)[0];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const days = useMemo(() => clientBookingDays(), [todayLabel]);
+  const states = useMemo(() => artistDayStates(artist, days, durationMinutes), [artist, days, durationMinutes]);
+  const daysIn = (state) => days.filter((day) => states[day] === state);
+  const statesKey = days.map((day) => states[day]).join("|");
 
   // Open on the first day that still has a free hour (today is often already over), until the
   // client picks a day themselves.
   const autoDayRef = useRef(true);
-  const firstOpenDay = salonClientBookingDays.find((day) => states[day] === "open");
+  const firstOpenDay = days.find((day) => states[day] === "open");
   useEffect(() => {
     if (autoDayRef.current && states[bookingDay] !== "open" && firstOpenDay && firstOpenDay !== bookingDay) {
       onDayChange(firstOpenDay, durationMinutes);
@@ -101,7 +105,7 @@ export function PublicArtistBookingPanel({
 
   const fullDayWait = states[bookingDay] === "full" && artist?.id && activeService?.name ? (
     <div className="plFullDay" role="status">
-      <b>{bookingDay === salonClientBookingDays[0] ? "امروز" : String(bookingDay).split(" ")[0]} پره.</b>
+      <b>{bookingDay === days[0] ? "امروز" : String(bookingDay).split(" ")[0]} پره.</b>
       <WaitlistButton
         compact
         kind="artist"
@@ -137,7 +141,7 @@ export function PublicArtistBookingPanel({
       ) : null}
 
       <BookingSlotPicker
-        dayOptions={salonClientBookingDays}
+        dayOptions={days}
         dayValue={bookingDay}
         onDayChange={(day) => { autoDayRef.current = false; onDayChange(day, durationMinutes); }}
         closedDays={daysIn("closed")}

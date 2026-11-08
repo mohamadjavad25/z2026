@@ -219,6 +219,28 @@ function hasWeekdayName(raw) {
   return PERSIAN_WEEKDAYS.some((day) => normalized.includes(compactLabel(day)));
 }
 
+const PERSIAN_MONTHS = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+
+/**
+ * A full day label, "شنبه ۲۴ آبان": the day it names, up to a year ahead or a month back. A weekday name alone only
+ * reaches six days ahead, so a client's day picker that goes further than a week sends this label and the server
+ * reads the same date (2026-11-08). Null when the label has no day and month, or its weekday does not match them.
+ */
+function resolveDayLabel(raw, today) {
+  const words = raw.split(/\s+/);
+  const monthIndex = words.findIndex((word, index) => index > 0 && PERSIAN_MONTHS.includes(compactLabel(word)));
+  if (monthIndex < 0) return null;
+  const day = Number(toAsciiDigits(words[monthIndex - 1]));
+  if (!Number.isInteger(day) || day < 1 || day > 31) return null;
+  const month = PERSIAN_MONTHS.indexOf(compactLabel(words[monthIndex])) + 1;
+  const now = getPersianDateParts(today);
+  const keyFor = (year) => `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  let date = persianDateKeyToDate(keyFor(now.year), today);
+  if (!date || date.getTime() < today.getTime() - 31 * 86400000) date = persianDateKeyToDate(keyFor(now.year + 1), today);
+  if (!date) return null;
+  return persianWeekdayIndex(getPersianWeekday(date)) === persianWeekdayIndex(raw) ? date : null;
+}
+
 /**
  * The strict reading of a booking's day: the Date it means, or null when it is not a real day. Accepted:
  * "" (today), "امروز", "فردا", "پس‌فردا", a weekday name (optionally followed by a date label), and a real
@@ -239,6 +261,8 @@ export function tryResolveRollingPersianDate(value, from = new Date()) {
     return next;
   }
   if (!hasWeekdayName(raw)) return null;
+  const exact = resolveDayLabel(raw, today);
+  if (exact) return exact;
   const targetIndex = persianWeekdayIndex(raw);
   const todayIndex = persianWeekdayIndex(getPersianWeekday(today));
   const offset = (targetIndex - todayIndex + 7) % 7;

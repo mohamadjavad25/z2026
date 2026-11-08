@@ -10,7 +10,7 @@ import { getApiErrorMessage } from "../../shared/lib/apiNotify";
 import { parseServiceDurationMinutes } from "../../shared/lib/time";
 import { mapSharedPost } from "../posts/mappers";
 import { isPublicArtistSlotBlocked } from "./bookingUtils";
-import { salonClientBookingDays, getPublicArtistServices } from "./constants";
+import { clientBookingDays, getPublicArtistServices } from "./constants";
 
 /**
  * Public artist profile modal (customer view) — gallery, follow, booking.
@@ -53,7 +53,7 @@ export function usePublicArtistProfile({
   const [selectedPublicArtist, setSelectedPublicArtist] = useState(null);
   const [publicArtistView, setPublicArtistView] = useState("gallery");
   const [publicArtistGalleryFilter, setPublicArtistGalleryFilter] = useState("همه");
-  const [publicArtistBookingDay, setPublicArtistBookingDay] = useState(salonClientBookingDays[0]);
+  const [publicArtistBookingDay, setPublicArtistBookingDay] = useState(() => clientBookingDays()[0]);
   const [publicArtistBookingSlot, setPublicArtistBookingSlot] = useState("");
   const [publicArtistSelectedServiceId, setPublicArtistSelectedServiceId] = useState("");
   const [publicArtistBundle, setPublicArtistBundle] = useState(null);
@@ -163,7 +163,7 @@ export function usePublicArtistProfile({
     setSelectedPublicArtist(null);
     setPublicArtistView("gallery");
     setPublicArtistGalleryFilter("همه");
-    setPublicArtistBookingDay(salonClientBookingDays[0]);
+    setPublicArtistBookingDay(clientBookingDays()[0]);
     setPublicArtistBookingSlot("");
     setPublicArtistSelectedServiceId("");
   }, [onBackToSalon]);
@@ -175,7 +175,7 @@ export function usePublicArtistProfile({
     if (typeof onBeforeOpen === "function") onBeforeOpen();
     setPublicArtistView("gallery");
     setPublicArtistGalleryFilter("همه");
-    setPublicArtistBookingDay(salonClientBookingDays[0]);
+    setPublicArtistBookingDay(clientBookingDays()[0]);
     setPublicArtistBookingSlot("");
     setPublicArtistSelectedServiceId("");
     setSelectedPublicArtist(artist);

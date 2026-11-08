@@ -1,7 +1,15 @@
 import { buildUpcomingWeekDays } from "../../shared/lib/time";
+import { BOOKING_HORIZON_DAYS } from "../../shared/lib/bookingWindow";
 
 export const artistBookingDays = ["امروز", "فردا", "پس‌فردا"];
-export const salonClientBookingDays = buildUpcomingWeekDays(7);
+/**
+ * The days a client can pick on an artist's page: today and the next BOOKING_HORIZON_DAYS, the same reach as a salon
+ * (owner, 2026-11-08; it was seven days). Built on each call, never once at load: a page or server left running past
+ * midnight kept yesterday as «امروز». Labels like «شنبه ۲۴ آبان»; resolveRollingPersianDateKey reads the full date.
+ */
+export function clientBookingDays() {
+  return buildUpcomingWeekDays(BOOKING_HORIZON_DAYS + 1);
+}
 
 export const artistBookingHistoryFilters = [
   { id: "all", label: "همه" },

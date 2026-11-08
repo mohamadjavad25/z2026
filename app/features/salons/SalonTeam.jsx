@@ -74,8 +74,8 @@ export function SalonTeam({ salon, team, services, salonPosts = [], getFallbackS
               </span>
               {posts.length ? (
                 <span className="stmThumbs" aria-hidden="true">
+                  {/* Only real works: no grey boxes filling three places (owner, 2026-11-08). */}
                   {posts.map((post) => <img key={post.id} src={thumbUrl(post.image, 160)} alt="" loading="lazy" decoding="async" />)}
-                  {Array.from({ length: 3 - posts.length }, (_, index) => <i key={`gap${index}`} />)}
                 </span>
               ) : (
                 <span className="stmNoPosts">هنوز نمونه‌کاری نذاشته</span>

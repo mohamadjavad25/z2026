@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { formatPersianDateKey, resolveRollingPersianDateKey } from "../../app/shared/lib/persianCalendar.js";
 import { parseServiceDurationMinutes, timeLabelToMinutes } from "../../app/shared/lib/time.js";
 import { ATTEND_NOTICE } from "../../app/shared/lib/attendance.js";
-import { salonClientBookingDays } from "../../app/features/artist/constants.js";
+import { clientBookingDays } from "../../app/features/artist/constants.js";
 import { BookingSlotPicker } from "../../app/components/BookingSlotPicker.jsx";
 import { WaitlistButton } from "../../app/features/booking/WaitlistButton.jsx";
 import { PublicArtistBookingPanel, artistDayStates } from "../../app/features/artist/PublicArtistBookingPanel.jsx";
@@ -74,7 +74,7 @@ describe("the booking sheet says less (owner, 2026-11-04)", () => {
   }));
 
   it("drops the extra notes, the old full-days list and «خدمت انتخاب‌شده»", () => {
-    const html = render({ id: 7, name: "آیلین مهرآرا", hours: hours() }, salonClientBookingDays[2]);
+    const html = render({ id: 7, name: "آیلین مهرآرا", hours: hours() }, clientBookingDays()[2]);
     for (const gone of ["تا کار تموم نشه", "روزی که می‌خوای پره", "خدمت انتخاب‌شده", "انتخاب‌هات سر جاشه"]) {
       expect(html).not.toContain(gone);
     }
@@ -84,7 +84,7 @@ describe("the booking sheet says less (owner, 2026-11-04)", () => {
   });
 
   it("a picked full day says it is full and offers only the button", () => {
-    const label = salonClientBookingDays[2];
+    const label = clientBookingDays()[2];
     const key = resolveRollingPersianDateKey(label);
     const html = render({ id: 7, name: "آیلین مهرآرا", hours: hours(), bookedSlots: morningTaken(key) }, label);
     expect(html).toContain(`${label.split(" ")[0]} پره.`);

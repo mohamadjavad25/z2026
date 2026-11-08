@@ -26,15 +26,15 @@ async function _POST(request) {
   }
   const decided = await decideTeamPost(auth.user.id, postId, body.action);
   if (!decided.ok) {
-    return json({ error: "این پست دیگه اینجا نیست؛ صفحه رو تازه کن.", code: "GONE", data: await listSalonTeamPosts(auth.user.id) }, { status: 409 });
+    return json({ error: "این نمونه‌کار دیگه اینجا نیست؛ صفحه رو تازه کن.", code: "GONE", data: await listSalonTeamPosts(auth.user.id) }, { status: 409 });
   }
   if (body.action === "approve") {
     // The artist hears only the yes; a no or a later removal just changes the post's label (owner's decision 2026-10-26).
     const salon = await users.getUserLiteById(auth.user.id).catch(() => null);
     const name = String(salon?.name || "").trim() || "سالن";
     void sendPushToUser(decided.artistUserId, {
-      title: `${name} پستت رو اضافه کرد`,
-      body: decided.title ? `«${decided.title}» حالا توی صفحهٔ ${name} هم هست.` : `پستت حالا توی صفحهٔ ${name} هم هست.`,
+      title: `${name} نمونه‌کارت رو اضافه کرد`,
+      body: decided.title ? `«${decided.title}» حالا توی صفحهٔ ${name} هم هست.` : `نمونه‌کارت حالا توی صفحهٔ ${name} هم هست.`,
       url: "/"
     }).catch(() => {});
   }
