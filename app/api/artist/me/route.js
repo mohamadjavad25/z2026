@@ -64,9 +64,12 @@ async function _POST(request) {
     if (!slot.ok) return error(slot.error, slot.status);
     const length = parseRequestedMinutes(body);
     if (!length.ok) return error(`مدت نوبت رو با عدد و به دقیقه بنویس.`, 400);
+    // Only what the form sends is read: no client account, salon or request fields from the body
+    // (an own entry is the artist's, never someone's request; 2026-11-08).
     const result = await artists.addArtistBooking(auth.user.id, {
-      ...body, bookingDate: slot.dateKey, booking_date: undefined, date: undefined, time: slot.time,
-      durationMinutes: length.minutes, duration_minutes: undefined, status: "تایید"
+      clientName: body.clientName || body.client || "", clientPhone: body.clientPhone || body.phone || "",
+      service: body.service, serviceEmoji: body.serviceEmoji ?? body.service_emoji,
+      bookingDate: slot.dateKey, time: slot.time, durationMinutes: length.minutes, status: "تایید"
     });
     if (!result.ok) {
       return json({ error: result.error, code: result.code }, { status: result.code === "SLOT_TAKEN" ? 409 : 400 });

@@ -131,7 +131,8 @@ export async function createArtistBooking({ artistUserId, viewer, data, body = {
     ...(isRequest && artistSettings.autoConfirm ? { status: "تایید شده" } : {}),
     // A client's own request: an identical one already sent is merged into it, and the number open at once is capped.
     clientRequest: isRequest,
-    clientUserId: viewer?.id || null,
+    // The artist's own entry has no client account (it was the artist's own, shown as the client in the admin panel).
+    clientUserId: isOwner ? null : viewer?.id || null,
     // A client's name and number are the account's own (a typed one is ignored); only the artist's own
     // entry for a walk-in customer takes them from the form.
     clientName: isOwner ? body.clientName || "" : viewer?.name || "",
