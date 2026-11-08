@@ -498,33 +498,37 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
     return { ok: false, error: "این جواب رو نفهمیدیم؛ دوباره بزن.", code: "INVALID_STATUS" };
   }
 
-  const current = await get(db, `
-    SELECT * FROM salon_artist_invites
+  const found = await get(db, `
+    SELECT salon_user_id FROM salon_artist_invites
     WHERE id = $1 AND artist_user_id = $2
   `, [id, artistUserId]);
-  if (!current) {
+  if (!found) {
     return { ok: false, error: "این دعوت رو پیدا نکردیم.", code: "NOT_FOUND" };
   }
-  if (current.status !== PENDING) {
-    return {
-      ok: false,
-      error: "این دعوت دیگه جواب نمی‌گیره.",
-      code: "NOT_PENDING",
-      invite: mapSalonInvite(await getInviteRow(id, db))
-    };
-  }
 
-  await run(db, `
-    UPDATE salon_artist_invites
-    SET status = $1, updated_at = CURRENT_TIMESTAMP
-    WHERE id = $2 AND artist_user_id = $3
-  `, [nextStatus, id, artistUserId]);
+  // One transaction behind the same pair lock as joining by the salon's link or QR (HEALTH debt 10, 2026-11-08): two
+  // taps of «قبول», or a tap while the same artist scans the salon's code, cannot both see «still waiting» or «not on
+  // the team yet» and add the artist twice. The answer is written only while the invite is still waiting.
+  const outcome = await withTransaction(null, async (tx) => {
+    await lockTeamPair(tx, found.salon_user_id, artistUserId);
+    const current = await get(tx, `
+      SELECT * FROM salon_artist_invites
+      WHERE id = $1 AND artist_user_id = $2
+      FOR UPDATE
+    `, [id, artistUserId]);
+    if (!current) return { notFound: true };
+    if (current.status !== PENDING) return { notPending: true };
 
-  const invite = mapSalonInvite(await getInviteRow(id, db));
-  let staffPerson = null;
-  let staffCreated = false;
+    const answered = await run(tx, `
+      UPDATE salon_artist_invites
+      SET status = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2 AND artist_user_id = $3 AND status = $4
+    `, [nextStatus, id, artistUserId, PENDING]);
+    if (!answered.rowCount) return { notPending: true };
 
-  if (nextStatus === ACCEPTED) {
+    if (nextStatus !== ACCEPTED) return { staffPerson: null, staffCreated: false };
+
+    const invite = mapSalonInvite(await getInviteRow(id, tx));
     const termsBio = [
       current.bio || "دعوت تایید‌شده توسط آرتیست",
       current.days ? `روزها: ${current.days}` : "",
@@ -533,19 +537,21 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
       current.capacity ? `ظرفیت روزانه: ${current.capacity}` : ""
     ].filter(Boolean).join(" · ");
 
-    const existingStaff = await get(db, `
+    const existingStaff = await get(tx, `
       SELECT * FROM salon_staff
       WHERE salon_user_id = $1 AND artist_user_id = $2
       LIMIT 1
     `, [current.salon_user_id, current.artist_user_id]);
 
+    let staffPerson;
+    let staffCreated;
     if (existingStaff) {
-      await run(db, `
+      await run(tx, `
         UPDATE salon_staff
         SET state = $1, access_level = $2, role = COALESCE(NULLIF($3, ''), role), bio = $4, updated_at = CURRENT_TIMESTAMP
         WHERE id = $5
       `, ["فعال", current.access_level || "همکار", current.role || "", termsBio, existingStaff.id]);
-      staffPerson = await get(db, "SELECT * FROM salon_staff WHERE id = $1", [existingStaff.id]);
+      staffPerson = await get(tx, "SELECT * FROM salon_staff WHERE id = $1", [existingStaff.id]);
       staffCreated = false;
     } else {
       staffPerson = await addSalonStaff(current.salon_user_id, {
@@ -557,26 +563,38 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
         booked: "۰ وقت",
         state: "فعال",
         access_level: current.access_level || "همکار"
-      });
+      }, tx);
       staffCreated = true;
     }
     // The terms the salon put on this invite are what the artist agreed to: they are the team's first «agreed» row,
     // so a later change is proposed against them (same as joining by the salon's link). Older invites carry no terms.
     if (current.days && current.from_time && current.to_time && current.share_percent !== null && current.share_percent !== "") {
-      await writeAgreedTerms(db, {
+      await writeAgreedTerms(tx, {
         salonUserId: current.salon_user_id,
         artistUserId: current.artist_user_id,
         terms: { days: current.days, from: toLatinDigits(current.from_time), to: toLatinDigits(current.to_time), share: Number(toLatinDigits(String(current.share_percent))), ownShare: null },
         source: "invite"
       });
     }
-  }
+    return { staffPerson, staffCreated };
+  });
 
+  if (outcome.notFound) {
+    return { ok: false, error: "این دعوت رو پیدا نکردیم.", code: "NOT_FOUND" };
+  }
+  if (outcome.notPending) {
+    return {
+      ok: false,
+      error: "این دعوت دیگه جواب نمی‌گیره.",
+      code: "NOT_PENDING",
+      invite: mapSalonInvite(await getInviteRow(id, db))
+    };
+  }
   return {
     ok: true,
-    invite,
-    staffPerson,
-    staffCreated,
+    invite: mapSalonInvite(await getInviteRow(id, db)),
+    staffPerson: outcome.staffPerson,
+    staffCreated: outcome.staffCreated,
     invites: await listArtistSalonInvites(artistUserId)
   };
 }

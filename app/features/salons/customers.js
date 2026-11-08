@@ -2,6 +2,7 @@ import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
 import { phoneLast10 } from "../../shared/lib/phone";
 import { nameKey } from "../../lib/businessName";
 import { formatPersianDayTitle, isSamePersianDay, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
+import { nowDate } from "../../shared/lib/clock.js";
 
 const CANCELLED = new Set(["لغو", "منقضی شده"]);
 
@@ -116,7 +117,7 @@ export function buildBookingCustomers(bookings = [], followers = []) {
       if (time !== null && (!customer.nextTime || time < customer.nextTime)) customer.nextTime = time;
     }
   });
-  const now = new Date();
+  const now = nowDate();
   [...followers]
     .sort((a, b) => followTime(b) - followTime(a))
     .forEach((follower) => {
@@ -284,7 +285,7 @@ export function pickFreshFollowers(customers = []) {
 const MINUTE_MS = 60 * 1000;
 
 /** «همین الان» / «۱۲ دقیقه پیش» / «امروز ساعت ۱۴:۳۰» / «دیروز» / «۳ آبان»: when someone followed, in plain words. */
-export function describeFollowTime(time, now = new Date()) {
+export function describeFollowTime(time, now = nowDate()) {
   if (!time) return "";
   const date = new Date(time);
   if (!Number.isFinite(date.getTime())) return "";

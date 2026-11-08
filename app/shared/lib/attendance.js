@@ -1,5 +1,6 @@
 import { minutesToStart } from "./providerRules.js";
 import { toPersianDigits } from "./digits.js";
+import { nowDate } from "./clock.js";
 
 /**
  * «اطمینان بدون بیعانه» (owner's decision of 2026-10-27, roadmap ۱۹): instead of a deposit, the salon or artist gets
@@ -42,7 +43,7 @@ const CONFIRMED = ["تایید شده", "تایید"];
  * or null (not a confirmed visit in the window: too far ahead, started, cancelled, marked, or a new time is waiting).
  * A booking with attend_ask === false belongs to a client who is not asked (needsAttendQuestion), so it never shows "ask".
  */
-export function attendanceState(booking, now = new Date()) {
+export function attendanceState(booking, now = nowDate()) {
   if (!booking || !CONFIRMED.includes(booking.status) || booking.no_show_at) return null;
   if (booking.proposal) return null;
   const minutes = minutesToStart(booking.booking_date || booking.date, booking.time, now);
@@ -56,7 +57,7 @@ export function attendanceState(booking, now = new Date()) {
  * What the salon or artist sees about «میای؟» on a confirmed booking of a client with an account: "yes" (said they're
  * coming), "waiting" (asked, no answer yet) or null (outside the window, or nobody to ask).
  */
-export function ownerAttendanceState(row, now = new Date(), kind = "salon") {
+export function ownerAttendanceState(row, now = nowDate(), kind = "salon") {
   if (!row || !row.client_user_id) return null;
   // A salon's «تازه» is a visit it entered itself (settled); an artist's «تازه» is a request still waiting.
   const status = row.status === "تازه" && kind === "salon" ? "تایید شده" : row.status;

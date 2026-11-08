@@ -1,6 +1,7 @@
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as push from "../../../lib/db/repos/push.js";
 import { json, requireUser, withErrorHandling } from "../../../lib/http.js";
+import { isKnownPushEndpoint } from "../../../lib/pushEndpoint.js";
 
 export const runtime = "nodejs";
 
@@ -15,6 +16,8 @@ async function _POST(request) {
   const body = await request.json().catch(() => null);
   const subscription = body?.subscription;
   if (!subscription?.endpoint) return json({ error: "اعلان‌ها روشن نشد؛ دوباره بزن." }, { status: 400 });
+  // Only a real browser push service: the server posts to this address later (lib/pushEndpoint.js).
+  if (!isKnownPushEndpoint(subscription.endpoint)) return json({ error: "این مرورگر اعلان نمی‌گیره؛ با کروم یا فایرفاکس امتحان کن." }, { status: 400 });
 
   const result = await push.saveSubscription(auth.user.id, subscription);
   if (!result.ok) return json({ error: result.error || "اعلان‌ها روشن نشد؛ دوباره بزن." }, { status: 400 });

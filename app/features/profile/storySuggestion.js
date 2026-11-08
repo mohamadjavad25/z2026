@@ -1,6 +1,7 @@
 import { minutesUntilSlotStart } from "../../shared/lib/bookingWindow.js";
 import { toAsciiDigits, toPersianDigits } from "../../shared/lib/digits.js";
 import { formatPersianDateKey } from "../../shared/lib/persianCalendar.js";
+import { nowDate } from "../../shared/lib/clock.js";
 
 /**
  * The story's choices that need no screen (owner's rules 2026-11-01), kept pure so every rule is tested:
@@ -25,7 +26,7 @@ export function clock(value) {
 }
 
 /** The day's times without the ones less than an hour away (only today has those), as "HH:MM", in order, once each. */
-export function usableTimes(day, now = new Date()) {
+export function usableTimes(day, now = nowDate()) {
   const seen = new Set();
   return (day?.times || [])
     .map(clock)
@@ -50,12 +51,12 @@ export function spreadTimes(times, count = STORY_TIMES_PER_DAY) {
 }
 
 /** The days a new story starts with: the first two that still have a usable time. */
-export function suggestDays(days, now = new Date()) {
+export function suggestDays(days, now = nowDate()) {
   return (days || []).filter((day) => usableTimes(day, now).length).slice(0, STORY_MAX_DAYS).map((day) => day.key);
 }
 
 /** The times a new story starts with, by day key, for the suggested days. */
-export function suggestTimes(days, now = new Date()) {
+export function suggestTimes(days, now = nowDate()) {
   const keys = new Set(suggestDays(days, now));
   return Object.fromEntries((days || []).filter((day) => keys.has(day.key)).map((day) => [day.key, spreadTimes(usableTimes(day, now))]));
 }
@@ -85,7 +86,7 @@ export function toggleTime(onTimes, time) {
  * The calm card on the owner's home, or null: «امروز ۳ وقت خالی داری» (today first, else tomorrow). Nothing once a
  * story was made today: the card is a reminder, not a nag.
  */
-export function buildSuggestion({ days = [], postedToday = false, now = new Date() }) {
+export function buildSuggestion({ days = [], postedToday = false, now = nowDate() }) {
   if (postedToday) return null;
   const today = formatPersianDateKey(now);
   const tomorrow = formatPersianDateKey(new Date(now.getTime() + 24 * 60 * 60 * 1000));

@@ -7,6 +7,7 @@ import { InstagramGlyph } from "../../components/InstagramFolder";
 import { InstagramStorySheet, loadFreeSlots } from "./InstagramStorySheet";
 import { POSTED_EVENT, postedToday } from "./storyMemory";
 import { buildSuggestion } from "./storySuggestion";
+import { nowDate } from "../../shared/lib/clock.js";
 
 const DISMISS_KEY = "frfro-story-nudge-day";
 const CACHE_MS = 5 * 60 * 1000;
@@ -35,7 +36,7 @@ export function StoryNudgeCard({ profile, onNotify }) {
   const type = profile?.type;
   const profileId = profile?.id;
   const ownerKey = `${type}:${profileId}`;
-  const today = formatPersianDateKey(new Date());
+  const today = formatPersianDateKey(nowDate());
 
   useEffect(() => {
     setHiddenDay(readDismissedDay());
@@ -63,7 +64,7 @@ export function StoryNudgeCard({ profile, onNotify }) {
   }, [type, profileId, ownerKey]);
 
   if (!profileId || (type !== "salon" && type !== "artist")) return null;
-  const suggestion = slots ? buildSuggestion({ days: slots, postedToday: posted, now: new Date() }) : null;
+  const suggestion = slots ? buildSuggestion({ days: slots, postedToday: posted, now: nowDate() }) : null;
   const path = `/${type === "salon" ? "salons" : "artists"}/${Number(profileId)}`;
   const url = typeof window !== "undefined" ? `${window.location.origin}${path}` : path;
 

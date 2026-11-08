@@ -1,6 +1,7 @@
 import { formatPersianDateKey, formatPersianDayTitle, formatRelativeBookingDayLabel, getPersianWeekday, persianDateKeyToDate } from "../../shared/lib/persianCalendar";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { getTehranClockMinutes } from "../../shared/lib/time";
+import { nowDate } from "../../shared/lib/clock.js";
 
 /** The week as the app runs it (Saturday first), with the one-letter label the week strips show. */
 export const WEEK_DAYS = [
@@ -16,12 +17,12 @@ export const WEEK_DAYS = [
 /** Weekday names come with or without the half-space («سه‌شنبه», «سه شنبه»); compare without it. */
 const plain = (value) => String(value || "").replace(/[‌\s]/g, "");
 
-export function todayDayName(from = new Date()) {
+export function todayDayName(from = nowDate()) {
   return plain(getPersianWeekday(from));
 }
 
 /** Hours rows ({ day, open, close, active }) → one entry per weekday: { day, letter, on, open, close, today }. */
-export function weekFromHours(hours = [], from = new Date()) {
+export function weekFromHours(hours = [], from = nowDate()) {
   const today = todayDayName(from);
   return WEEK_DAYS.map(({ day, letter }) => {
     const row = hours.find((item) => plain(item.day) === plain(day));
@@ -73,7 +74,7 @@ export function leaveLabel(iso) {
 }
 
 /** The return day for «فردا», «۳ روز دیگه», «هفتهٔ بعد» (n days from today), as «YYYY-MM-DD». */
-export function leaveDayAfter(days, from = new Date()) {
+export function leaveDayAfter(days, from = nowDate()) {
   const date = new Date(from.getTime() + days * 86400000);
   return date.toISOString().slice(0, 10);
 }
@@ -91,7 +92,7 @@ const hourWord = (time) => toPersianDigits(hourOnly(time));
  * `person.state` is the stored word (فعال / مرخصی / غیرفعال); the words here are only how it is shown (docs/COPY.md).
  * → { tone, text, today: works some of today, now: at work this minute }.
  */
-export function memberToday(person, week, from = new Date()) {
+export function memberToday(person, week, from = nowDate()) {
   const state = person.state || "فعال";
   if (state === "مرخصی") {
     const back = leaveLabel(person.leave_until);

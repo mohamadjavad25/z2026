@@ -1,6 +1,7 @@
 import { findSalonHourForDateKey, isSalonHourOpen, salonDayWindow } from "./salonAvailability.js";
 import { formatPersianDateKey } from "./persianCalendar.js";
 import { timeLabelToMinutes } from "./time.js";
+import { nowDate } from "./clock.js";
 
 /**
  * Where an artist's own clients are received (owner's decision of 2026-10-25). One place at a time: the artist's
@@ -12,7 +13,7 @@ import { timeLabelToMinutes } from "./time.js";
  */
 
 /** Today's Persian date key, `days` later when given (Tehran calendar, like booking_date). */
-export function dateKeyAfter(days = 0, from = new Date()) {
+export function dateKeyAfter(days = 0, from = nowDate()) {
   return formatPersianDateKey(new Date(from.getTime() + Number(days || 0) * 86400000));
 }
 

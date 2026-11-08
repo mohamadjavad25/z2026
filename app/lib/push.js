@@ -3,6 +3,7 @@ import * as pushRepo from "./db/repos/push.js";
 import * as nativePush from "./db/repos/nativePush.js";
 import { fcmConfigured, fcmThrowReason, sendFcm } from "./fcm.js";
 import { logger } from "./logger.js";
+import { isSafeToPost } from "./pushEndpoint.js";
 
 /**
  * Push notifications, two kinds side by side:
@@ -34,6 +35,7 @@ async function sendWebPush(userId, payload, ttl) {
   const subscriptions = await pushRepo.listSubscriptionsForUser(userId);
   let sent = 0;
   await Promise.all(subscriptions.map(async (sub) => {
+    if (!isSafeToPost(sub.endpoint)) return; // an old row from before lib/pushEndpoint.js: never post to it
     try {
       await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload, { TTL: ttl, timeout: SEND_TIMEOUT_MS, urgency: "high" });
       sent += 1;

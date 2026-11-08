@@ -8,6 +8,7 @@ import { SegmentClock } from "../../../components/SegmentClock";
 
 import { useHome } from "../HomeContext";
 import { shortServiceLabel } from "../../../shared/lib/serviceBundle";
+import { nowDate } from "../../../shared/lib/clock.js";
 export function SalonNotificationsSheet() {
   const {
     createdProfile,
@@ -25,7 +26,7 @@ export function SalonNotificationsSheet() {
 
   // «نوبت‌های پیش‌رو»: today and later, without cancelled or expired ones (it used to count every booking and was
   // titled «برنامه امروز», so a closed Friday read «۴»; owner's choice 2026-10-23).
-  const todayKey = formatPersianDateKey(new Date());
+  const todayKey = formatPersianDateKey(nowDate());
   const ahead = salonAppointmentList.filter((booking) => !["لغو", "منقضی شده"].includes(booking.status) && String(booking.booking_date || "") >= todayKey);
   const todayCount = ahead.filter((booking) => booking.booking_date === todayKey).length;
   const aheadText = !ahead.length

@@ -12,6 +12,7 @@ import { Composer } from "./Composer";
 import { SkeletonList } from "../../components/Skeleton";
 import { FEEDBACK_THANKS } from "../../shared/lib/feedback";
 import { FeedbackForm } from "./FeedbackForm";
+import { nowMs } from "../../shared/lib/clock.js";
 
 // value, label, icon, one line that says when to pick it, and the first line of the chat (shown here, never stored).
 const TOPICS = [
@@ -31,7 +32,7 @@ const dayName = (value) => new Intl.DateTimeFormat("fa-IR", { day: "numeric", mo
 const sameDay = (a, b) => new Date(a).toDateString() === new Date(b).toDateString();
 
 function ago(value) {
-  const seconds = Math.round((new Date(value).getTime() - Date.now()) / 1000);
+  const seconds = Math.round((new Date(value).getTime() - nowMs()) / 1000);
   const rtf = new Intl.RelativeTimeFormat("fa", { numeric: "auto" });
   const abs = Math.abs(seconds);
   if (abs < 60) return "همین الان";

@@ -1,11 +1,12 @@
 import { toIsoLikeTimestamp } from "../../shared/lib/time";
+import { nowMs } from "../../shared/lib/clock.js";
 
 export function isWithinLastHours(timestamp, hours) {
   const isoLike = toIsoLikeTimestamp(timestamp);
   if (!isoLike) return false;
   const ms = Date.parse(isoLike);
   if (!Number.isFinite(ms)) return false;
-  return Date.now() - ms <= hours * 3600 * 1000;
+  return nowMs() - ms <= hours * 3600 * 1000;
 }
 
 // PushManager needs the VAPID public key as a raw Uint8Array, not the

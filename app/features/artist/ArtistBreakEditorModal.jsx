@@ -7,6 +7,7 @@ import { PERSIAN_WEEKDAYS, formatPersianDateKey } from "../../shared/lib/persian
 import { ALL_BREAK_DAYS, BREAK_NOW_MINUTES, activeNowBreak, weekdayOfDateKey } from "../../shared/lib/artistBreak";
 import { bookingHoldsSlot } from "../../shared/lib/salonAvailability";
 import { SheetClose } from "../../components/SheetClose";
+import { nowDate } from "../../shared/lib/clock.js";
 
 const DAY_LETTERS = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
 const STEP = 30;
@@ -22,7 +23,7 @@ export function breakHourButtons(hoursList = []) {
 }
 
 /** Upcoming bookings that fall inside the window on its days: they stay, but the artist is told before saving. */
-export function bookingsInBreak(bookings, draft, today = formatPersianDateKey(new Date())) {
+export function bookingsInBreak(bookings, draft, today = formatPersianDateKey(nowDate())) {
   const start = timeLabelToMinutes(draft.start);
   const end = timeLabelToMinutes(draft.end);
   if (!(end > start)) return [];
@@ -55,7 +56,7 @@ export function ArtistBreakEditorModal({
   onClose
 }) {
   const hours = useMemo(() => breakHourButtons(hoursList), [hoursList]);
-  const today = formatPersianDateKey(new Date());
+  const today = formatPersianDateKey(nowDate());
   const inside = useMemo(() => (open ? bookingsInBreak(bookings, draft, today) : []), [open, bookings, draft, today]);
   if (!open) return null;
 

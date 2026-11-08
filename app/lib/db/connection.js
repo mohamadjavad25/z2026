@@ -73,6 +73,52 @@ function resolveSslConfig() {
 
 let pool = null;
 
+/**
+ * Server-side time limits (HEALTH debt 11, 2026-11-08): a query that runs past 30 seconds, or a transaction left open
+ * and idle past 60, is stopped by Postgres itself instead of holding a connection (and its locks) until the whole app
+ * stalls. Sent as startup options, which a transaction-mode pooler (Supabase's Supavisor on port 6543, used by the
+ * Vercel test copy) refuses, so there they are left off. PG_STATEMENT_TIMEOUT_MS=0 switches it off.
+ */
+function startupOptions(connString) {
+  const statementMs = Number(process.env.PG_STATEMENT_TIMEOUT_MS ?? 30_000);
+  if (!statementMs) return undefined;
+  try {
+    const url = new URL(connString);
+    if (url.port === "6543" || /pooler\.supabase\.com$/i.test(url.hostname)) return undefined;
+  } catch {
+    return undefined;
+  }
+  return `-c statement_timeout=${statementMs} -c idle_in_transaction_session_timeout=${Math.max(statementMs * 2, 60_000)}`;
+}
+
+/**
+ * A connection that could not be made because the database was restarting or the network blinked. Only these are
+ * tried again: nothing was sent yet, so trying again cannot run anything twice. A pool that is merely full
+ * ("timeout exceeded when trying to connect") is not retried, that would only add to the queue.
+ */
+const RETRYABLE_CONNECT = new Set(["ECONNREFUSED", "ECONNRESET", "ETIMEDOUT", "EPIPE", "ENOTFOUND", "EAI_AGAIN", "57P03", "53300"]);
+const CONNECT_RETRY_DELAYS_MS = [250, 750, 1500];
+
+export function isRetryableConnectError(error) {
+  if (!error) return false;
+  if (RETRYABLE_CONNECT.has(error.code)) return true;
+  return /Connection terminated unexpectedly|the database system is (starting up|shutting down)/i.test(String(error.message || ""));
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function connectWithRetry(target) {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await target.connect();
+    } catch (error) {
+      if (attempt >= CONNECT_RETRY_DELAYS_MS.length || !isRetryableConnectError(error)) throw error;
+      console.warn(`Postgres connect failed (${error.code || error.message}); trying again (${attempt + 1})`);
+      await sleep(CONNECT_RETRY_DELAYS_MS[attempt]);
+    }
+  }
+}
+
 function getPool() {
   if (pool) return pool;
   if (!connectionString) {
@@ -103,8 +149,32 @@ function getPool() {
     // Vercel's function timeout killed it.
     max: Number(process.env.PGPOOL_MAX) || 10,
     idleTimeoutMillis: 10_000,
-    connectionTimeoutMillis: 8_000
+    connectionTimeoutMillis: 8_000,
+    options: startupOptions(connectionString)
   });
+  // Every pool.query() (what the repos call) takes its connection through connectWithRetry, so a blink of the
+  // database is ridden out instead of becoming an error page. Same contract as pg's own pool.query: the client goes
+  // back to the pool, and is thrown away when the query failed (pg's release(err)), so a broken one is not reused.
+  const rawConnect = pool.connect.bind(pool);
+  const retryTarget = { connect: () => rawConnect() };
+  pool.connect = (callback) => {
+    if (typeof callback === "function") return rawConnect(callback);
+    return connectWithRetry(retryTarget);
+  };
+  pool.query = async (text, values, callback) => {
+    if (typeof values === "function" || typeof callback === "function") {
+      throw new Error("pool.query with a callback is not supported here; await it instead.");
+    }
+    const client = await connectWithRetry(retryTarget);
+    try {
+      const result = await client.query(text, values);
+      client.release();
+      return result;
+    } catch (error) {
+      client.release(error);
+      throw error;
+    }
+  };
   // pg's own docs: a pooled client sitting idle can still be dropped by the
   // network/remote side (exactly what Supavisor's own idle/connection
   // limits do) -- when that happens the Pool emits 'error' on an idle

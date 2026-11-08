@@ -11,20 +11,33 @@ import { logger } from "./logger.js";
  * Every call writes one «push.admin» log line (how many apps Google took, and why the others failed), so
  * «I got no notice» can be answered from the server log (journalctl -u frfro | grep push.admin).
  */
+let knownTokens = [];
+
 export async function pushAdmins({ title, body, url = "/admin", tag = "" } = {}) {
   const reached = new Set();
   if (!fcmConfigured()) {
     logger.warn("push.admin", { tag, apps: 0, accepted: 0, failures: ["fcm off"] });
     return reached;
   }
-  const tokens = await adminPush.listFreshTokensForPhones(adminPhoneList()).catch(() => []);
+  // The last list that came back is kept in memory, so the alert «دیتابیس جواب نمی‌ده» still reaches the admin app
+  // while the database is the thing that is down (serverErrorAlert.js).
+  let tokens;
+  try {
+    tokens = await adminPush.listFreshTokensForPhones(adminPhoneList());
+    knownTokens = tokens;
+  } catch {
+    tokens = knownTokens;
+  }
   const failures = [];
   await Promise.all(tokens.map(async (row) => {
     const result = await sendFcm(row.token, { title, body, url, tag }).catch((error) => ({ ok: false, gone: false, reason: fcmThrowReason(error) }));
     if (result.ok) reached.add(row.phone);
     else {
       failures.push(result.reason || "failed");
-      if (result.gone) await adminPush.removeTokenById(row.id).catch(() => {});
+      if (result.gone) {
+        knownTokens = knownTokens.filter((item) => item.id !== row.id);
+        await adminPush.removeTokenById(row.id).catch(() => {});
+      }
     }
   }));
   const accepted = tokens.length - failures.length;

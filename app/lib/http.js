@@ -124,7 +124,7 @@ export function withErrorHandling(handler) {
         method: request?.method,
         url: request?.url
       });
-      alertAdminsServerError();
+      alertAdminsServerError(err);
       return error("یه مشکلی پیش اومد؛ چند لحظه دیگه دوباره بزن.", 500);
     }
   };

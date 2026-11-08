@@ -1,4 +1,5 @@
 import { toAsciiDigits, toPersianDigits } from "./digits.js";
+import { nowDate } from "./clock.js";
 
 const persianDateFmt = new Intl.DateTimeFormat("en-US-u-ca-persian-nu-latn", {
   year: "numeric",
@@ -41,7 +42,7 @@ function startOfDay(date) {
   return new Date(Date.UTC(parts.year, parts.month - 1, parts.day, 12, 0) - (3 * 60 + 30) * 60000);
 }
 
-export function getPersianDateParts(date = new Date()) {
+export function getPersianDateParts(date = nowDate()) {
   const parts = Object.fromEntries(
     persianDateFmt
       .formatToParts(date)
@@ -55,13 +56,13 @@ export function getPersianDateParts(date = new Date()) {
   };
 }
 
-export function formatPersianDateKey(date = new Date()) {
+export function formatPersianDateKey(date = nowDate()) {
   const parts = getPersianDateParts(date);
   if (!parts.year || !parts.month || !parts.day) return "";
   return `${parts.year}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")}`;
 }
 
-export function getPersianWeekday(date = new Date()) {
+export function getPersianWeekday(date = nowDate()) {
   return persianWeekdayFmt.format(date);
 }
 
@@ -71,7 +72,7 @@ export function getPersianMonthLabel(year, month) {
 }
 
 export function findPersianMonthStart(year, month) {
-  let cursor = startOfDay(new Date());
+  let cursor = startOfDay(nowDate());
   for (let guard = 0; guard < 48; guard += 1) {
     const parts = getPersianDateParts(cursor);
     const diffMonths = (year - parts.year) * 12 + (month - parts.month);
@@ -86,7 +87,7 @@ export function findPersianMonthStart(year, month) {
     }
     cursor.setDate(cursor.getDate() + diffMonths * 29);
   }
-  return startOfDay(new Date());
+  return startOfDay(nowDate());
 }
 
 export function shiftPersianMonth(year, month, delta) {
@@ -145,7 +146,7 @@ export function buildPersianMonthGrid(year, month) {
       day: parts.day,
       weekday: getPersianWeekday(cursor),
       dayLabel: toPersianDigits(parts.day),
-      isToday: isSamePersianDay(cursor, new Date())
+      isToday: isSamePersianDay(cursor, nowDate())
     });
     cursor.setDate(cursor.getDate() + 1);
   }
@@ -167,7 +168,7 @@ export function isPersianDateKey(value) {
  * (the range persianDateKeyToDate can check). "" for anything else: impossible month/day, a Gregorian
  * date, text. Never "today" as a fallback.
  */
-export function parsePersianDateKey(value, from = new Date()) {
+export function parsePersianDateKey(value, from = nowDate()) {
   const match = toAsciiDigits(String(value ?? "").trim()).match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
   if (!match) return "";
   const year = Number(match[1]);
@@ -186,7 +187,7 @@ export function parsePersianDateKey(value, from = new Date()) {
  * reliable option; bookings are always within a small window of "now", so
  * this is cheap in practice.
  */
-export function persianDateKeyToDate(dateKey, from = new Date(), rangeDays = 400) {
+export function persianDateKeyToDate(dateKey, from = nowDate(), rangeDays = 400) {
   if (!isPersianDateKey(dateKey)) return null;
   const base = startOfDay(from);
   const baseKey = formatPersianDateKey(base);
@@ -246,7 +247,7 @@ function resolveDayLabel(raw, today) {
  * "" (today), "امروز", "فردا", "پس‌فردا", a weekday name (optionally followed by a date label), and a real
  * Jalali date key in any digits. An impossible date or plain text is null, never today and never "Saturday".
  */
-export function tryResolveRollingPersianDate(value, from = new Date()) {
+export function tryResolveRollingPersianDate(value, from = nowDate()) {
   const raw = String(value ?? "").trim();
   const today = startOfDay(from);
   if (!raw) return today;
@@ -286,12 +287,12 @@ export function tryResolveRollingPersianDate(value, from = new Date()) {
  * Display code only: an unreadable value still gives today so a screen never breaks. Anything that
  * decides or stores a day must use resolveRollingPersianDateKey (or tryResolveRollingPersianDate).
  */
-export function resolveRollingPersianDate(value, from = new Date()) {
+export function resolveRollingPersianDate(value, from = nowDate()) {
   return tryResolveRollingPersianDate(value, from) || startOfDay(from);
 }
 
 /** The canonical "YYYY-MM-DD" for a day value, or "" when it is not a real day (empty input still means today). */
-export function resolveRollingPersianDateKey(value, from = new Date()) {
+export function resolveRollingPersianDateKey(value, from = nowDate()) {
   const date = tryResolveRollingPersianDate(value, from);
   return date ? formatPersianDateKey(date) : "";
 }
@@ -301,7 +302,7 @@ export function resolveRollingPersianDateKey(value, from = new Date()) {
  * "امروز" / "فردا" today/tomorrow, otherwise a full weekday + date so it
  * never reads as an ambiguous bare weekday name from some other week.
  */
-export function formatRelativeBookingDayLabel(value, from = new Date()) {
+export function formatRelativeBookingDayLabel(value, from = nowDate()) {
   const date = resolveRollingPersianDate(value, from);
   if (isSamePersianDay(date, from)) return "امروز";
   const tomorrow = new Date(startOfDay(from));
@@ -317,7 +318,7 @@ export function isSamePersianDay(a, b) {
   return left.year === right.year && left.month === right.month && left.day === right.day;
 }
 
-export function isWithinRollingWeek(date, from = new Date(), length = 7) {
+export function isWithinRollingWeek(date, from = nowDate(), length = 7) {
   const start = startOfDay(from).getTime();
   const end = start + length * 24 * 60 * 60 * 1000;
   const value = startOfDay(date).getTime();

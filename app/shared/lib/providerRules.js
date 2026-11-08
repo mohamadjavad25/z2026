@@ -2,6 +2,7 @@ import { toPersianDigits } from "./digits.js";
 import { normalizeBookingTimeLabel } from "./time.js";
 import { bookingStartMs } from "./reminderTiming.js";
 import { formatRelativeBookingDayLabel } from "./persianCalendar.js";
+import { nowDate } from "./clock.js";
 
 /**
  * The owner's rules of 2026-10-22 about a confirmed booking (docs/DECISIONS.md): it is never broken without the
@@ -72,7 +73,7 @@ export function shortClock(time) {
  * When a proposal stops being valid (epoch ms): 6 hours after it was made, or PROPOSAL_MIN_LEAD_MINUTES before the
  * booking, whichever is earlier. null when it can't be worked out.
  */
-export function proposalDeadlineMs({ proposalAt, bookingDate, time }, now = new Date()) {
+export function proposalDeadlineMs({ proposalAt, bookingDate, time }, now = nowDate()) {
   const madeAt = proposalAt ? new Date(proposalAt).getTime() : NaN;
   if (!Number.isFinite(madeAt)) return null;
   const byHold = madeAt + PROPOSAL_HOURS * 3600 * 1000;
@@ -81,19 +82,19 @@ export function proposalDeadlineMs({ proposalAt, bookingDate, time }, now = new 
   return Math.min(byHold, start - PROPOSAL_MIN_LEAD_MINUTES * 60 * 1000);
 }
 
-export function isProposalLapsed(row, now = new Date()) {
+export function isProposalLapsed(row, now = nowDate()) {
   const deadline = proposalDeadlineMs({ proposalAt: row?.proposal_at, bookingDate: row?.booking_date, time: row?.time }, now);
   return deadline === null ? true : now.getTime() >= deadline;
 }
 
 /** Minutes from `now` to the booking's start (null when unreadable; negative once started). */
-export function minutesToStart(bookingDate, time, now = new Date()) {
+export function minutesToStart(bookingDate, time, now = nowDate()) {
   const start = bookingStartMs(bookingDate, time, now);
   return start === null ? null : (start - now.getTime()) / 60000;
 }
 
 /** Starts in less than NEAR_BOOKING_HOURS (and has not started yet). */
-export function startsSoon(bookingDate, time, now = new Date()) {
+export function startsSoon(bookingDate, time, now = nowDate()) {
   const minutes = minutesToStart(bookingDate, time, now);
   return minutes !== null && minutes > 0 && minutes < NEAR_BOOKING_HOURS * 60;
 }
@@ -102,7 +103,7 @@ export function startsSoon(bookingDate, time, now = new Date()) {
  * The open proposal on a booking row as the screens see it: { date, time, staff, expiresAt (ISO) }, or null when there is
  * none or it has run out (a lapsed one is closed by the sweep; until then it must not be offered to the client).
  */
-export function proposalView(row, now = new Date()) {
+export function proposalView(row, now = nowDate()) {
   if (!row?.proposal_at) return null;
   if (isProposalLapsed(row, now)) return null;
   const deadline = proposalDeadlineMs({ proposalAt: row.proposal_at, bookingDate: row.booking_date, time: row.time }, now);
@@ -135,7 +136,7 @@ export function noShowClientText(type, name) {
  * Where a confirmed booking stands for «نیومد»: "ahead" (not started), "open" (started, the mark can still be set or
  * taken back), "closed" (more than NO_SHOW_HOURS after the start), or null when the time can't be read.
  */
-export function noShowPhase(bookingDate, time, now = new Date()) {
+export function noShowPhase(bookingDate, time, now = nowDate()) {
   const minutes = minutesToStart(bookingDate, time, now);
   if (minutes === null) return null;
   if (minutes > 0) return "ahead";
@@ -143,7 +144,7 @@ export function noShowPhase(bookingDate, time, now = new Date()) {
 }
 
 /** True once a confirmed booking's start has come (so it can't be cancelled by its salon or artist any more). */
-export function hasStarted(bookingDate, time, now = new Date()) {
+export function hasStarted(bookingDate, time, now = nowDate()) {
   const minutes = minutesToStart(bookingDate, time, now);
   return minutes !== null && minutes <= 0;
 }

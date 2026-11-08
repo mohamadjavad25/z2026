@@ -18,6 +18,7 @@ import { hasNativeStoryShare, saveStoryNative, shareStoryNative } from "../../sh
 import { appTooOldFor, askForAppUpdate } from "../../shared/lib/appUpdate";
 import { guideOff, guideShown, guideWanted, markPosted } from "./storyMemory";
 import { STORY_MAX_DAYS, STORY_TIMES_PER_DAY, spreadTimes, suggestTimes, toggleDay, toggleTime, usableTimes } from "./storySuggestion";
+import { nowDate } from "../../shared/lib/clock.js";
 
 // What the person hears after each button (one line each).
 const SHARED_COPIED = "لینک صفحه‌ت کپی شد؛ توی استوری برچسب لینک رو بزن و بچسبون.";
@@ -435,7 +436,7 @@ async function drawStory(look, data) {
 
 /** Today, tomorrow and the day after, as dates and Persian day keys. */
 function nextDays() {
-  const now = new Date();
+  const now = nowDate();
   return DAY_LABELS.map((label, i) => {
     const date = new Date(now.getTime() + i * DAY_MS);
     return { label, date, key: formatPersianDateKey(date) };
@@ -564,7 +565,7 @@ export function InstagramStorySheet({ open, name, url, avatar = "", profileType 
       : Promise.resolve([]);
     Promise.all([worksLoad, slotsLoad]).then(([, days]) => {
       if (cancelled) return;
-      const now = new Date();
+      const now = nowDate();
       const usable = days.map((day) => ({ ...day, times: usableTimes(day, now) }));
       const picks = suggestTimes(usable, now);
       setSlots(usable);

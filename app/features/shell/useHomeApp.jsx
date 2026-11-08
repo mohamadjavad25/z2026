@@ -16,6 +16,7 @@ import { appPushAvailable, startAppPush } from "../../shared/lib/nativePush";
 import { trackScreen } from "../../shared/lib/activity";
 import { useHomeChrome } from "./useHomeChrome";
 import { useHomeWorkspaces } from "./useHomeWorkspaces";
+import { nowDate } from "../../shared/lib/clock.js";
 
 export function useHomeApp() {
   const [activeTab, setActiveTab] = useState("profile");
@@ -98,7 +99,7 @@ export function useHomeApp() {
   const [savedProfiles, setSavedProfiles] = useState({ salons: [], artists: [] });
   const [scheduleViewDay, setScheduleViewDay] = useState("");
   const [salonWeekHistoryOpen, setSalonWeekHistoryOpen] = useState(false);
-  const [scheduleNow, setScheduleNow] = useState(() => new Date());
+  const [scheduleNow, setScheduleNow] = useState(() => nowDate());
 
   // Fires from useAuthSession's onAuthenticated below (boot/login/register —
   // covers an artist who was already logged in when they opened the

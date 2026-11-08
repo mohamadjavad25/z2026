@@ -3,6 +3,7 @@ import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { bookingWaitMinutes, minutesUntilSlotStart, requestDeadlineLabel } from "../../shared/lib/bookingWindow";
 import { scheduleBookingParts } from "../../shared/lib/bookingParts";
 import { getTehranClockMinutes, normalizeBookingTimeLabel, timeLabelToMinutes } from "../../shared/lib/time";
+import { nowDate, nowMs } from "../../shared/lib/clock.js";
 
 /**
  * The words a booking's state is shown with, the same for clients, salons and artists (owner's decision 2026-11-04):
@@ -37,14 +38,14 @@ export function isBookingInPast(booking) {
 }
 
 /** The appointment's start time has passed (today's 10:00 booking at 14:29), not just its day. */
-export function hasBookingStarted(booking, now = new Date()) {
+export function hasBookingStarted(booking, now = nowDate()) {
   if (isBookingInPast(booking)) return true;
   const until = minutesUntilSlotStart(booking?.booking_date || booking?.date, booking?.time, now);
   return until !== null && until <= 0;
 }
 
 /** The appointment is over: its end time has passed (a booking in progress is not over). */
-export function hasBookingEnded(booking, now = new Date()) {
+export function hasBookingEnded(booking, now = nowDate()) {
   if (isBookingInPast(booking)) return true;
   const until = minutesUntilSlotStart(booking?.booking_date || booking?.date, booking?.time, now);
   if (until === null || until === Infinity) return false;
@@ -55,7 +56,7 @@ export function hasBookingEnded(booking, now = new Date()) {
 }
 
 /** Still to come or under way: active, and not over yet. These are the full cards; the rest are one-line notes. */
-export function isBookingAhead(booking, now = new Date()) {
+export function isBookingAhead(booking, now = nowDate()) {
   return isBookingActive(booking) && !hasBookingEnded(booking, now);
 }
 
@@ -98,7 +99,7 @@ export function clientBookingKey(booking) {
  * request with no window, that it waits until the appointment and the client may cancel it. "" when
  * the request isn't waiting or nothing can be said.
  */
-export function requestWaitNote(booking, now = new Date()) {
+export function requestWaitNote(booking, now = nowDate()) {
   if (!["درخواست", "تازه"].includes(booking?.status)) return "";
   const who = booking.bookingSource === "artist" ? "آرتیست" : "سالن";
   const windowMinutes = bookingWaitMinutes(booking);
@@ -123,7 +124,7 @@ export function movedToName(booking) {
  */
 export function openProposalOf(booking) {
   if (!booking?.proposal || !["تایید شده", "تایید"].includes(booking.status || "")) return null;
-  if (booking.proposal.expiresAt && new Date(booking.proposal.expiresAt).getTime() <= Date.now()) return null;
+  if (booking.proposal.expiresAt && new Date(booking.proposal.expiresAt).getTime() <= nowMs()) return null;
   return booking.proposal;
 }
 

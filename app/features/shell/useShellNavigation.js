@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "../../shared/api/client";
 import { getSaves } from "../../shared/api/saves";
 import { ProfileSavedPosts } from "../profile/ProfileSavedPosts";
+import { nowDate } from "../../shared/lib/clock.js";
 
 export function useShellNavigation({
   authCascadeRef,
@@ -147,8 +148,8 @@ function getPassportMatch(post) {
 
   useEffect(() => {
     if (createdProfile?.type !== "salon" && createdProfile?.type !== "artist") return undefined;
-    setScheduleNow(new Date());
-    const timer = window.setInterval(() => setScheduleNow(new Date()), 30000);
+    setScheduleNow(nowDate());
+    const timer = window.setInterval(() => setScheduleNow(nowDate()), 30000);
     return () => window.clearInterval(timer);
   }, [createdProfile?.type]);
 

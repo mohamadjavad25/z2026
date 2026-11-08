@@ -1,6 +1,7 @@
 import { resolveRollingPersianDateKey, formatPersianDateKey } from "./persianCalendar.js";
 import { toPersianDigits } from "./digits.js";
 import { getTehranClockMinutes, timeLabelToMinutes, toIsoLikeTimestamp } from "./time.js";
+import { nowDate } from "./clock.js";
 
 /**
  * One source of truth for how long a client's booking REQUEST can wait for an answer.
@@ -37,7 +38,7 @@ export function bookingWaitMinutes(booking) {
 }
 
 /** Minutes from `now` until the slot starts (negative once started). `null` when the day/time can't be read. */
-export function minutesUntilSlotStart(day, time, now = new Date()) {
+export function minutesUntilSlotStart(day, time, now = nowDate()) {
   // An empty day would read as "today" below; here it means "unknown".
   if (!String(day || "").trim() || !String(time || "").trim()) return null;
   const key = resolveRollingPersianDateKey(day, now);
@@ -49,7 +50,7 @@ export function minutesUntilSlotStart(day, time, now = new Date()) {
 }
 
 /** True when a client may not request this slot any more: it starts in less than LEAD minutes. */
-export function isTooSoonToRequest(day, time, now = new Date(), leadMinutes = BOOKING_REQUEST_LEAD_MINUTES) {
+export function isTooSoonToRequest(day, time, now = nowDate(), leadMinutes = BOOKING_REQUEST_LEAD_MINUTES) {
   const until = minutesUntilSlotStart(day, time, now);
   return until !== null && until < leadMinutes;
 }
@@ -60,7 +61,7 @@ export function isTooSoonToRequest(day, time, now = new Date(), leadMinutes = BO
  * only the response window counts. `windowMinutes: null` is a request with no window (it waits
  * until its appointment starts).
  */
-export function requestMinutesLeft(createdAt, day, time, { now = new Date(), windowMinutes = BOOKING_REQUEST_WINDOW_MINUTES } = {}) {
+export function requestMinutesLeft(createdAt, day, time, { now = nowDate(), windowMinutes = BOOKING_REQUEST_WINDOW_MINUTES } = {}) {
   let left = null;
   const iso = toIsoLikeTimestamp(createdAt);
   const created = iso ? new Date(iso).getTime() : NaN;
@@ -74,7 +75,7 @@ export function requestMinutesLeft(createdAt, day, time, { now = new Date(), win
 const deadlineFmt = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Tehran" });
 
 /** Wall-clock "HH:MM" (Persian digits, Tehran time) the request stops being answerable; "" when unknown. */
-export function requestDeadlineLabel(createdAt, day, time, { now = new Date(), windowMinutes = BOOKING_REQUEST_WINDOW_MINUTES } = {}) {
+export function requestDeadlineLabel(createdAt, day, time, { now = nowDate(), windowMinutes = BOOKING_REQUEST_WINDOW_MINUTES } = {}) {
   const left = requestMinutesLeft(createdAt, day, time, { now, windowMinutes });
   if (left === null) return "";
   const iso = toIsoLikeTimestamp(createdAt);
@@ -88,7 +89,7 @@ export function requestDeadlineLabel(createdAt, day, time, { now = new Date(), w
 }
 
 /** Share (0..1) of the request's whole waiting time still left, for progress bars. `null` when unknown. */
-export function requestRemainingShare(createdAt, day, time, { now = new Date(), windowMinutes = BOOKING_REQUEST_WINDOW_MINUTES } = {}) {
+export function requestRemainingShare(createdAt, day, time, { now = nowDate(), windowMinutes = BOOKING_REQUEST_WINDOW_MINUTES } = {}) {
   const iso = toIsoLikeTimestamp(createdAt);
   const created = iso ? new Date(iso).getTime() : NaN;
   if (!Number.isFinite(created)) return null;
@@ -107,7 +108,7 @@ export const BOOKING_HORIZON_DAYS = 60;
 export const TOO_FAR_TEXT = `فعلاً تا ${toPersianDigits(BOOKING_HORIZON_DAYS)} روز جلوتر می‌شه نوبت گرفت. برای بعدش به سالن زنگ بزن.`;
 
 /** True when `day` is more than BOOKING_HORIZON_DAYS after today (Tehran). */
-export function isTooFarToRequest(day, now = new Date(), horizonDays = BOOKING_HORIZON_DAYS) {
+export function isTooFarToRequest(day, now = nowDate(), horizonDays = BOOKING_HORIZON_DAYS) {
   const key = resolveRollingPersianDateKey(day, now);
   if (!key) return false;
   return key > formatPersianDateKey(new Date(now.getTime() + horizonDays * 86400000));

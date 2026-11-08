@@ -1,4 +1,5 @@
 import { toAsciiDigits, toLatinDigits, toPersianDigits } from "./digits.js";
+import { nowDate, nowMs } from "./clock.js";
 
 export const PUBLIC_BOOKING_DAY_START = 9 * 60;
 export const PUBLIC_BOOKING_DAY_END = 21 * 60;
@@ -13,7 +14,7 @@ export function buildUpcomingWeekDays(count = 7) {
   const weekdayFmt = new Intl.DateTimeFormat("fa-IR", { weekday: "long", timeZone: "Asia/Tehran" });
   const dayFmt = new Intl.DateTimeFormat("fa-IR", { day: "numeric", timeZone: "Asia/Tehran" });
   const monthFmt = new Intl.DateTimeFormat("fa-IR", { month: "long", timeZone: "Asia/Tehran" });
-  const now = Date.now();
+  const now = nowMs();
   return Array.from({ length: count }, (_, index) => {
     const date = new Date(now + index * 24 * 60 * 60 * 1000);
     return `${weekdayFmt.format(date)} ${dayFmt.format(date)} ${monthFmt.format(date)}`;
@@ -122,12 +123,12 @@ const tehranWeekdayFmt = new Intl.DateTimeFormat("en-US", { weekday: "short", ti
  * Today's name in Iran, spelled as the hours rows store it. Never `getDay()` for this: that is the device's own clock, so
  * a phone set to another country's time gets another «امروز» than the server's page (error report of 2026-11-07).
  */
-export function getTodayPersianWeekday(date = new Date()) {
+export function getTodayPersianWeekday(date = nowDate()) {
   return WEEKDAY_ROW_NAMES[tehranWeekdayFmt.format(date)];
 }
 
 /** Minutes since midnight in Iran time — booking slots are stored as local Iran clocks. */
-export function getTehranClockMinutes(date = new Date()) {
+export function getTehranClockMinutes(date = nowDate()) {
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Tehran",
     hour: "2-digit",
@@ -207,5 +208,5 @@ export function getRequestExpiryMinutesLeft(createdAt, minutes = 60) {
   const created = new Date(isoLike);
   if (Number.isNaN(created.getTime())) return null;
   const deadline = created.getTime() + minutes * 60 * 1000;
-  return Math.round((deadline - Date.now()) / 60000);
+  return Math.round((deadline - nowMs()) / 60000);
 }

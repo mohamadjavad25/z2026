@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { buildExactBookingDateTabsCentered } from "../artist";
 import { formatPersianDateKey } from "../../shared/lib/persianCalendar";
+import { nowDate } from "../../shared/lib/clock.js";
 
 export function useSalonDerived({
   salonServiceList,
@@ -26,7 +27,7 @@ export function useSalonDerived({
   // weekday names (used as the select key elsewhere below) stay unique.
   // Rebuilt when the calendar day changes, so a page left open past midnight doesn't keep calling
   // yesterday "امروز".
-  const todayKey = formatPersianDateKey(new Date());
+  const todayKey = formatPersianDateKey(nowDate());
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const salonScheduleWeekTabs = useMemo(() => buildExactBookingDateTabsCentered(3, 3), [todayKey]);
 

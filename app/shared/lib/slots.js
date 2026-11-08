@@ -1,8 +1,9 @@
 import { formatPersianDateKey, resolveRollingPersianDateKey } from "./persianCalendar.js";
 import { getTehranClockMinutes, timeLabelToMinutes } from "./time.js";
+import { nowDate } from "./clock.js";
 
 /** True when `day` (a label such as "امروز" or a date key) is today and `time` has already started. */
-export function isSlotInPast(day, time, now = new Date()) {
+export function isSlotInPast(day, time, now = nowDate()) {
   const key = resolveRollingPersianDateKey(day, now);
   if (!key) return false;
   const todayKey = formatPersianDateKey(now);

@@ -18,6 +18,7 @@ import {
 import { artistBookingDays, artistBookingHistoryRank } from "./constants";
 import { bookingWaitMinutes } from "../../shared/lib/bookingWindow";
 import { breakRangesOn } from "../../shared/lib/artistBreak";
+import { nowDate, nowMs } from "../../shared/lib/clock.js";
 
 const DAY_MS = 86400000;
 
@@ -77,7 +78,7 @@ export function buildArtistBookingWeekTabs() {
 }
 
 export function buildExactBookingDateTabs(count = 7) {
-  const now = Date.now();
+  const now = nowMs();
   return Array.from({ length: count }, (_, index) => {
     // Whole days of milliseconds, not setDate(): the dates are Tehran's (no daylight saving), and
     // adding a calendar day in the phone's own zone drifts an hour across its clock change, which
@@ -105,7 +106,7 @@ export function buildExactBookingDateTabs(count = 7) {
  * single week they're only meaningful as display text, not as an identity.
  */
 export function buildExactBookingDateTabsCentered(daysBefore = 3, daysAfter = 3) {
-  const now = Date.now();
+  const now = nowMs();
   const length = daysBefore + daysAfter + 1;
   return Array.from({ length }, (_, index) => {
     const offset = index - daysBefore;
@@ -128,7 +129,7 @@ export function buildExactBookingDateTabsCentered(daysBefore = 3, daysAfter = 3)
  * ranges (how far back/forward a widget needs to go to cover real bookings)
  * and to let absolute dateKeys resolve to a same-day rank below.
  */
-export function getBookingDateOffsetDays(dateKey, from = new Date()) {
+export function getBookingDateOffsetDays(dateKey, from = nowDate()) {
   const resolved = persianDateKeyToDate(dateKey, from);
   if (!resolved) return 0;
   // Both are the same moment of their Tehran day (persianCalendar's day values), so the difference is whole days.
@@ -169,7 +170,7 @@ export function isArtistBookingOnSelectedDay(booking, selectedDay) {
   return false;
 }
 
-export function getBookingDateKey(value, from = new Date()) {
+export function getBookingDateKey(value, from = nowDate()) {
   return resolveRollingPersianDateKey(value || "امروز", from);
 }
 
@@ -208,7 +209,7 @@ const BOOKING_PHASE_LABEL = {
  */
 export function getBookingTimelinePhase(booking, {
   selectedDay = "",
-  now = new Date(),
+  now = nowDate(),
   durationMinutes = 60
 } = {}) {
   const date = String(booking?.date || booking?.booking_date || "").trim();

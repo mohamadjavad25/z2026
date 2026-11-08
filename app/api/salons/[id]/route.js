@@ -5,6 +5,7 @@ import * as salons from "../../../lib/db/repos/salons.js";
 import { suspendedAccountIds } from "../../../lib/db/repos/users.js";
 import { PAGE_UNAVAILABLE_MESSAGE } from "../../../lib/billing/access.js";
 import { withErrorHandling } from "../../../lib/http.js";
+import { canSeeLoginPhone } from "../../../lib/db/repos/contactVisibility.js";
 
 export const runtime = "nodejs";
 
@@ -30,9 +31,10 @@ async function _GET(request, context) {
   if (!salon.isPublic && viewer?.id !== userId) {
     return NextResponse.json({ error: "این سالن رو پیدا نکردیم." }, { status: 404 });
   }
-  // The number is the owner's login phone: only a signed-in viewer gets it (the app's «تماس با سالن»); the public
-  // web page never shows it, so an anonymous request does not get it either.
-  if (!viewer) delete salon.phone;
+  // The number is the account's login phone (owner's decision of 2026-11-08): only the account itself, a connected
+  // client, a client with a booking there, or the other side of a team gets it (the app's «تماس با سالن»). Anyone
+  // else, signed in or not, sees the page without it.
+  if (!(await canSeeLoginPhone(viewer?.id, userId))) delete salon.phone;
   return NextResponse.json({ data: { salon } });
 }
 

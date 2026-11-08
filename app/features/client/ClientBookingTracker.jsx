@@ -8,6 +8,7 @@ import { bookingWaitMinutes, requestDeadlineLabel, requestRemainingShare } from 
 import { isBookingInPast, movedToName, openProposalOf } from "./bookingStatus";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { shortServiceLabel } from "../../shared/lib/serviceBundle";
+import { nowMs } from "../../shared/lib/clock.js";
 
 const PENDING = new Set(["درخواست", "تازه"]);
 const FLASH_MS = 7000;
@@ -58,12 +59,12 @@ function remainingShare(booking, now) {
  * Tapping opens the booking details.
  */
 export function ClientBookingTracker({ bookings = [], onOpen, away = false }) {
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(() => nowMs());
   const [flash, setFlash] = useState(null);
   const seen = useRef(null);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 15000);
+    const timer = window.setInterval(() => setNow(nowMs()), 15000);
     return () => window.clearInterval(timer);
   }, []);
 

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createClient, registerUser } from "./helpers.js";
+import { q } from "./exitHelpers.js";
 
 describe("toggle race conditions", () => {
   it("10 truly concurrent follow toggles never throw and leave a consistent final state", async () => {
@@ -68,5 +69,43 @@ describe("toggle race conditions", () => {
     const invites = await salon.get("/api/salon-invites");
     const matching = invites.payload.data.invites.filter((invite) => Number(invite.artistId) === artist.user.id);
     expect(matching.length).toBe(1);
+  });
+
+  it("10 truly concurrent taps of «قبول» on one invite seat the artist once (HEALTH debt 10, 2026-11-08)", async () => {
+    const salon = createClient();
+    const salonUser = await registerUser(salon, { type: "salon", name: "Accept Race Salon" });
+    const artistClient = createClient();
+    const artist = await registerUser(artistClient, { type: "artist", name: "Accept Race Artist" });
+    const sent = await salon.post("/api/salon-invites", { artistUserId: artist.user.id });
+    expect(sent.status).toBe(201);
+    const inviteId = sent.payload.data.invite.id;
+
+    const results = await Promise.all(
+      Array.from({ length: 10 }, () => artistClient.patch("/api/artist/invites", { id: inviteId, status: "تایید شد" }))
+    );
+    for (const res of results) expect(res.status).not.toBe(500);
+    // One answer counts; every other tap is told the invite no longer takes an answer.
+    expect(results.filter((res) => res.ok)).toHaveLength(1);
+    expect(results.filter((res) => !res.ok).every((res) => res.payload.code === "NOT_PENDING")).toBe(true);
+    const seats = await q("SELECT id FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2", [salonUser.user.id, artist.user.id]);
+    expect(seats).toHaveLength(1);
+  });
+
+  it("accepting and declining the same invite at once leaves one answer that matches the team", async () => {
+    const salon = createClient();
+    const salonUser = await registerUser(salon, { type: "salon", name: "Mixed Answer Salon" });
+    const artistClient = createClient();
+    const artist = await registerUser(artistClient, { type: "artist", name: "Mixed Answer Artist" });
+    const sent = await salon.post("/api/salon-invites", { artistUserId: artist.user.id });
+    const inviteId = sent.payload.data.invite.id;
+
+    const results = await Promise.all([
+      artistClient.patch("/api/artist/invites", { id: inviteId, status: "تایید شد" }),
+      artistClient.patch("/api/artist/invites", { id: inviteId, status: "رد شد" })
+    ]);
+    expect(results.filter((res) => res.ok)).toHaveLength(1);
+    const [invite] = await q("SELECT status FROM salon_artist_invites WHERE id = $1", [inviteId]);
+    const seats = await q("SELECT id FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2", [salonUser.user.id, artist.user.id]);
+    expect(seats).toHaveLength(invite.status === "تایید شد" ? 1 : 0);
   });
 });

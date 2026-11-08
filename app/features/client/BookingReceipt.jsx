@@ -13,6 +13,7 @@ import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
 import { pushNotificationsSupported, subscribeToPushNotifications } from "../shell/homeAppHelpers";
 import { bookingEndLabel, clientBookingKey, movedToName } from "./bookingStatus";
 import { bookingPeople } from "../../shared/lib/bookingParts";
+import { nowMs } from "../../shared/lib/clock.js";
 
 
 function stageOf(status = "") {
@@ -45,7 +46,7 @@ function alertState() {
  * (confirmed / declined / expired / a new time offered) lands on this same screen with the next step.
  */
 export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings, onOpenDetails, onRebook }) {
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(() => nowMs());
   const [alerts, setAlerts] = useState(alertState);
   const titleRef = useRef(null);
   useBackHandler(Boolean(receipt), () => onClose?.());
@@ -58,7 +59,7 @@ export function BookingReceipt({ receipt, bookings = [], onClose, onViewBookings
 
   useEffect(() => {
     if (!receipt) return undefined;
-    const timer = window.setInterval(() => setNow(Date.now()), 15000);
+    const timer = window.setInterval(() => setNow(nowMs()), 15000);
     titleRef.current?.focus();
     const onKey = (event) => { if (event.key === "Escape") onClose?.(); };
     window.addEventListener("keydown", onKey);
