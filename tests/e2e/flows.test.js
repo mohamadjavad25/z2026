@@ -132,9 +132,10 @@ describe("booking flow (browser)", () => {
     const screen = sp.locator(".sbmScreen");
     await screen.waitFor();
     expect(await screen.innerText()).toContain("مشتری تست");
-    for (const label of ["تغییر ساعت", "تماس", "بستن"]) {
-      expect(await screen.locator(".sbmBar").getByRole("button", { name: label }).count()).toBe(1);
-    }
+    // one calm screen: × closes, the number under the name calls, «تغییر ساعت» sits on the date line
+    expect(await screen.locator(".sbmWhenEdit").innerText()).toContain("تغییر ساعت");
+    expect(await screen.locator(".sbmX").getAttribute("aria-label")).toBe("بستن");
+    expect(await screen.locator(".sbmCall").count()).toBe(1);
     await screen.getByRole("button", { name: "تأیید", exact: true }).click();
     await screen.waitFor({ state: "detached" });
     // answered once, it does not open again

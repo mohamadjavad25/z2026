@@ -69,7 +69,7 @@ describe("proposals and leaving (browser)", () => {
     await page.getByText("Browser Cancel Client").locator("visible=true").first().click({ timeout: 8000 }).catch(async (e) => { throw new Error(`${e.message}\n${(await page.locator("body").innerText()).slice(0, 900)}`); });
     const screen = page.locator(".sbmScreen");
     await screen.waitFor();
-    expect(await screen.locator(".sbmBar").getByRole("button", { name: "پیشنهاد ساعت دیگه" }).count()).toBe(1);
+    expect(await screen.locator(".sbmWhenEdit").innerText()).toContain("پیشنهاد ساعت دیگه");
     await screen.getByRole("button", { name: "لغو این نوبت" }).click();
     const panel = screen.locator(".pxCancelPanel");
     await panel.waitFor();
