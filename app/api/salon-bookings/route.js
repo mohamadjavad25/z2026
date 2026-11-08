@@ -134,7 +134,7 @@ async function _POST(request) {
       title: "درخواست تازه",
       body: `${client}، ${service}، ${bookingWhen(result.booking.booking_date, time)}`
     }).catch(() => null);
-    smsNewBookingRequest(salonUserId, { client, service, bookingDate: result.booking.booking_date, time, fromUserId: auth.user.id }, push);
+    smsNewBookingRequest(salonUserId, { client, service, bookingDate: result.booking.booking_date, time, fromUserId: auth.user.id, booking: { kind: "salon", id: result.booking.id } }, push);
   }
   // The salon entered it for a client by hand: the client is told (push for an account, SMS for the number).
   if (auth.user.type === "salon" && !result.duplicate) {

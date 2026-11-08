@@ -10,6 +10,8 @@ import { toPersianDigits } from "../shared/lib/digits.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
 import { normalizePhone } from "../shared/lib/phone.js";
 import { sendPushToUser } from "./push.js";
+import * as smsBackups from "./db/repos/smsBackups.js";
+import { logger } from "./logger.js";
 
 /**
  * The two booking messages that must reach people even when push does not (inside the Android app, or where
@@ -29,13 +31,76 @@ export function bookingWhen(bookingDate, time) {
 }
 
 /** The phone to text, or "" when the push reached them in the app. `push` is the sendPushToUser() just made for the
- *  same news; without it, a fresh app token is taken as reached (the old rule). */
-async function phoneOf(userId, push) {
+ *  same news; without it, a fresh app token is taken as reached (the old rule). `backup`: when the app took it, hold
+ *  this SMS for ten minutes instead of dropping it (queueSmsBackup). */
+async function phoneOf(userId, push, backup = null) {
   if (!userId) return "";
   const reached = push ? await pushReachedApp(push) : await reachableByAppPush(Number(userId));
-  if (reached) return "";
+  if (reached) {
+    if (backup) await queueSmsBackup(userId, backup);
+    return "";
+  }
   const user = userId ? await users.getUserById(Number(userId)) : null;
   return user?.phone || "";
+}
+
+/**
+ * The SMS backup (owner, 2026-11-08): Google taking a push does not mean the phone showed it (the owner's own phone
+ * missed one that day). So for the two booking messages that matter (a new request to the salon or artist, the answer
+ * to the client) the SMS is held, and the 5-minute sweep sends it after SMS_BACKUP_DELAY_MS unless the person opened
+ * frfro since, or the booking moved on (answered, cancelled, expired, its time passed). Same text and payer as the
+ * SMS they would have got without the app; any hour, like that SMS. Needs `booking` ({ kind, id }); without it, no backup.
+ */
+export const SMS_BACKUP_DELAY_MS = 10 * 60 * 1000;
+/** A request still waiting for the salon («درخواست») or the artist («تازه»). */
+const REQUEST_WAITING = new Set(["درخواست", "تازه"]);
+
+async function queueSmsBackup(userId, { booking, template, values, payerUserId = null, bookingDate = null, time = null }) {
+  if (!booking?.id || (booking.kind !== "salon" && booking.kind !== "artist")) return;
+  try {
+    const status = await smsBackups.bookingStatus(booking.kind, booking.id);
+    if (status === null) return;
+    // A request the salon or artist answered in the seconds before this (the list was open) needs no «new request» SMS.
+    if (template === "booking_request" && !REQUEST_WAITING.has(status)) return;
+    await smsBackups.queue({ userId, template, values, payerUserId, booking, status, bookingDate, time, delayMs: SMS_BACKUP_DELAY_MS });
+  } catch (error) {
+    logger.warn("sms.backup.queue", { userId: Number(userId), template, error });
+  }
+}
+
+/** Why a held SMS is not sent, or "" to send it. `row` comes from smsBackups.claimDue(); `status` is the booking's now. */
+export function smsBackupSkipReason(row, status) {
+  if (row.seen) return "seen";
+  if (status === null || status !== row.booking_status) return "changed";
+  if (row.booking_date && row.booking_time && isSlotInPast(row.booking_date, row.booking_time)) return "past";
+  if (!row.phone) return "failed";
+  return "";
+}
+
+/** The sweep's part (bookingExpirySweep.js, every 5 minutes). Never throws; returns how many went and were skipped. */
+export async function sendDueSmsBackups() {
+  const counts = { sent: 0, skipped: 0 };
+  try {
+    for (const row of await smsBackups.claimDue()) {
+      const status = await smsBackups.bookingStatus(row.booking_kind, row.booking_id).catch(() => null);
+      let outcome = smsBackupSkipReason(row, status);
+      if (!outcome) {
+        const values = row.sms_values || {};
+        const result = row.template === "booking_answer"
+          ? await sendClientSms(row.payer_user_id, row.phone, row.template, values)
+          : await sendTemplateSms(row.phone, row.template, values).catch(() => null);
+        outcome = result?.ok ? "sent" : "failed";
+      }
+      await smsBackups.setOutcome(row.id, outcome).catch(() => {});
+      if (outcome === "sent") counts.sent += 1;
+      else counts.skipped += 1;
+      logger.info("sms.backup", { id: row.id, userId: Number(row.user_id), template: row.template, outcome });
+    }
+    await smsBackups.prune().catch(() => {});
+  } catch (error) {
+    logger.warn("sms.backup.sweep", { error });
+  }
+  return counts;
 }
 
 /**
@@ -65,11 +130,12 @@ export async function bookingPayerId(booking, fallbackUserId = null) {
  * charge is given back. Never throws.
  */
 async function sendClientSms(payerUserId, phone, template, values, { reminder = false } = {}) {
-  if (!phone) return;
+  if (!phone) return null;
   const taken = await chargeClientSms(payerUserId, { reminder }).catch(() => ({ ok: true, charge: null }));
-  if (!taken.ok) return;
+  if (!taken.ok) return null;
   const result = await sendTemplateSms(phone, template, values).catch(() => null);
   if (!result?.ok) await refundClientSms(taken.charge).catch(() => {});
+  return result;
 }
 
 /**
@@ -88,7 +154,7 @@ async function claimBookingAnswerSms(kind, bookingId, status) {
 
 /** A client just asked `providerUserId` (a salon or an artist) for a time (or their request moved there from a
  *  first choice that did not answer). How long it waits is the client's choice, so the text promises no deadline. */
-export function smsNewBookingRequest(providerUserId, { client, service, bookingDate, time, fromUserId = null }, push = null) {
+export function smsNewBookingRequest(providerUserId, { client, service, bookingDate, time, fromUserId = null, booking = null }, push = null) {
   void (async () => {
     // One client may text the same salon or artist only a few times an hour, however many requests they make
     // (the push and the booking list still show every one); a request made by nobody logged in is not capped here.
@@ -96,15 +162,12 @@ export function smsNewBookingRequest(providerUserId, { client, service, bookingD
       const limited = await checkRateLimit(`sms-booking-request:${Number(providerUserId)}:${Number(fromUserId)}`, 3, 60 * 60 * 1000);
       if (!limited.ok) return;
     }
-    const phone = await phoneOf(providerUserId, push);
     // The client's free-text name is cut to 30 characters: a long one would make the text long and costly.
     // Cut by whole characters (code points), so an emoji at the cut is never left half (it showed as "�" in the text).
     const who = [Array.from(String(client || "").trim()).slice(0, 30).join(""), service].map((part) => String(part || "").trim()).filter(Boolean).join("، ") || "مشتری";
-    await sendTemplateSms(phone, "booking_request", {
-      who,
-      day: dayLabel(bookingDate),
-      time: timeLabel(time)
-    });
+    const values = { who, day: dayLabel(bookingDate), time: timeLabel(time) };
+    const phone = await phoneOf(providerUserId, push, { booking, template: "booking_request", values, bookingDate, time });
+    await sendTemplateSms(phone, "booking_request", values);
   })().catch(() => {});
 }
 
@@ -118,15 +181,17 @@ export function smsBookingAnswer(clientUserId, { providerName, providerUserId = 
   void (async () => {
     const status = expired ? "expired" : confirmed ? "confirmed" : "cancelled";
     if (booking && !(await claimBookingAnswerSms(booking.kind, booking.id, status))) return;
-    const phone = await phoneOf(clientUserId, push);
-    if (!phone) return;
     const name = String(providerName || "").trim() || (providerUserId ? (await users.getUserById(Number(providerUserId)))?.name : "");
-    await sendClientSms(await bookingPayerId(booking, providerUserId), phone, "booking_answer", {
+    const values = {
       who: String(name || "").trim() || "سالن",
       day: dayLabel(bookingDate),
       time: timeLabel(time),
       result: expired ? "منقضی شد" : confirmed ? "تأیید شد" : "لغو شد"
-    });
+    };
+    const payerUserId = await bookingPayerId(booking, providerUserId);
+    const phone = await phoneOf(clientUserId, push, { booking, template: "booking_answer", values, payerUserId, bookingDate, time });
+    if (!phone) return;
+    await sendClientSms(payerUserId, phone, "booking_answer", values);
   })().catch(() => {});
 }
 

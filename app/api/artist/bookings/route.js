@@ -88,7 +88,8 @@ async function _POST(request) {
         service: result.booking.service,
         bookingDate: result.booking.booking_date || result.booking.bookingDate,
         time: result.booking.time,
-        fromUserId: viewer.id
+        fromUserId: viewer.id,
+        booking: { kind: "artist", id: result.booking.id }
       }, push);
     }
   }
