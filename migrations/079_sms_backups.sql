@@ -1,6 +1,6 @@
 -- Up Migration
 -- SMS backup for app-only booking notices (owner, 2026-11-08): when the frfro Android app's push was taken by Google,
--- the booking SMS is held here instead of dropped. Ten minutes later the 5-minute sweep (bookingSmsBackup.js) sends it
+-- the booking SMS is held here instead of dropped. Ten minutes later the 5-minute sweep (bookingSms.js sendDueSmsBackups) sends it
 -- only if the person has not opened frfro since (users.last_seen_at) and the booking still has the status it had when
 -- the notice went. One row per (booking, person, template); rows are cleared a week after they are settled.
 -- Own table, nothing else changes.

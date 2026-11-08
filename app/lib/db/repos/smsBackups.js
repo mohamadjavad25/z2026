@@ -1,8 +1,8 @@
 import { getDb, all, get, run } from "../connection.js";
 
 /**
- * Held booking SMS (migrations/077_sms_backups.sql): written when the Android app took the push instead, settled by
- * the 5-minute sweep (bookingSmsBackup.js). The newest notice for the same booking, person and template replaces an
+ * Held booking SMS (migrations/079_sms_backups.sql): written when the Android app took the push instead, settled by
+ * the 5-minute sweep (bookingSms.js sendDueSmsBackups). The newest notice for the same booking, person and template replaces an
  * older one, so a confirmed-then-cancelled booking only ever backs up its latest news.
  */
 

@@ -223,6 +223,9 @@ function notifyClientOfArtistBookingExpiry(booking, moved = null, triedBackup = 
  * @returns {{ expired: number, attempted: number, salonExpired: number, salonMoved: number, artistExpired: number, artistMoved: number }}
  */
 export async function sweepExpiredBookingRequestsOnce() {
+  // Held booking SMS whose ten minutes are up (bookingSms.js, owner 2026-11-08). First and on its own (it never throws),
+  // so one booking that keeps failing below can never hold every backup SMS back.
+  const smsBackups = await sendDueSmsBackups();
   await salons.ensureBookingColumns();
   const db = await getDb();
   const override = timeoutOverrideMinutes();
@@ -333,9 +336,6 @@ export async function sweepExpiredBookingRequestsOnce() {
   } catch {
     // The next pass retries.
   }
-
-  // Held booking SMS whose ten minutes are up (bookingSms.js, owner 2026-11-08).
-  const smsBackups = await sendDueSmsBackups();
 
   return {
     expired: salonExpired + artistExpired,

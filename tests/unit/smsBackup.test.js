@@ -70,6 +70,13 @@ describe("holding the booking SMS when the app took the push", () => {
     expect(queue.mock.calls[0][0]).toMatchObject({ userId: 9, template: "booking_answer", payerUserId: 7, status: "تایید شده" });
   });
 
+  it("a request the salon already answered in those seconds holds no «new request» SMS", async () => {
+    status.value = "تایید شده";
+    bookingSms.smsNewBookingRequest(5, { bookingDate: "1499-01-01", time: "10:00", booking: { kind: "salon", id: 41 } }, Promise.resolve({ appSent: 1 }));
+    await settle();
+    expect(queue).not.toHaveBeenCalled();
+  });
+
   it("a booking that is already gone holds nothing", async () => {
     status.value = null;
     bookingSms.smsNewBookingRequest(5, { bookingDate: "1499-01-01", time: "10:00", booking: { kind: "artist", id: 3 } }, Promise.resolve({ appSent: 1 }));

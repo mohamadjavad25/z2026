@@ -52,12 +52,16 @@ async function phoneOf(userId, push, backup = null) {
  * SMS they would have got without the app; any hour, like that SMS. Needs `booking` ({ kind, id }); without it, no backup.
  */
 export const SMS_BACKUP_DELAY_MS = 10 * 60 * 1000;
+/** A request still waiting for the salon («درخواست») or the artist («تازه»). */
+const REQUEST_WAITING = new Set(["درخواست", "تازه"]);
 
 async function queueSmsBackup(userId, { booking, template, values, payerUserId = null, bookingDate = null, time = null }) {
   if (!booking?.id || (booking.kind !== "salon" && booking.kind !== "artist")) return;
   try {
     const status = await smsBackups.bookingStatus(booking.kind, booking.id);
     if (status === null) return;
+    // A request the salon or artist answered in the seconds before this (the list was open) needs no «new request» SMS.
+    if (template === "booking_request" && !REQUEST_WAITING.has(status)) return;
     await smsBackups.queue({ userId, template, values, payerUserId, booking, status, bookingDate, time, delayMs: SMS_BACKUP_DELAY_MS });
   } catch (error) {
     logger.warn("sms.backup.queue", { userId: Number(userId), template, error });
