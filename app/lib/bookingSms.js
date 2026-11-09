@@ -1,3 +1,4 @@
+import { ARTIST_CONFIRMED } from "../shared/lib/bookingStates.js";
 import * as users from "./db/repos/users.js";
 import { hasPublicPage } from "./db/repos/userSettings.js";
 import { getDb, get, run } from "./db/connection.js";
@@ -359,6 +360,25 @@ export async function handEntryCancelTarget(rawPhone, { booking, providerName, g
     // a cancelled booking is already saved; a lost notice must not undo it
   }
   return 0;
+}
+
+/**
+ * A visit now happens somewhere else (owner, 2026-11-09). Sent once the pattern is approved; until then only the push
+ * goes, as before. A client with an account gets the usual ten-minute backup; a typed-in number gets it straight away.
+ */
+export function smsPlaceChanged(clientUserId, { providerName, booking, phone: rawPhone = "" }) {
+  void (async () => {
+    // A request still waiting for an answer has no place to change yet.
+    if (!templateConfigured("booking_place_changed") || !ARTIST_CONFIRMED.includes(booking.status) || isSlotInPast(booking.booking_date, booking.time)) return;
+    const typed = clientUserId ? "" : normalizePhone(rawPhone);
+    if (!clientUserId && (!/^09\d{9}$/.test(typed) || !(await typedNumberMayGetText(typed)))) return;
+    const ref = { kind: "artist", id: booking.id };
+    if (!(await claimBookingAnswerSms("artist", booking.id, `place:${Math.floor(Date.now() / 60000)}`))) return;
+    const values = { who: String(providerName || "").trim() || "آرتیستت", day: dayLabel(booking.booking_date), time: timeLabel(booking.time) };
+    const payerUserId = await bookingPayerId(ref);
+    const phone = typed || await phoneOf(clientUserId, null, { booking: ref, template: "booking_place_changed", values, payerUserId, bookingDate: booking.booking_date, time: booking.time });
+    await sendClientSms(payerUserId, phone, "booking_place_changed", values);
+  })().catch(() => {});
 }
 
 export { dayLabel as smsDayLabel, timeLabel as smsTimeLabel };

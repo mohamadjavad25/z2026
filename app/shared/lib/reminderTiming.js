@@ -34,6 +34,11 @@ export function eveningForEarlyVisit(kind, time, now = nowDate()) {
   return clock < EVENING_FROM ? null : kind;
 }
 
+/** Owner, 2026-11-09: nothing before 8:00, unless the visit itself is before 10:00 and there is no later moment to say it. */
+export function waitsForMorning(time, now = nowDate()) {
+  return getTehranClockMinutes(now) < 8 * 60 && timeLabelToMinutes(time) >= 10 * 60;
+}
+
 export function dueReminderKind(dateKey, time, now = nowDate()) {
   const start = bookingStartMs(dateKey, time, now);
   if (start === null) return null;

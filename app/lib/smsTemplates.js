@@ -67,6 +67,13 @@ export const SMS_TEMPLATES = {
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time, artist: v.artist }),
     preview: (v) => `فرفرو: ${v.who} می‌خواد نوبتت (${v.day} ساعت ${v.time}) رو بده به ${v.artist}. توی فرفرو جواب بده؛ تا جواب ندی، همه‌چی سر جاشه.`
   },
+  booking_place_changed: {
+    label: "جای نوبت عوض شد (به مشتری)",
+    env: "BOOKING_PLACE_CHANGED",
+    kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who }),
+    faraz: (v) => ({ who: v.who, day: v.day, time: v.time }),
+    preview: (v) => `فرفرو: ${v.who} جای نوبت ${v.day} ساعت ${v.time} رو عوض کرد. برای آدرس تازه بهش زنگ بزن.`
+  },
   booking_made_link: {
     label: "سالن یا آرتیست برای مشتری نوبت ثبت کرد، با لینک صفحه‌ش (به مشتری)",
     env: "BOOKING_MADE_LINK",

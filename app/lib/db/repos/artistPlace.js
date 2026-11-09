@@ -169,7 +169,7 @@ async function switchTarget(artistUserId, target, db) {
  */
 async function bookingsForSwitch(artistUserId, from, salon, db, { lock = false } = {}) {
   const live = await all(db, `
-    SELECT b.id, b.client_user_id, b.service, b.booking_date, b.time, b.duration_minutes, b.status, b.place_salon_user_id,
+    SELECT b.id, b.client_user_id, b.client_phone, b.service, b.booking_date, b.time, b.duration_minutes, b.status, b.place_salon_user_id,
       COALESCE(NULLIF(cu.name, ''), b.client_name, '') AS client_name
     FROM artist_bookings b
     LEFT JOIN users cu ON cu.id = b.client_user_id
@@ -365,7 +365,7 @@ export async function listTeamClientTimes(salonUserId, fromKey, toKey, runner = 
 export async function releasePlacedBookings(salonUserId, artistUserId = null, runner = null) {
   const db = runner || (await getDb());
   const rows = await all(db, `
-    SELECT b.id, b.client_user_id, b.service, b.booking_date, b.time, au.name AS artist_name
+    SELECT b.id, b.client_user_id, b.client_phone, b.status, b.service, b.booking_date, b.time, au.name AS artist_name
     FROM artist_bookings b JOIN users au ON au.id = b.artist_user_id
     WHERE b.place_salon_user_id = $1 AND b.source_salon_user_id IS NULL AND b.status = ANY($2)
       AND ($3::int IS NULL OR b.artist_user_id = $3)
@@ -385,7 +385,7 @@ export async function releasePlacedBookings(salonUserId, artistUserId = null, ru
 export async function moveBookingPlace(artistUserId, bookingId, salonUserId, runner = null) {
   const db = runner || (await getDb());
   const booking = await get(db, `
-    SELECT b.id, b.client_user_id, b.service, b.booking_date, b.time, b.duration_minutes, b.status, b.place_salon_user_id
+    SELECT b.id, b.client_user_id, b.client_phone, b.service, b.booking_date, b.time, b.duration_minutes, b.status, b.place_salon_user_id
     FROM artist_bookings b WHERE b.id = $1 AND b.artist_user_id = $2 AND b.source_salon_user_id IS NULL
   `, [bookingId, artistUserId]);
   if (!booking) return { ok: false, status: 404, error: "این نوبت رو پیدا نکردیم." };

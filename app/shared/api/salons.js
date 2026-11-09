@@ -307,6 +307,11 @@ export async function getSalonJoinCode() {
   return apiJson("/api/salon-invites/join-code");
 }
 
+/** POST /api/salon-invites/join-code → { code }: a new code; the old QR and links stop working. */
+export async function renewSalonJoinCode() {
+  return apiJson("/api/salon-invites/join-code", { method: "POST" });
+}
+
 /** GET /api/salon-rules → { data: { rules } } (salon owner) */
 export async function getSalonRules() {
   return apiJson("/api/salon-rules");

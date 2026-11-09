@@ -561,6 +561,12 @@ export async function claimNotice(userId, kind, periodEnd) {
   return Boolean(row);
 }
 
+/** A notice that reached nobody: the next hourly sweep may try again. */
+export async function releaseNotice(userId, kind, periodEnd) {
+  const db = await getDb();
+  await run(db, "DELETE FROM billing_notices WHERE user_id = $1 AND kind = $2 AND period_end = $3", [Number(userId), String(kind), periodEnd]);
+}
+
 export { accessOf };
 
 /* ───────────────────────── admin ───────────────────────── */

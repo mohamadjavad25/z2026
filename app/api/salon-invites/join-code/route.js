@@ -1,6 +1,6 @@
 import { ensureDb } from "../../../lib/db/connection.js";
 import { json, requireUserRole, withErrorHandling } from "../../../lib/http.js";
-import { getOrCreateSalonJoinSecret, getJoinTerms, joinTermsReady } from "../../../lib/db/repos/salons.js";
+import { getOrCreateSalonJoinSecret, getJoinTerms, joinTermsReady, renewSalonJoinSecret } from "../../../lib/db/repos/salons.js";
 
 export const runtime = "nodejs";
 
@@ -19,4 +19,16 @@ async function _GET(request) {
   return json({ data: { code } });
 }
 
+/** POST: a new code; the printed QR and every link sent so far stop working. */
+async function _POST(request) {
+  await ensureDb();
+  const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");
+  if (!auth.ok) return auth.response;
+  if (!joinTermsReady(await getJoinTerms(auth.user.id))) {
+    return json({ error: "اول شرایط همکاری سالنت رو بذار، بعد لینک و کد ساخته می‌شه.", code: "TERMS_NOT_READY" }, { status: 409 });
+  }
+  return json({ data: { code: await renewSalonJoinSecret(auth.user.id) } });
+}
+
 export const GET = withErrorHandling(_GET);
+export const POST = withErrorHandling(_POST);

@@ -1,7 +1,7 @@
 import { leaveRangesOn } from "./leaves.js";
 import { listLeaves, checkTerms } from "./teamAgreements.js";
 import { getJoinTerms, joinTermsReady } from "./salons/joinTerms.js";
-import { addSalonStaffFromCollab } from "./salons/staff.js";
+import { SAME_NAME_IN_TEAM, addSalonStaffFromCollab, nameTakenInTeam } from "./salons/staff.js";
 import { createSalonArtistInvite, lockTeamPair, verifySalonJoinCode, writeAgreedTerms } from "./salons/invites.js";
 import { TEAM_URL, notifyConnection } from "../../connectionNotify.js";
 import { getDb, withTransaction, all, get, run } from "../connection.js";
@@ -430,6 +430,8 @@ export async function acceptSalonCollab(id, salonUserId) {
   await expireJoinProposals({ salonUserId });
   const outcome = await atomically(async (tx) => {
     const row = await lockOpenCollab(tx, id, salonUserId);
+    const joining = await get(tx, "SELECT name FROM users WHERE id = $1", [row.artist_user_id]);
+    if (await nameTakenInTeam(salonUserId, joining?.name, row.artist_user_id, tx)) throw new Refusal({ ok: false, code: "SAME_NAME", error: "یکی با همین اسم توی تیمت هست؛ بهش بگو اسمش رو یه کم فرق بده." });
     const fromJoinPage = row.terms_version !== null;
     let terms = null;
     if (fromJoinPage) {

@@ -1,5 +1,5 @@
 import { sendPushToUser } from "./push.js";
-import { bookingWhen, handEntryCancelTarget, smsBookingCancelledByProvider, smsBookingProposal, smsDayLabel, smsTimeLabel } from "./bookingSms.js";
+import { bookingWhen, handEntryCancelTarget, smsBookingCancelledByProvider, smsBookingProposal, smsDayLabel, smsPlaceChanged, smsTimeLabel } from "./bookingSms.js";
 import {
   ARTIST_GONE_TEXT,
   SALON_GONE_TEXT,
@@ -118,6 +118,7 @@ export function noticeProposalLapsed({ providerUserId, clientUserId, booking, cl
  * or the salon left frfro). Nothing is cancelled; the client is told so they can cancel if the new place does not suit them.
  */
 export function noticeClientPlaceMoved(clientUserId, { artistName, salonName, salonGone = false, booking }) {
+  smsPlaceChanged(clientUserId, { providerName: artistName, booking, phone: booking.client_phone });
   if (!clientUserId) return;
   const artist = artistName || "آرتیست";
   const salon = salonName || "سالن";
@@ -129,6 +130,7 @@ export function noticeClientPlaceMoved(clientUserId, { artistName, salonName, sa
 
 /** The artist moved a booking to another place (their workplace salon, or back to their own). The client is told where it is now. */
 export function noticeClientPlaceChanged(clientUserId, { artistName, toSalonName = "", booking }) {
+  smsPlaceChanged(clientUserId, { providerName: artistName, booking, phone: booking.client_phone });
   if (!clientUserId) return;
   const artist = artistName || "آرتیست";
   const what = `${booking.service || "نوبت"}، ${bookingWhen(booking.booking_date, booking.time)}`;

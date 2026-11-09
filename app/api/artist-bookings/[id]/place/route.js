@@ -16,7 +16,7 @@ async function _PUT(request, { params }) {
   const body = await readObjectBody(request);
   const result = await moveBookingPlace(auth.user.id, id, body.salonUserId);
   if (!result.ok) return json({ error: result.error, ...(result.code ? { code: result.code } : {}) }, { status: result.status });
-  if (result.changed && result.booking.client_user_id && result.booking.status !== "تازه" && result.booking.status !== "درخواست") {
+  if (result.changed && (result.booking.client_user_id || result.booking.client_phone) && result.booking.status !== "تازه" && result.booking.status !== "درخواست") {
     const to = body.salonUserId ? (await movablePlaces(auth.user.id)).find((team) => Number(team.salon_user_id) === Number(body.salonUserId)) : null;
     noticeClientPlaceChanged(result.booking.client_user_id, { artistName: auth.user.name, toSalonName: to?.salon_name || "", booking: result.booking });
   }

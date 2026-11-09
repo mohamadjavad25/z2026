@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { durationTextMinutes } from "../../app/shared/lib/time.js";
 import { toLatinDigits } from "../../app/shared/lib/digits.js";
-import { eveningForEarlyVisit } from "../../app/shared/lib/reminderTiming.js";
+import { eveningForEarlyVisit, waitsForMorning } from "../../app/shared/lib/reminderTiming.js";
 import { leaveDayAfter } from "../../app/features/team/teamWeek.js";
 
 describe("a service length written in words", () => {
@@ -26,6 +26,16 @@ describe("a visit before the morning window", () => {
   });
   it("a later visit is left alone", () => {
     expect(eveningForEarlyVisit("day", "12:00", tehran(14))).toBe("day");
+  });
+});
+
+describe("reminders wait for eight", () => {
+  const tehran = (hour) => new Date(Date.UTC(2026, 10, 9, hour) - 3.5 * 3600000);
+  it("a visit from ten on waits; an earlier visit has no later moment", () => {
+    expect(waitsForMorning("15:00", tehran(6))).toBe(true);
+    expect(waitsForMorning("10:00", tehran(7))).toBe(true);
+    expect(waitsForMorning("09:30", tehran(7))).toBe(false);
+    expect(waitsForMorning("15:00", tehran(8))).toBe(false);
   });
 });
 

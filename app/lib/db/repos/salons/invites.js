@@ -1,6 +1,6 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { getDb, all, get, run, withTransaction } from "../../connection.js";
-import { addSalonStaff } from "./staff.js";
+import { SAME_NAME_IN_TEAM, addSalonStaff, nameTakenInTeam } from "./staff.js";
 import { defaultArtistHours } from "../artists/hours.js";
 import { getJoinTerms, joinTermsReady, getSalonRulesText } from "./joinTerms.js";
 import { checkTerms } from "../teamAgreements.js";
@@ -326,6 +326,10 @@ export async function joinSalonByArtist(salonUserId, artistUserId, code, { terms
       return { ok: false, error: "تو همین الان توی تیم این سالنی.", code: "ALREADY_STAFF" };
     }
 
+    if (await nameTakenInTeam(salonUserId, artist.name, artistUserId, tx)) {
+      return { ok: false, error: SAME_NAME_IN_TEAM, code: "SAME_NAME" };
+    }
+
     const terms = await getJoinTerms(salonUserId, tx, { lock: true });
     if (!joinTermsReady(terms)) {
       return { ok: false, error: "این لینک هنوز آماده نیست؛ از سالن بخواه شرایط همکاری رو بذاره.", code: "TERMS_NOT_READY" };
@@ -439,6 +443,20 @@ export async function getOrCreateSalonJoinSecret(salonUserId) {
   return row.secret;
 }
 
+/** A new code for the salon's QR and link: the old one stops working at once (owner, 2026-11-09). */
+export async function renewSalonJoinSecret(salonUserId) {
+  const db = await getDb();
+  const secret = newSecret();
+  await run(db, `
+    INSERT INTO user_settings (user_id, settings, updated_at)
+    VALUES ($1, jsonb_build_object('salonJoinCode', $2::text), CURRENT_TIMESTAMP)
+    ON CONFLICT (user_id) DO UPDATE SET
+      settings = COALESCE(user_settings.settings, '{}'::jsonb) || jsonb_build_object('salonJoinCode', $2::text),
+      updated_at = CURRENT_TIMESTAMP
+  `, [salonUserId, secret]);
+  return secret;
+}
+
 /** Minimal public preview for the QR-join landing page — no auth, so it
  *  deliberately exposes only name/area/avatar, nothing from getSalon()'s
  *  fuller (owner-facing) shape. Works even if the salon set its public
@@ -518,6 +536,10 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
     `, [id, artistUserId]);
     if (!current) return { notFound: true };
     if (current.status !== PENDING) return { notPending: true };
+    if (nextStatus === ACCEPTED) {
+      const joining = await get(tx, "SELECT name FROM users WHERE id = $1", [artistUserId]);
+      if (await nameTakenInTeam(current.salon_user_id, joining?.name, artistUserId, tx)) return { sameName: true };
+    }
 
     const answered = await run(tx, `
       UPDATE salon_artist_invites
@@ -579,6 +601,7 @@ export async function respondArtistSalonInvite(id, artistUserId, status) {
     return { staffPerson, staffCreated };
   });
 
+  if (outcome.sameName) return { ok: false, error: SAME_NAME_IN_TEAM, code: "SAME_NAME" };
   if (outcome.notFound) {
     return { ok: false, error: "این دعوت رو پیدا نکردیم.", code: "NOT_FOUND" };
   }

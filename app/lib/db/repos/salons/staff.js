@@ -350,6 +350,17 @@ export async function findSalonStaffForBooking(salonUserId, staffName, serviceNa
   };
 }
 
+/** Visits are tied to team members by name, so two people with one name would cancel each other's visits on leaving. */
+export const SAME_NAME_IN_TEAM = "توی این تیم یکی با همین اسم هست؛ اسمت رو یه کم فرق بده.";
+
+export async function nameTakenInTeam(salonUserId, name, artistUserId, runner = null) {
+  const db = runner || (await getDb());
+  return Boolean(await get(db, `
+    SELECT 1 AS yes FROM salon_staff
+    WHERE salon_user_id = $1 AND BTRIM(name) = BTRIM($2) AND COALESCE(artist_user_id, 0) <> $3 LIMIT 1
+  `, [salonUserId, String(name || ""), Number(artistUserId) || 0]));
+}
+
 export async function addSalonStaff(salonUserId, data, runner = null) {
   const db = runner || (await getDb());
   const draft = {

@@ -40,6 +40,7 @@ export {
   leaveSalonTeam,
   joinSalonByArtist,
   getOrCreateSalonJoinSecret,
+  renewSalonJoinSecret,
   getSalonJoinPreview
 } from "./salons/invites.js";
 export { getJoinTerms, saveJoinTerms, joinTermsReady, rulesLines, getSalonRulesText } from "./salons/joinTerms.js";

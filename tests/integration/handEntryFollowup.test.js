@@ -1,7 +1,7 @@
 import { describe, it, expect, afterAll } from "vitest";
 import { TEST_BASE_URL } from "../globalSetup.js";
-import { createClient, uniquePhone } from "./helpers.js";
-import { FAR_DAY, newArtist, newClient, newSalon, q, smsEventually, smsSettled } from "./exitHelpers.js";
+import { createClient, joinSalonAsArtist, uniquePhone } from "./helpers.js";
+import { FAR_DAY, newArtist, newClient, newSalon, q, smsEventually, smsSettled, teamSalon } from "./exitHelpers.js";
 import { moveToDaysAgo, openDb, reminderSweep } from "./afterVisitKit.js";
 import { bookingStartMs } from "../../app/shared/lib/reminderTiming.js";
 import { providerLinkCode } from "../../app/shared/lib/providerLink.js";
@@ -215,6 +215,48 @@ describe("limits the audit of 2026-11-09 asked for", () => {
     expect(asked.status).toBe(200);
     expect(asked.payload.data.id).toBe(0);
     expect(await q("SELECT id FROM password_reset_requests WHERE phone = $1", [phone])).toHaveLength(0);
+  });
+});
+
+describe("the owner's five answers of 2026-11-09", () => {
+  const joinTerms = (salon) => salon.api.put("/api/salon-join-terms", { days: "شنبه، یکشنبه، دوشنبه، سه‌شنبه، چهارشنبه", from: "10:00", to: "18:00", share: 50 });
+
+  it("a new join code ends the old one", async () => {
+    const salon = await newSalon("Renew Code Salon");
+    expect((await joinTerms(salon)).ok).toBe(true);
+    const before = (await salon.api.get("/api/salon-invites/join-code")).payload.data.code;
+    const made = await salon.api.post("/api/salon-invites/join-code", {});
+    expect(made.ok).toBe(true);
+    expect(made.payload.data.code).not.toBe(before);
+    expect((await salon.api.get("/api/salon-invites/join-code")).payload.data.code).toBe(made.payload.data.code);
+    const artist = await newArtist("Renew Code Artist");
+    const late = await artist.api.post("/api/artist/join-salon", { salonUserId: salon.id, code: before, termsVersion: 1 });
+    expect(late.ok).toBe(false);
+  });
+
+  it("only a salon can make a new code", async () => {
+    const artist = await newArtist("Renew Refused Artist");
+    expect((await artist.api.post("/api/salon-invites/join-code", {})).status).toBeGreaterThanOrEqual(401);
+  });
+
+  it("a name already in the team cannot join", async () => {
+    const salon = await newSalon("Same Name Salon");
+    expect((await joinTerms(salon)).ok).toBe(true);
+    const artist = await newArtist("Same Name Artist");
+    await q("INSERT INTO salon_staff (salon_user_id, name, phone, role, state) VALUES ($1, $2, '', 'مدیر', 'فعال')", [salon.id, artist.user.name]);
+    const joined = await joinSalonAsArtist(artist.api, salon.api, salon.id);
+    expect(joined.ok).toBe(false);
+    expect(joined.payload.code).toBe("SAME_NAME");
+    expect(await q("SELECT id FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2", [salon.id, artist.id])).toHaveLength(0);
+  });
+
+  it("a hand entry that changes place texts its number", async () => {
+    const { salon, members: [artist] } = await teamSalon("Place Text Salon", 1);
+    const phone = uniquePhone();
+    const { id } = await artistEntry(artist, { phone });
+    const moved = await artist.api.put(`/api/artist-bookings/${id}/place`, { salonUserId: salon.id });
+    expect(moved.status, JSON.stringify(moved.payload)).toBe(200);
+    expect(await smsEventually(phone, "booking_place_changed", 1)).toHaveLength(1);
   });
 });
 

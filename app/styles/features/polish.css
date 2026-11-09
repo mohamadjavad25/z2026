@@ -1256,6 +1256,11 @@ main.appShell.is-auth-gate .workspace { background: var(--n-0) !important; }
 .ivtCopyBtn { flex: 0 0 auto; padding: 0 20px; background: var(--n-100); color: var(--n-900); }
 .ivtCopyBtn.is-done { background: var(--n-100); color: var(--success); }
 .ivtShare:active, .ivtCopyBtn:active { transform: scale(0.97); }
+.ivtRenew { min-height: 44px; padding: 0 16px; border: 0; background: none; color: var(--n-600); font: inherit; font-size: 0.92rem; font-weight: 700; }
+.ivtRenew.is-sure { color: var(--violet-deep); }
+.ivtRenewAsk { display: grid; gap: 2px; justify-items: center; }
+.ivtRenewAsk p { margin: 0; color: var(--n-600); font-size: 0.92rem; }
+.ivtRenewAsk div { display: flex; gap: 4px; }
 
 .ivtSectionHead { display: flex; align-items: center; gap: 8px; margin: 26px 4px 12px; }
 .ivtSectionHead h4 { margin: 0; color: var(--n-900); font-size: 0.98rem; font-weight: 900; }

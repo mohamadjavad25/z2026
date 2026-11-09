@@ -8,7 +8,7 @@ import { ProfileSheet } from "../profile/ProfileSheet";
 import { useQrCode } from "../../shared/hooks/useQrCode";
 import { CAPACITY_PRESETS, DAY_PRESETS, HOUR_RANGE_PRESETS, PresetRow, SHARE_PRESETS } from "../collab/collabPresets";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { getSalonJoinCode, getSalonRules } from "../../shared/api/salons";
+import { getSalonJoinCode, getSalonRules, renewSalonJoinCode } from "../../shared/api/salons";
 import { getSalonJoinTerms } from "../../shared/api/joinTerms";
 import { JoinTermsCard, JoinTermsPrompt } from "./JoinTermsCard";
 import { rulesToLines } from "./joinTermsFormat";
@@ -125,6 +125,15 @@ export function SalonNearbyInviteSheet({
       cancelled = true;
     };
   }, [open, termsSaved, codeReload]);
+  const [renew, setRenew] = useState("idle"); // idle | asking | busy | failed
+  async function makeNewCode() {
+    setRenew("busy");
+    const { ok, data } = await renewSalonJoinCode().catch(() => ({ ok: false }));
+    if (ok && data?.code) {
+      setJoinCode(String(data.code));
+      setRenew("idle");
+    } else setRenew("failed");
+  }
   const joinUrl = open && salonId && joinCode && typeof window !== "undefined"
     ? `${window.location.origin}/join-salon/${salonId}?k=${encodeURIComponent(joinCode)}`
     : "";
@@ -240,6 +249,17 @@ export function SalonNearbyInviteSheet({
               <span>{copied ? "کپی شد" : "کپی"}</span>
             </button>
           </div>
+          {joinCode ? (renew === "idle" ? (
+            <button type="button" className="ivtRenew" onClick={() => setRenew("asking")}>کد تازه</button>
+          ) : (
+            <div className="ivtRenewAsk" role="group" aria-label="ساختن کد تازه">
+              <p role={renew === "failed" ? "alert" : undefined}>{renew === "failed" ? "نشد؛ دوباره بزن." : "کد و لینک قبلی دیگه کار نمی‌کنن."}</p>
+              <div>
+                <button type="button" className="ivtRenew is-sure" disabled={renew === "busy"} onClick={makeNewCode}>{renew === "busy" ? "دارم می‌سازم…" : "بساز"}</button>
+                <button type="button" className="ivtRenew" disabled={renew === "busy"} onClick={() => setRenew("idle")}>نه</button>
+              </div>
+            </div>
+          )) : null}
         </section>
       ) : null}
 

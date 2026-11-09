@@ -3,7 +3,7 @@ import { sendPushToUser } from "./push.js";
 import { smsBookingReminder, smsReminderToNumber } from "./bookingSms.js";
 import { getVerifiedClientByPhone } from "./db/repos/users.js";
 import { normalizePhone } from "../shared/lib/phone.js";
-import { bookingStartMs, dueReminderKind, eveningForEarlyVisit } from "../shared/lib/reminderTiming.js";
+import { bookingStartMs, dueReminderKind, eveningForEarlyVisit, waitsForMorning } from "../shared/lib/reminderTiming.js";
 import { formatPersianDateKey } from "../shared/lib/persianCalendar.js";
 import { formatRelativeBookingDayLabel } from "../shared/lib/persianCalendar.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
@@ -116,7 +116,7 @@ export async function sweepBookingReminders(now = new Date()) {
   const night = tehranNight(now);
   for (const booking of await loadCandidates(db, now)) {
     const kind = eveningForEarlyVisit(dueReminderKind(booking.booking_date, booking.time, now), booking.time, now);
-    if (!kind || (kind === "day" && night)) continue;
+    if (!kind || (kind === "day" && night) || waitsForMorning(booking.time, now)) continue;
     const ready = booking.client_user_id ? booking : await handEntered(booking, kind, night, now);
     if (ready) due.push({ booking: ready, kind });
   }

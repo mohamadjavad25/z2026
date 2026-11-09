@@ -346,6 +346,8 @@ export async function notifyPaid(payment) {
   const test = payment.gateway === "sandbox" ? " (آزمایشی)" : "";
   const pack = payment.kind === "sms_pack";
   const until = pack ? "" : formatPersianLongDate(payment.period_end);
+  // The account was deleted while its owner was at the bank: money taken, no days given. It must be refunded by hand.
+  const orphan = !pack && !payment.period_end;
   const tasks = [];
   let receiptPhone = payment.user_phone;
   let receiptPush = null;
@@ -380,7 +382,7 @@ export async function notifyPaid(payment) {
   }
   // The receipt SMS is skipped when the push reached the payer's Android app (the receipt is also in the app). A pack's
   // receipt is the push and the receipt page only: a text for every pack would eat the very SMS the pack was bought for.
-  if (!pack && receiptPhone && smsAllowedFor(payment) && !(await pushReachedApp(receiptPush))) {
+  if (!pack && !orphan && receiptPhone && smsAllowedFor(payment) && !(await pushReachedApp(receiptPush))) {
     tasks.push(sendTemplateSms(receiptPhone, "billing_receipt", { receipt, amount, until: formatPersianShortDate(payment.period_end) }));
   }
   const account = `${payment.user_type === "salon" ? "سالن" : "آرتیست"} ${payment.user_name || ""}`.trim();
@@ -389,7 +391,7 @@ export async function notifyPaid(payment) {
   const today = test ? null : await todayCounts().catch(() => null);
   const dayTotal = today?.payments.count ? ` · امروز ${toPersianDigits(String(today.payments.count))} تا، ${formatTomanNumber(rialToToman(today.payments.rial))} تومان` : "";
   const adminNews = {
-    title: `پرداخت تازه${test}`,
+    title: orphan ? "پرداخت بدون حساب؛ پولش رو برگردون" : `پرداخت تازه${test}`,
     body: `${who}، ${payment.plan_title}، ${amount} تومان${dayTotal}`,
     url: `/admin?p=payments&id=${payment.id}`,
     tag: "payments"
@@ -441,7 +443,14 @@ async function sendReminders(now, settings) {
     if (!(await billing.claimNotice(row.id, kind, access.accessEndsAt))) continue;
     const message = reminderMessage(kind, access, { graceDays: settings.graceDays });
     const push = sendPushToUser(row.id, { title: message.title, body: message.body, url: "/?billing=plans" }).catch(() => null);
-    if (!(await pushReachedApp(push))) await sendTemplateSms(row.phone, message.sms.key, message.sms.values).catch(() => null);
+    if (!(await pushReachedApp(push))) {
+      const text = await sendTemplateSms(row.phone, message.sms.key, message.sms.values).catch(() => null);
+      // No phone or browser took the push and the SMS failed (a pattern not approved yet): they know nothing, so try again.
+      if (!text?.ok && !Number((await push)?.sent || 0)) {
+        await billing.releaseNotice(row.id, kind, access.accessEndsAt);
+        continue;
+      }
+    }
     sent += 1;
   }
   return sent;
