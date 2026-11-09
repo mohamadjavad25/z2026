@@ -30,7 +30,7 @@ export const profileUpdateSchema = z.object({
   // Instagram page in any pasted shape; the route cleans it to the page name (shared/lib/instagram.js). "" removes it.
   instagram: z.string().trim().max(200).optional(),
   // "" means "not changing it" (the route ignores a falsy password).
-  password: z.union([z.literal(""), z.string().min(6).max(200)]).optional(),
+  password: z.union([z.literal(""), z.string().min(8).max(200)]).optional(),
   currentPassword: z.string().optional(),
   // Proof from POST /api/auth/otp/verify (purpose "phone_change"): required whenever phone differs from the current number.
   phoneProof: z.string().max(1000).optional()

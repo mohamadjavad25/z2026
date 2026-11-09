@@ -10,7 +10,7 @@ import {
 } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as users from "../../../lib/db/repos/users.js";
-import { checkIpRateLimit, checkRateLimit } from "../../../lib/rateLimit.js";
+import { checkIpRateLimit, checkRateLimit, clientIp } from "../../../lib/rateLimit.js";
 import { readJson, withErrorHandling } from "../../../lib/http.js";
 import { LOGIN_PER_IP_15MIN } from "../../../lib/limits.js";
 
@@ -23,6 +23,7 @@ export const runtime = "nodejs";
 // pre-auth) -- same DB-backed limiter every other abuse-prone route in this
 // codebase already uses (see /api/salon-bookings, /api/artist/bookings).
 const LOGIN_ATTEMPT_LIMIT = 10;
+const LOGIN_ANY_CALLER_LIMIT = 50;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_IP_LIMIT = LOGIN_PER_IP_15MIN;
 
@@ -42,8 +43,11 @@ async function _POST(request) {
     );
   }
   if (phone) {
-    const limited = await checkRateLimit(`login:${phone}`, LOGIN_ATTEMPT_LIMIT, LOGIN_WINDOW_MS);
-    if (!limited.ok) {
+    // Ten tries per caller for one number, and a wider cap for everyone together: one stranger can no longer lock a
+    // salon out with ten wrong passwords (audit of 2026-11-09), and a spread-out password list still hits the cap.
+    const limited = await checkRateLimit(`login:${phone}:${clientIp(request)}`, LOGIN_ATTEMPT_LIMIT, LOGIN_WINDOW_MS);
+    const anyone = limited.ok ? await checkRateLimit(`login:${phone}`, LOGIN_ANY_CALLER_LIMIT, LOGIN_WINDOW_MS) : limited;
+    if (!limited.ok || !anyone.ok) {
       return NextResponse.json(
         { error: "زیاد امتحان کردی؛ چند دقیقه صبر کن.", code: "rate_limited" },
         { status: 429 }

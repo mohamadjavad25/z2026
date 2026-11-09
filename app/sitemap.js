@@ -1,6 +1,5 @@
 import { ensureDb } from "./lib/db/connection.js";
-import { listSalons } from "./lib/db/repos/salons.js";
-import { listArtists } from "./lib/db/repos/artists.js";
+import { listPublicProviderPages } from "./lib/db/repos/userSettings.js";
 import { getSiteUrl } from "./lib/siteUrl.js";
 
 // The DB layer uses the `pg` package (a real TCP/TLS Postgres client), same
@@ -20,6 +19,17 @@ export const dynamic = "force-dynamic";
 // submitted to Google will point at this fake address (getSiteUrl() logs a
 // console.error in production if this was forgotten).
 const SITE_URL = getSiteUrl();
+
+// Every crawl used to load every salon and artist with their services and hours (audit of 2026-11-09).
+const PAGES_FOR_MS = 10 * 60 * 1000;
+let pages = null;
+async function providerPages() {
+  if (pages && Date.now() - pages.at < PAGES_FOR_MS) return pages.value;
+  const rows = await listPublicProviderPages();
+  const value = { salons: rows.filter((row) => row.type === "salon"), artists: rows.filter((row) => row.type === "artist") };
+  pages = { at: Date.now(), value };
+  return value;
+}
 
 export default async function sitemap() {
   await ensureDb();
@@ -45,7 +55,7 @@ export default async function sitemap() {
     }
   ];
 
-  const salons = await listSalons();
+  const { salons, artists } = await providerPages();
   const salonEntries = salons.map((salon) => ({
     url: `${SITE_URL}/salons/${salon.id}`,
     lastModified: new Date(),
@@ -53,7 +63,6 @@ export default async function sitemap() {
     priority: 0.8
   }));
 
-  const artists = await listArtists();
   const artistEntries = artists.map((artist) => ({
     url: `${SITE_URL}/artists/${artist.id}`,
     lastModified: new Date(),

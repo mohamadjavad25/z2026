@@ -55,7 +55,7 @@ export async function checkRateLimit(key, limit, windowMs) {
   // uses could still care about them. Best-effort -- a failed cleanup
   // never blocks the actual rate-limit decision above.
   if (Math.random() < 0.01) {
-    getDb().then((db) => run(db, "DELETE FROM rate_limit_hits WHERE hit_at < NOW() - INTERVAL '1 hour'")).catch(() => {});
+    getDb().then((db) => run(db, "DELETE FROM rate_limit_hits WHERE hit_at < NOW() - INTERVAL '2 days'")).catch(() => {});
   }
   return result;
 }

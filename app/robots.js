@@ -14,7 +14,7 @@ export default function robots() {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/salons/", "/artists/"],
+        allow: ["/", "/salons/", "/artists/", "/api/media/"],
         // /api/* are server endpoints (JSON, mutations, auth), not content —
         // nothing under app/api is a page meant to be indexed. Every other
         // part of the product (dashboards, profile editing, booking

@@ -20,11 +20,11 @@ async function _POST(request, { params }) {
   if (!gate.ok) {
     return NextResponse.json({ error: "دسترسی مجاز نیست." }, { status: 401 });
   }
-  // Setting someone's password is a dangerous action: a logged-in admin must have re-typed their password recently (the legacy token path is exempt).
-  if (gate.admin.id !== null) {
-    const stepUp = requireStepUp(gate);
-    if (stepUp) return stepUp;
-  }
+  // Setting someone's password is a dangerous action: only a logged-in admin who re-typed their password recently (the
+  // old shared token skips two-factor, so it cannot do this; audit of 2026-11-09).
+  if (gate.admin.id === null) return NextResponse.json({ error: "با حساب مدیر وارد شو." }, { status: 403 });
+  const stepUp = requireStepUp(gate);
+  if (stepUp) return stepUp;
 
   const { id } = await params;
   const resetRequest = await passwordResetRequests.getRequestById(id);

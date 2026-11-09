@@ -16,7 +16,7 @@ describe("a visit before 8:00 is reminded the evening before", () => {
   });
 
   it("outside those hours, for a later visit, and for the two-hour one nothing changes", () => {
-    expect(eveningForEarlyVisit("day", "06:00", atTehran(19, 50))).toBe("day");
+    expect(eveningForEarlyVisit("day", "06:00", atTehran(19, 50))).toBe(null); // held for the evening, one text not two
     expect(eveningForEarlyVisit("day", "06:00", atTehran(22))).toBe("day");
     expect(eveningForEarlyVisit("day", "08:00", atTehran(20))).toBe("day");
     expect(eveningForEarlyVisit("soon", "06:00", atTehran(20))).toBe("soon");

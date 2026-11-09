@@ -14,12 +14,12 @@ async function booking(salonId, status) {
   return row.id;
 }
 
-async function hold(userId, bookingId, { status = "درخواست", minutesAgo = 11 } = {}) {
+async function hold(userId, bookingId, { status = "درخواست", minutesAgo = 11, template = "booking_request" } = {}) {
   const [row] = await q(`
     INSERT INTO sms_backups (user_id, template, sms_values, booking_kind, booking_id, booking_status, booking_date, booking_time, created_at, due_at)
-    VALUES ($1, 'booking_request', '{"who":"مینا","day":"فردا","time":"۱۰:۰۰"}', 'salon', $2, $3, $4, '10:00',
+    VALUES ($1, $6, '{"who":"مینا","day":"فردا","time":"۱۰:۰۰"}', 'salon', $2, $3, $4, '10:00',
       NOW() - $5::int * INTERVAL '1 minute', NOW() - ($5::int - 10) * INTERVAL '1 minute') RETURNING id
-  `, [userId, bookingId, status, keyAhead(3), minutesAgo]);
+  `, [userId, bookingId, status, keyAhead(3), minutesAgo, template]);
   return row.id;
 }
 
@@ -43,6 +43,14 @@ describe("held booking SMS", () => {
     const again = await cron("expire-bookings", {});
     expect(again.status).toBe(200);
     expect((await outcome(waiting)).outcome).toBe("sent");
+  });
+
+  it("a cancellation is held the same way, and goes even though the booking stays cancelled", async () => {
+    const salon = await newSalon(`Backup cancel ${Date.now() % 100000}`);
+    await q("UPDATE users SET last_seen_at = NOW() - INTERVAL '1 hour' WHERE id = $1", [salon.id]);
+    const id = await hold(salon.id, await booking(salon.id, "لغو"), { status: "لغو", template: "booking_cancelled_by_provider" });
+    expect((await cron("expire-bookings", {})).status).toBe(200);
+    expect((await outcome(id)).outcome).toBe("sent");
   });
 
   it("someone who opened frfro after the notice gets no SMS", async () => {

@@ -108,9 +108,9 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 install -m 755 -o root -g root "$HERE/server/release.sh"   "$APP_DIR/bin/release.sh"
 install -m 755 -o root -g root "$HERE/server/db-url.sh"    "$APP_DIR/bin/db-url.sh"
 install -m 755 -o root -g root "$HERE/server/cron-call.sh" "$APP_DIR/bin/cron-call.sh"
-install -m 755 -o root -g root "$HERE/server/backup-db.sh" "$APP_DIR/bin/backup-db.sh"
+install -m 755 -o root -g root "$HERE/../scripts/backup/backup-db.sh" "$APP_DIR/bin/backup-db.sh"
 install -m 644 "$HERE/server/frfro.service" /etc/systemd/system/frfro.service
-install -m 644 "$HERE/server/frfro.cron"    /etc/cron.d/frfro
+install -m 644 "$HERE/../scripts/backup/frfro.cron" /etc/cron.d/frfro
 cat > /etc/sudoers.d/frfro-deploy <<SUDO
 $DEPLOY_USER ALL=(root) NOPASSWD: $APP_DIR/bin/release.sh, $APP_DIR/bin/db-url.sh
 SUDO

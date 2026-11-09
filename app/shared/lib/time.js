@@ -25,8 +25,21 @@ export function buildUpcomingWeekDays(count = 7) {
  * The minutes a service's written length says: «۴۵ دقیقه», «۴۵», «۲ ساعت», «۱ ساعت و نیم», «۲ ساعت و ۳۰ دقیقه», «نیم ساعت»,
  * «۱:۳۰». 0 when it says none. A range («۱ تا ۲ ساعت») counts as its longer end, so a calendar never holds too little.
  */
+const NUMBER_WORDS = { "یک": 1, "یه": 1, "دو": 2, "سه": 3, "چهار": 4, "پنج": 5, "شش": 6, "هفت": 7, "هشت": 8, "ده": 10, "پونزده": 15, "پانزده": 15, "بیست": 20, "سی": 30, "چهل": 40, "پنجاه": 50 };
+const WORD = Object.keys(NUMBER_WORDS).sort((a, b) => b.length - a.length).join("|");
+const TENS_AND_ONES = new RegExp(`(بیست|سی|چهل|پنجاه)\\s*و\\s*(${WORD})\\s*(?=ساعت|دقیقه)`, "g");
+const NUMBER_WORD = new RegExp(`(?<![\\u0600-\\u06FF])(${WORD})\\s*(?=ساعت|دقیقه)`, "g");
+
+/** «دو ساعت» → «2 ساعت», «چهل و پنج دقیقه» → «45 دقیقه»; a bug of 2026-11-09 counted the first as one hour. */
+function wordsToNumbers(text) {
+  return text
+    .replace(/\u200c/g, " ")
+    .replace(TENS_AND_ONES, (_, tens, ones) => `${NUMBER_WORDS[tens] + NUMBER_WORDS[ones]} `)
+    .replace(NUMBER_WORD, (_, word) => `${NUMBER_WORDS[word]} `);
+}
+
 export function durationTextMinutes(value) {
-  const text = toAsciiDigits(String(value ?? "")).replace(/٫/g, ".").trim();
+  const text = wordsToNumbers(toAsciiDigits(String(value ?? "")).replace(/٫/g, ".").trim());
   const clock = text.match(/^(\d{1,2}):(\d{2})$/);
   if (clock) return Number(clock[1]) * 60 + Number(clock[2]);
   if (!/ساعت/.test(text)) return Number(text.match(/\d+/)?.[0] || 0);

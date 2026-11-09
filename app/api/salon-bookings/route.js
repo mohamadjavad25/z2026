@@ -19,10 +19,11 @@ import { createSalonBooking } from "../../lib/salonBookingCreate.js";
 import { requestedServiceNames, validFallbackSalon } from "../../lib/bookingFallback.js";
 import { BOOKING_REQUEST_WINDOW_MINUTES } from "../../shared/lib/bookingWindow.js";
 import { bookingWhen, noticeClientBookedByProvider, smsBookingAnswer, smsNewBookingRequest } from "../../lib/bookingSms.js";
-import { notifyStaff } from "../../lib/staffNotify.js";
+import { notifyStaff, staffIdsOfBooking } from "../../lib/staffNotify.js";
 import { noticeClientCancelledByProvider, noticeClientTimeProposal } from "../../lib/providerNotices.js";
 import * as proposals from "../../lib/db/repos/bookingProposals.js";
 import { STARTED_NO_CANCEL_TEXT } from "../../shared/lib/providerRules.js";
+import { isConfirmedBooking } from "../../shared/lib/bookingStates.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -253,6 +254,7 @@ async function _PATCH(request) {
   }
   // What the booking's status was before this call: the client is only told about an answer that really changed it.
   const rowBefore = await salons.getSalonBookingRow(id, auth.user.id);
+  const artistsBefore = !wantsCancel && (body.staff !== undefined || body.parts !== undefined) ? await staffIdsOfBooking(id) : null;
   const statusBefore = rowBefore?.status ?? null;
   // A new day or time for a client's booking goes to the client to accept (withClientConsent).
   const result = await salons.patchSalonBookingWithArtistSync(id, auth.user.id, patch, {
@@ -318,6 +320,26 @@ async function _PATCH(request) {
   // patches through the same route with no status field and shouldn't spam
   // a push for every minor change.
   const statusChanged = statusBefore !== null && result.booking.status !== statusBefore;
+  // A visit entered by hand has nobody to ask: it moves at once, and the number is told the new time (owner, 2026-11-09).
+  if (rowBefore && !result.booking.client_user_id && !wantsCancel && isConfirmedBooking("salon", result.booking.status)
+    && (result.booking.booking_date !== rowBefore.booking_date || normalizeBookingTimeLabel(result.booking.time || "") !== normalizeBookingTimeLabel(rowBefore.time || ""))) {
+    noticeClientBookedByProvider({ id: auth.user.id, type: "salon", name: auth.user.name }, {
+      kind: "salon", id, phone: result.booking.phone, bookingDate: result.booking.booking_date, time: result.booking.time, service: result.booking.service, moved: true
+    });
+    notifyStaff({ artistIds: await staffIdsOfBooking(id), exceptUserId: auth.user.id }, {
+      title: "ساعت نوبتت توی سالن عوض شد",
+      body: `${result.booking.client || "مشتری"}، ${result.booking.service || "نوبت"}، ${bookingWhen(result.booking.booking_date, result.booking.time)}`
+    });
+  }
+  // The salon gave the visit to someone else: each artist hears it, or it silently appears on and vanishes from their calendar.
+  if (artistsBefore && isConfirmedBooking("salon", result.booking.status)) {
+    const artistsNow = await staffIdsOfBooking(id);
+    const body = `${result.booking.client || "مشتری"}، ${result.booking.service || "نوبت"}، ${bookingWhen(result.booking.booking_date, result.booking.time)}`;
+    const gained = artistsNow.filter((artist) => !artistsBefore.includes(artist));
+    const lost = artistsBefore.filter((artist) => !artistsNow.includes(artist));
+    if (gained.length) notifyStaff({ artistIds: gained, exceptUserId: auth.user.id }, { title: "یه نوبت به تو داده شد", body });
+    if (lost.length) notifyStaff({ artistIds: lost, exceptUserId: auth.user.id }, { title: "این نوبت به یکی دیگه داده شد", body });
+  }
   if (statusChanged && (patch.status === "تایید شده" || patch.status === "لغو")) {
     const bookingClientUserId = result.booking.client_user_id ? Number(result.booking.client_user_id) : null;
     // Cancelling a booking that was already confirmed is a broken promise: the client gets the apology push + SMS

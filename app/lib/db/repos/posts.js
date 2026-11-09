@@ -156,6 +156,15 @@ export async function recordPostView(id, viewerKey, viewerUserId = null) {
   return post;
 }
 
+// Pictures live in the database for now; one account must not be able to fill it (audit of 2026-11-09).
+export const MAX_POSTS_PER_ACCOUNT = 300;
+
+export async function countOwnerPosts(ownerUserId, runner = null) {
+  const db = runner || (await getDb());
+  const row = await get(db, "SELECT COUNT(*)::int AS count FROM posts WHERE owner_user_id = $1", [Number(ownerUserId)]);
+  return row.count;
+}
+
 /**
  * `options.defer(fn)` lets a caller (the API route) run the slow, best-effort
  * external-storage upload after the response has been sent instead of making the

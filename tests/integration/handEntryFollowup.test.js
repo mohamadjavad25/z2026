@@ -1,6 +1,6 @@
 import { describe, it, expect, afterAll } from "vitest";
 import { TEST_BASE_URL } from "../globalSetup.js";
-import { uniquePhone } from "./helpers.js";
+import { createClient, uniquePhone } from "./helpers.js";
 import { FAR_DAY, newArtist, newClient, newSalon, q, smsEventually, smsSettled } from "./exitHelpers.js";
 import { moveToDaysAgo, openDb, reminderSweep } from "./afterVisitKit.js";
 import { bookingStartMs } from "../../app/shared/lib/reminderTiming.js";
@@ -161,6 +161,60 @@ describe("when a hand-entered visit is cancelled, the number hears it", () => {
     await salon.api.patch("/api/salon-bookings", { id, status: "لغو" });
     await reminderSweep(minutesBefore(start, 90));
     expect(await smsSettled(phone, reminders)).toBe(0);
+  });
+});
+
+describe("what the audit of 2026-11-09 found", () => {
+  it("a salon moving a hand-entered visit tells the number the new time, once", async () => {
+    const salon = await newSalon("Hand Moved Salon");
+    const phone = uniquePhone();
+    const { id, day } = await salonEntry(salon, { phone });
+    await smsEventually(phone, "booking_made_link", 1);
+    expect((await salon.api.patch("/api/salon-bookings", { id, bookingDate: day, time: "13:00" })).ok).toBe(true);
+    const texts = await smsEventually(phone, "booking_made_link", 2);
+    expect(texts[1].body).toContain("۱۳:۰۰");
+    expect(await smsSettled(phone, ["booking_made_link"])).toBe(2);
+  });
+
+  it("a hand entry later tied to an account keeps its reminder", async () => {
+    const salon = await newSalon("Hand Tied Salon");
+    const client = await newClient("Hand Tied Client");
+    const { id, start } = await salonEntry(salon, { phone: client.phone, time: "12:00" });
+    await q("UPDATE salon_bookings SET client_user_id = $2 WHERE id = $1", [id, client.user.id]);
+    await reminderSweep(minutesBefore(start, 90));
+    expect(await smsEventually(client.phone, "booking_reminder", 1)).toHaveLength(1);
+  });
+});
+
+describe("limits the audit of 2026-11-09 asked for", () => {
+  it("one number stops getting texts after six a day, whichever accounts type it in", async () => {
+    const phone = uniquePhone();
+    await q("INSERT INTO rate_limit_hits (key, hit_at) SELECT $1, NOW() FROM generate_series(1, 6)", [`sms-typed-number:${phone}`]);
+    const salon = await newSalon("Hand Capped Salon");
+    const { id } = await salonEntry(salon, { phone });
+    expect(id).toBeTruthy();
+    expect(await smsSettled(phone, ["booking_made_link", "booking_made_for_you"])).toBe(0);
+  });
+
+  it("a stranger's wrong passwords do not lock the real owner out", async () => {
+    const client = await newClient("Lockout Client");
+    const attempt = (ip) => fetch(`${TEST_BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Real-IP": ip },
+      body: JSON.stringify({ phone: client.phone, password: "wrong-password" })
+    });
+    for (let i = 0; i < 10; i += 1) await attempt("203.0.113.77");
+    expect((await attempt("203.0.113.77")).status).toBe(429);
+    expect((await attempt("203.0.113.78")).status).toBe(401);
+  });
+
+  it("a reset request for a number with no account costs nothing", async () => {
+    const phone = uniquePhone();
+    const anon = createClient("");
+    const asked = await anon.post("/api/auth/password-reset-requests", { phone });
+    expect(asked.status).toBe(200);
+    expect(asked.payload.data.id).toBe(0);
+    expect(await q("SELECT id FROM password_reset_requests WHERE phone = $1", [phone])).toHaveLength(0);
   });
 });
 

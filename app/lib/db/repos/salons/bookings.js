@@ -43,6 +43,7 @@ import {
 import { AWAITING_CLIENT } from "../../../../shared/lib/bookingOffer.js";
 import { toPersianDigits } from "../../../../shared/lib/digits.js";
 import { hasStarted, isProposalLapsed, proposalView } from "../../../../shared/lib/providerRules.js";
+import { SALON_CONFIRMED, SALON_LIVE, SQL_SALON_LIVE } from "../../../../shared/lib/bookingStates.js";
 
 let partsColumnsReady;
 /**
@@ -1263,7 +1264,7 @@ export async function updateSalonBooking(id, salonUserId, data) {
  */
 function withClientConsent(current, data) {
   if (!current.client_user_id || data.status === "لغو") return data;
-  if (!["تازه", "درخواست", "تایید شده", AWAITING_CLIENT].includes(current.status)) return data;
+  if (!SALON_LIVE.includes(current.status)) return data;
   const nextDate = resolveRollingPersianDateKey(data.booking_date ?? data.bookingDate ?? data.date ?? current.booking_date);
   const nextTime = normalizeBookingTimeLabel(data.time ?? current.time);
   if (nextDate === current.booking_date && nextTime === normalizeBookingTimeLabel(current.time || "")) return data;
@@ -1337,7 +1338,7 @@ async function patchSalonBookingUncached(id, salonUserId, data, options = {}) {
   }
   // A confirmed visit that has started is no longer the salon's to cancel: «نیومد» takes its place
   // (owner's decision of 2026-10-25; /api/booking-no-show). The client's own cancel stops at the start too.
-  if (data.status === "لغو" && options.cancelledBy?.by === "provider" && ["تایید شده", "تازه"].includes(current.status)
+  if (data.status === "لغو" && options.cancelledBy?.by === "provider" && SALON_CONFIRMED.includes(current.status)
     && hasStarted(current.booking_date, current.time)) {
     return { ok: false, error: "started" };
   }
@@ -1366,7 +1367,7 @@ async function patchSalonBookingUncached(id, salonUserId, data, options = {}) {
   }
   // A confirmed booking is never moved on the salon's word alone: its new time is a proposal the client accepts
   // (bookingProposals.js); the original stays valid until then. The route sends it there first; this is the safety net.
-  if (askClient && current.client_user_id && ["تایید شده", "تازه"].includes(current.status) && data.status !== "لغو"
+  if (askClient && current.client_user_id && SALON_CONFIRMED.includes(current.status) && data.status !== "لغو"
     && (data.time != null || data.booking_date != null || data.bookingDate != null || data.date != null)) {
     const nextDate = resolveRollingPersianDateKey(data.booking_date ?? data.bookingDate ?? data.date ?? current.booking_date);
     const nextTime = normalizeBookingTimeLabel(data.time ?? current.time);
@@ -1570,7 +1571,7 @@ async function patchMultiPartBooking(id, salonUserId, current, data) {
       // Who does what, or when, changed: the old copies go (a confirmed visit keeps them as
       // cancelled history, a pending request just drops them) and new ones are made.
       for (const row of mirrors) {
-        if (current.status === "تایید شده") await artists.cancelArtistBookingRow(row.id, db);
+        if (SALON_CONFIRMED.includes(current.status)) await artists.cancelArtistBookingRow(row.id, db);
         else await run(db, "DELETE FROM artist_bookings WHERE id = $1", [row.id]);
       }
       const created = await createPartMirrors(db, salonUserId, next, staffList);
@@ -1669,7 +1670,7 @@ export async function cancelSalonBookingByClient(id, client) {
   const db = await getDb();
   const current = await findClientOwnBooking(db, id, client);
   if (!current) return { ok: false, error: "missing" };
-  if (!["تازه", "درخواست", "تایید شده", AWAITING_CLIENT].includes(current.status)) return { ok: false, error: "inactive" };
+  if (!SALON_LIVE.includes(current.status)) return { ok: false, error: "inactive" };
   // Once the appointment has started (today's 10:00 at 14:29) it can't be cancelled any more.
   const until = minutesUntilSlotStart(current.booking_date, current.time);
   if (until !== null && until <= 0) return { ok: false, error: "past" };
@@ -1678,7 +1679,7 @@ export async function cancelSalonBookingByClient(id, client) {
   if (!current.salon_user_id) {
     const changed = await run(db, `
       UPDATE salon_bookings SET status = 'لغو', cancelled_by = 'client', proposal_date = '', proposal_time = '', proposal_staff = '', proposal_from = '', proposal_at = NULL
-      WHERE id = $1 AND status IN ('تازه', 'درخواست', 'تایید شده', 'در انتظار مشتری')
+      WHERE id = $1 AND status IN (${SQL_SALON_LIVE})
     `, [id]);
     return changed.rowCount ? { ok: true, booking: { ...current, status: "لغو" }, salonUserId: null } : { ok: false, error: "inactive" };
   }

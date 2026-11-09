@@ -27,6 +27,9 @@ async function _POST(request) {
   if (body.inPortfolio === false && (await posts.countServiceOnlyPosts(auth.user.id)) >= posts.MAX_SERVICE_ONLY_POSTS) {
     return error("عکس‌های خدمت‌هات زیاد شده؛ از خدمت‌ها چندتا رو بردار.", 409);
   }
+  if ((await posts.countOwnerPosts(auth.user.id)) >= posts.MAX_POSTS_PER_ACCOUNT) {
+    return error("نمونه‌کارهات به سقف رسیده؛ چندتا رو پاک کن تا جا باز شه.", 409);
+  }
   const post = await posts.createPost(auth.user.id, body, null, { defer: (fn) => after(fn) });
   return NextResponse.json({ data: { post } }, { status: 201 });
 }

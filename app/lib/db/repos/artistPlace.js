@@ -3,6 +3,7 @@ import { defaultHours } from "./salons/common.js";
 import { publicLocation } from "../../location.js";
 import { dateKeyAfter, salonTimeBlock, workplaceOn } from "../../../shared/lib/artistPlace.js";
 import { minutesToStart } from "../../../shared/lib/providerRules.js";
+import { ARTIST_LIVE } from "../../../shared/lib/bookingStates.js";
 
 /**
  * Where an artist's own clients are received (owner's decision of 2026-10-25, rules in shared/lib/artistPlace.js): one
@@ -15,7 +16,7 @@ const AWAY_STATES = ["غیرفعال", "مرخصی"];
 /** How far ahead the artist can set a switch. */
 export const MAX_SWITCH_AHEAD_DAYS = 60;
 
-const LIVE_AT_SALON = ["تازه", "درخواست", "تایید", "تایید شده", "در انتظار مشتری"];
+const LIVE_AT_SALON = ARTIST_LIVE;
 
 /**
  * A booking whose time has come (started or over, even if nobody marked it done) stays where it was held: it already

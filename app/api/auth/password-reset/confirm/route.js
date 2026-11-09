@@ -5,6 +5,8 @@ import * as users from "../../../../lib/db/repos/users.js";
 import { otpConfig, verifyOtp } from "../../../../lib/otp.js";
 import { checkIpRateLimit } from "../../../../lib/rateLimit.js";
 import { OTP_VERIFY_PER_IP_15MIN } from "../../../../lib/limits.js";
+import { MAX_PASSWORD_LENGTH } from "../../../../lib/validation/user.js";
+import { sendPushToUser } from "../../../../lib/push.js";
 
 export const runtime = "nodejs";
 
@@ -18,6 +20,7 @@ async function _POST(request) {
   const newPassword = normalizeDigits(String(body.newPassword || ""));
   if (!isValidIranMobile(phone) || !/^\d{5}$/.test(code)) return error("کد ۵ رقمی رو درست بزن.", 400);
   if (newPassword.length < MIN_PASSWORD_LENGTH) return error("رمز تازه دست‌کم ۸ حرف باشه.", 400);
+  if (newPassword.length > MAX_PASSWORD_LENGTH) return error("رمزت خیلی بلنده؛ کوتاه‌ترش کن.", 400);
 
   // Guessing codes across many phones from one address (the per-phone limit is in verifyOtp).
   if (!(await checkIpRateLimit(request, "otp-verify", OTP_VERIFY_PER_IP_15MIN, 15 * 60 * 1000)).ok) return error("زیاد امتحان کردی؛ چند دقیقه دیگه دوباره بزن.", 429);
@@ -33,6 +36,8 @@ async function _POST(request) {
   // The code just proved this account owns the number.
   await users.markPhoneVerified(user.id);
   await run(await getDb(), "DELETE FROM sessions WHERE user_id = $1", [user.id]);
+  // If it wasn't them, they should hear it (the phone keeps its push token after the sign-out above).
+  sendPushToUser(user.id, { title: "رمزت عوض شد", body: "اگه کار خودت نبود، به پشتیبانی فرفرو پیام بده.", url: "/" }).catch(() => {});
   return json({ data: { ok: true } });
 }
 

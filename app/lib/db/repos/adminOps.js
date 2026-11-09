@@ -4,6 +4,7 @@ import { deleteStoredImage } from "../../storage.js";
 import { formatPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { cancelSalonBooking } from "./salons/bookings.js";
 import { deleteProviderAccount } from "./providerExit.js";
+import { ANY_LIVE, SQL_ARTIST_LIVE } from "../../../shared/lib/bookingStates.js";
 
 const clamp = (value, min, max, fallback) => Math.min(Math.max(Number(value) || fallback, min), max);
 const likeOf = (term) => {
@@ -194,7 +195,7 @@ const BOOKING_LIST = `
   SELECT 'artist', b.id, u.id, COALESCE(u.name, 'آرتیست حذف‌شده'), b.client_user_id, b.client_name, b.client_phone, b.service, b.booking_date, b.time, b.duration_minutes, b.status, b.created_at, b.cancelled_by
     FROM artist_bookings b LEFT JOIN users u ON u.id = b.artist_user_id WHERE b.source_salon_user_id IS NULL
 `;
-export const ACTIVE_BOOKING_STATUSES = ["تازه", "درخواست", "تایید شده", "در انتظار مشتری"];
+export const ACTIVE_BOOKING_STATUSES = ANY_LIVE;
 
 /**
  * Salon and artist bookings together (artist rows mirrored from a salon are skipped: they are the same booking), newest first.
@@ -278,7 +279,7 @@ export async function cancelBookingAsAdmin(kind, id) {
     if (current.booking_date && current.booking_date < formatPersianDateKey(new Date())) return { ok: false, error: "past" };
     const changed = await run(db, `
       UPDATE artist_bookings SET status = 'لغو', cancelled_by = 'admin', proposal_date = '', proposal_time = '', proposal_at = NULL, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $1 AND status IN ('تازه', 'درخواست', 'تایید شده', 'در انتظار مشتری')
+      WHERE id = $1 AND status IN (${SQL_ARTIST_LIVE})
     `, [Number(id)]);
     if (!changed.rowCount) return { ok: false, error: "inactive" };
     return { ok: true, booking: { ...current, status: "لغو" } };

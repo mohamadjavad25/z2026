@@ -40,6 +40,9 @@ const DEFAULT_PROFILE_SETTINGS = {
  *   onNotice?: (msg: string) => void
  * }} options
  */
+// What the server takes (5 MB) written as text; told here instead of after a whole upload on a slow connection.
+const MAX_STAGED_PHOTO_CHARS = 6_500_000;
+
 export function useProfileEditor({
   createdProfile = null,
   setCreatedProfile,
@@ -346,8 +349,9 @@ export function useProfileEditor({
     // this is the path confirmAvatarUpload/confirmPosterUpload eventually
     // POST to the server, so this is where the real payload-size win
     // happens for the logo/poster position-editor flow.
-    const dataUrl = await compressImageToDataUrl(file);
-    if (dataUrl) setPending(dataUrl);
+    const dataUrl = await compressImageToDataUrl(file, { mustOpen: true });
+    if (dataUrl.length > MAX_STAGED_PHOTO_CHARS) notify(PHOTO_TOO_BIG);
+    else if (dataUrl) setPending(dataUrl);
     else notify(UNREADABLE_PHOTO);
   }, [notify]);
 

@@ -7,6 +7,9 @@ import { checkRateLimit } from "../../../lib/rateLimit.js";
 import { noticeProviderProposalAnswer, noticeProposalLapsed } from "../../../lib/providerNotices.js";
 import { sendPushToUser } from "../../../lib/push.js";
 
+import { notifyStaff, staffIdsOfBooking } from "../../../lib/staffNotify.js";
+import { bookingWhen } from "../../../lib/bookingSms.js";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -29,6 +32,16 @@ async function _POST(request) {
   if (!id) return error("این نوبت رو پیدا نکردیم.", 400);
   if (!["accept", "cancel"].includes(body.action)) return error("قبول یا رد؟ یکی رو بزن.", 400);
 
+  // Only a salon booking has a team artist behind it. Read before the answer: taking another artist changes who holds it.
+  const artistsBefore = kind === "salon" ? await staffIdsOfBooking(id) : [];
+  const tellArtists = (title, booking, providerId) => {
+    if (kind !== "salon") return;
+    void staffIdsOfBooking(id).then((now) => notifyStaff({ artistIds: [...artistsBefore, ...now], exceptUserId: providerId }, {
+      title,
+      body: `${booking.client || "مشتری"}، ${booking.service || "نوبت"}، ${bookingWhen(booking.booking_date, booking.time)}`
+    })).catch(() => {});
+  };
+
   if (body.action === "cancel") {
     const claimed = await proposals.claimProposalForCancel({ kind, id, client: auth.user });
     if (!claimed) return json({ error: "پیشنهادی برای این نوبت نمونده؛ صفحه رو تازه کن.", code: "NO_PROPOSAL" }, { status: 409 });
@@ -40,6 +53,7 @@ async function _POST(request) {
     }
     const providerId = Number(kind === "artist" ? result.artistUserId : result.salonUserId || 0);
     noticeProviderProposalAnswer(providerId, { accepted: false, booking: result.booking, clientName: result.booking.client || result.booking.client_name || auth.user.name });
+    tellArtists("مشتری نوبتش رو لغو کرد", result.booking, providerId);
     checkWaitlistSoon(kind, providerId, result.booking.booking_date);
     return json({ data: { booking: result.booking, cancelled: true } });
   }
@@ -64,6 +78,7 @@ async function _POST(request) {
     clientName: result.booking.client || result.booking.client_name || auth.user.name,
     what: result.before?.proposal_staff ? "آرتیست" : "ساعت"
   });
+  tellArtists("مشتری پیشنهاد رو قبول کرد", result.booking, providerId);
   return json({ data: { booking: result.booking } });
 }
 

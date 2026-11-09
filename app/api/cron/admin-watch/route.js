@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Called by the server's cron every 5 minutes (deploy/server/frfro.cron, CRON_SECRET bearer like the other cron
+ * Called by the server's cron every 5 minutes (scripts/backup/frfro.cron, CRON_SECRET bearer like the other cron
  * routes): the server watch first (its busy count goes into the 22:00 summary), then the operator's waiting news.
  */
 async function _POST(request) {

@@ -12,6 +12,10 @@ import { deleteOtherUserSessions } from "../../lib/db/repos/sessions.js";
 import { sendTemplateSms } from "../../lib/sms.js";
 import { toLatinDigits } from "../../shared/lib/digits.js";
 import { phoneChangePurpose, verifyOtpProof } from "../../lib/otp.js";
+import { checkRateLimit } from "../../lib/rateLimit.js";
+
+// A stolen session must not be able to work out the password here (audit of 2026-11-09).
+const CURRENT_PASSWORD_TRIES = [8, 15 * 60 * 1000];
 import { hasUniqueName, nameKey, NAME_TAKEN_MESSAGE } from "../../lib/businessName.js";
 import { INSTAGRAM_INVALID_MESSAGE, normalizeInstagram } from "../../shared/lib/instagram.js";
 
@@ -105,6 +109,9 @@ async function _POST(request) {
       if (!data.currentPassword) {
         return NextResponse.json({ error: "برای عوض کردن رمز، رمز فعلیت رو بزن." }, { status: 400 });
       }
+      if (!(await checkRateLimit(`current-password:${auth.user.id}`, ...CURRENT_PASSWORD_TRIES)).ok) {
+        return NextResponse.json({ error: "زیاد امتحان کردی؛ چند دقیقه صبر کن." }, { status: 429 });
+      }
       if (!(await verifyPassword(data.currentPassword, auth.user.password_hash))) {
         return NextResponse.json({ error: "رمز فعلی اشتباهه." }, { status: 400 });
       }
@@ -146,6 +153,9 @@ async function _DELETE(request) {
   const currentPassword = typeof body?.currentPassword === "string" ? body.currentPassword : "";
   if (!currentPassword) {
     return NextResponse.json({ error: "برای پاک کردن حساب، رمزت رو بزن." }, { status: 400 });
+  }
+  if (!(await checkRateLimit(`current-password:${auth.user.id}`, ...CURRENT_PASSWORD_TRIES)).ok) {
+    return NextResponse.json({ error: "زیاد امتحان کردی؛ چند دقیقه صبر کن." }, { status: 429 });
   }
   if (!(await verifyPassword(currentPassword, auth.user.password_hash))) {
     return NextResponse.json({ error: "رمز فعلی اشتباهه." }, { status: 400 });

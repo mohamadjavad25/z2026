@@ -123,7 +123,7 @@ export async function alertAdmins(key, { title, body, url = "/admin?p=health", g
   try {
     const phones = adminPhoneList();
     if (!phones.length) return false;
-    // Its own row, not checkRateLimit: rate_limit_hits is pruned after an hour, and the disk warning waits a day.
+    // Its own row, not checkRateLimit: rate_limit_hits is pruned after two days, and this gap can be longer.
     await store.markPending(`alert-${key}`, "");
     if (!(await store.claim(`alert-${key}`, gapMs))) return false;
     const reached = await pushAdmins({ title, body, url, tag: `alert-${key}` });

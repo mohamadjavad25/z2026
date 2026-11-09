@@ -6,6 +6,7 @@ import * as users from "./users.js";
 import { bookingStartMs } from "../../../shared/lib/reminderTiming.js";
 import { NEAR_BOOKING_HOURS } from "../../../shared/lib/providerRules.js";
 import { noticeProviderClientCancelled } from "../../clientCancelNotice.js";
+import { ARTIST_CONFIRMED, ARTIST_LIVE, SALON_CONFIRMED, SALON_LIVE } from "../../../shared/lib/bookingStates.js";
 
 /**
  * A client deleting their account (owner's decision 2026-10-26, the client side of «booking never broken without
@@ -16,10 +17,6 @@ import { noticeProviderClientCancelled } from "../../clientCancelNotice.js";
  * blocked, but everything open is still cancelled with notice.
  */
 
-const SALON_LIVE = ["تازه", "درخواست", "تایید شده", "در انتظار مشتری"];
-const ARTIST_LIVE = ["تازه", "درخواست", "تایید", "تایید شده"];
-const SALON_CONFIRMED = ["تایید شده", "تازه"];
-const ARTIST_CONFIRMED = ["تایید شده", "تایید"];
 
 function toItem(kind, row, now) {
   const start = bookingStartMs(row.booking_date || "", row.time || "", now);

@@ -10,6 +10,7 @@ import { toPersianDigits } from "../shared/lib/digits.js";
 import { clientReliability } from "./db/repos/reliability.js";
 import { needsAttendQuestion } from "../shared/lib/attendance.js";
 import { closedWhileEnforced } from "./billing/access.js";
+import { ARTIST_CONFIRMED, SALON_CONFIRMED } from "../shared/lib/bookingStates.js";
 
 /**
  * Appointment reminders for CLIENTS: one push about a day before and one about two hours before
@@ -31,7 +32,6 @@ import { closedWhileEnforced } from "./billing/access.js";
  *   as that account. Any other number gets ONE SMS, the two-hour one, never before 08:00 Tehran. Nothing for a visit
  *   entered less than two hours ahead (the «برات نوبت گذاشت» text just went) or for the provider's own number.
  */
-const CONFIRMED = "تایید شده";
 const PARALLEL = 10;
 const QUIET_FROM = 22 * 60;
 const QUIET_UNTIL = 8 * 60;
@@ -55,17 +55,17 @@ async function loadCandidates(db, now) {
     SELECT 'salon' AS source, b.id, b.client_user_id, b.salon_user_id AS owner_user_id, b.booking_date, b.time, b.service, u.name AS place,
       b.phone_normalized AS client_phone, b.created_at, u.phone AS owner_phone
     FROM salon_bookings b JOIN users u ON u.id = b.salon_user_id
-    WHERE ((b.status = $1 AND b.client_user_id IS NOT NULL) OR (b.client_user_id IS NULL AND b.status IN ('تایید شده', 'تازه') AND b.phone_normalized <> ''))
+    WHERE b.status = ANY($1) AND (b.client_user_id IS NOT NULL OR b.phone_normalized <> '')
       AND b.booking_date >= $2 AND b.booking_date <= $3
-  `, [CONFIRMED, today, dayAfter]);
+  `, [SALON_CONFIRMED, today, dayAfter]);
   const artist = await all(db, `
     SELECT 'artist' AS source, b.id, b.client_user_id, b.artist_user_id AS owner_user_id, b.booking_date, b.time, b.service, u.name AS place,
       b.phone_normalized AS client_phone, b.created_at, u.phone AS owner_phone
     FROM artist_bookings b JOIN users u ON u.id = b.artist_user_id
-    WHERE ((b.status = $1 AND b.client_user_id IS NOT NULL) OR (b.client_user_id IS NULL AND b.status IN ('تایید شده', 'تایید') AND b.phone_normalized <> ''))
+    WHERE b.status = ANY($1) AND (b.client_user_id IS NOT NULL OR b.phone_normalized <> '')
       AND b.source_salon_user_id IS NULL
       AND b.booking_date >= $2 AND b.booking_date <= $3
-  `, [CONFIRMED, today, dayAfter]);
+  `, [ARTIST_CONFIRMED, today, dayAfter]);
   return [...salon, ...artist];
 }
 

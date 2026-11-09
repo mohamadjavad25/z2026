@@ -1,5 +1,6 @@
 import { getDb, all } from "./db/connection.js";
 import { sendPushToUser } from "./push.js";
+import { ARTIST_LIVE } from "../shared/lib/bookingStates.js";
 
 /**
  * Push for the artists on a salon's team whose visit it is (the artist_bookings mirror of a salon booking). Before
@@ -7,6 +8,14 @@ import { sendPushToUser } from "./push.js";
  * open the app to find out. `artistIds` when the caller already has them, else they are looked up from
  * `salonBookingId`. `exceptUserId` is whoever made the change (never told about their own action). Fire-and-forget.
  */
+/** The team artists holding this salon booking right now. */
+export async function staffIdsOfBooking(salonBookingId) {
+  const db = await getDb();
+  // Live copies only: a cancelled copy stays behind for whoever lost the visit.
+  const rows = await all(db, "SELECT DISTINCT artist_user_id FROM artist_bookings WHERE salon_booking_id = $1 AND artist_user_id IS NOT NULL AND status = ANY($2)", [Number(salonBookingId), ARTIST_LIVE]);
+  return rows.map((row) => Number(row.artist_user_id));
+}
+
 export function notifyStaff({ salonBookingId = null, artistIds = null, exceptUserId = null }, { title, body, url = "/" }) {
   void (async () => {
     let ids = (artistIds || []).map(Number).filter(Boolean);

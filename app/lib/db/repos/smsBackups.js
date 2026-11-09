@@ -49,6 +49,15 @@ export async function claimDue(limit = 50) {
   `, [limit]);
 }
 
+/** A proposal taken back: its held text must not reach the client about something that no longer exists. */
+export async function dropProposalBackups(kind, bookingId) {
+  const db = await getDb();
+  await run(db, `
+    UPDATE sms_backups SET settled_at = NOW(), outcome = 'changed'
+    WHERE booking_kind = $1 AND booking_id = $2 AND settled_at IS NULL AND template IN ('booking_time_proposal', 'booking_handover_proposal')
+  `, [String(kind), Number(bookingId)]);
+}
+
 export async function setOutcome(id, outcome) {
   const db = await getDb();
   await run(db, "UPDATE sms_backups SET outcome = $2 WHERE id = $1", [Number(id), String(outcome)]);

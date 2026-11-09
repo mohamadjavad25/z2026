@@ -1,5 +1,6 @@
 import { getDb, all, get, run, withTransaction } from "../connection.js";
 import { ensureSupportTables } from "./support.js";
+import { SQL_ARTIST_CONFIRMED, SQL_SALON_CONFIRMED } from "../../../shared/lib/bookingStates.js";
 
 /**
  * The operator's control room: settings changed without a deploy, broadcast messages, browser crash reports,
@@ -334,7 +335,7 @@ export async function runCleanup() {
   const db = await getDb();
   const [sessions, limits] = await Promise.all([
     run(db, "DELETE FROM sessions WHERE expires_at <= NOW()"),
-    run(db, "DELETE FROM rate_limit_hits WHERE hit_at < NOW() - INTERVAL '1 day'").catch(() => ({ rowCount: 0 }))
+    run(db, "DELETE FROM rate_limit_hits WHERE hit_at < NOW() - INTERVAL '2 days'").catch(() => ({ rowCount: 0 }))
   ]);
   return { sessions: sessions.rowCount || 0, rateLimits: limits.rowCount || 0 };
 }
@@ -349,6 +350,9 @@ const BOOKINGS = `
   SELECT 'artist', b.id, b.artist_user_id, b.client_user_id, b.service, b.status, b.created_at FROM artist_bookings b WHERE b.source_salon_user_id IS NULL
 `;
 
+// «تازه» is settled at a salon and waiting at an artist, so "confirmed" depends on the table.
+const SETTLED = `((x.kind = 'salon' AND x.status IN (${SQL_SALON_CONFIRMED})) OR (x.kind = 'artist' AND x.status IN (${SQL_ARTIST_CONFIRMED})))`;
+
 /** Everything the reports page shows for the last `days` days. */
 export async function getReports(rangeDays = 30) {
   const days = [7, 30, 90].includes(Number(rangeDays)) ? Number(rangeDays) : 30;
@@ -357,7 +361,7 @@ export async function getReports(rangeDays = 30) {
   const [providers, services, statuses, heat, funnel, areas, readiness, activity] = await Promise.all([
     all(db, `
       SELECT x.provider_id AS id, u.name, u.type, u.area, COUNT(*)::int AS total,
-             COUNT(*) FILTER (WHERE x.status = 'تایید شده')::int AS confirmed,
+             COUNT(*) FILTER (WHERE ${SETTLED})::int AS confirmed,
              COUNT(*) FILTER (WHERE x.status = 'لغو')::int AS cancelled,
              COUNT(*) FILTER (WHERE x.status = 'منقضی شده')::int AS expired
       FROM (${BOOKINGS}) x JOIN users u ON u.id = x.provider_id
@@ -367,7 +371,7 @@ export async function getReports(rangeDays = 30) {
       SELECT COALESCE(NULLIF(TRIM(service), ''), 'بدون نام') AS service, COUNT(*)::int AS count
       FROM (${BOOKINGS}) x WHERE x.created_at >= ${since} GROUP BY 1 ORDER BY count DESC LIMIT 10
     `),
-    all(db, `SELECT status, COUNT(*)::int AS count FROM (${BOOKINGS}) x WHERE x.created_at >= ${since} GROUP BY status ORDER BY count DESC`),
+    all(db, `SELECT CASE WHEN ${SETTLED} THEN 'تایید شده' ELSE x.status END AS status, COUNT(*)::int AS count FROM (${BOOKINGS}) x WHERE x.created_at >= ${since} GROUP BY 1 ORDER BY count DESC`),
     all(db, `
       SELECT EXTRACT(ISODOW FROM created_at AT TIME ZONE '${TZ}')::int AS dow, EXTRACT(HOUR FROM created_at AT TIME ZONE '${TZ}')::int AS hour, COUNT(*)::int AS count
       FROM (${BOOKINGS}) x WHERE x.created_at >= ${since} GROUP BY 1, 2

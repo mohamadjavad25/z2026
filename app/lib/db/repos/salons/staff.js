@@ -2,6 +2,7 @@ import { getDb, all, get, run } from "../../connection.js";
 import { normalizePhone } from "./common.js";
 import { defaultArtistHours } from "../artists/hours.js";
 import { listLeavesFor } from "../teamAgreements.js";
+import { tehranClock } from "../../../adminNews.js";
 
 function artistAvatarUrl(artist) {
   return artist?.avatar ? `/api/media/avatar/${artist.id}` : "";
@@ -21,7 +22,7 @@ export async function listSalonStaff(salonUserId, runner = null) {
   // per row, so resolve (and self-heal artist_user_id) for every row
   // concurrently instead of one at a time.
   // A leave with a return day ends by itself: the member goes back to «فعال» on that day (owner's decision 2026-10-28).
-  const today = new Date().toISOString().slice(0, 10);
+  const today = tehranClock().day;
   const ended = rows.filter((row) => row.state === "مرخصی" && row.leave_until && row.leave_until <= today);
   if (ended.length) {
     await run(db, "UPDATE salon_staff SET state = 'فعال', leave_until = '', updated_at = CURRENT_TIMESTAMP WHERE id = ANY($1::int[])", [ended.map((row) => row.id)]);
@@ -495,7 +496,7 @@ export async function updateSalonStaff(id, salonUserId, data) {
   // a save that carries the old row along (the app sends the whole member) leaves it as it is.
   if (data.leaveUntil !== undefined || nextDraft.state !== current.state) {
     const asked = typeof data.leaveUntil === "string" ? data.leaveUntil : "";
-    const valid = /^\d{4}-\d{2}-\d{2}$/.test(asked) && asked > new Date().toISOString().slice(0, 10);
+    const valid = /^\d{4}-\d{2}-\d{2}$/.test(asked) && asked > tehranClock().day;
     await run(db, "UPDATE salon_staff SET leave_until = $1 WHERE id = $2 AND salon_user_id = $3", [nextDraft.state === "مرخصی" && valid ? asked : "", id, salonUserId]);
   }
   const updated = await get(db, "SELECT * FROM salon_staff WHERE id = $1", [id]);

@@ -9,6 +9,7 @@ const MAX_ATTEMPTS = 5;
 /** The site-wide hourly cap on texted codes (all sign-ups, resets and phone changes together). */
 export const OTP_GLOBAL_HOURLY_CAP = OTP_SEND_SITE_HOUR;
 export const OTP_GLOBAL_KEY = "otp-send-global";
+const OTP_GUESSES_PER_DAY = 30;
 const PROOF_TTL_MS = 15 * 60 * 1000;
 const RESEND_SECONDS = 60;
 
@@ -88,6 +89,14 @@ export async function sendOtp(phone, purpose) {
 export async function verifyOtp(phone, purpose, code) {
   const limited = await checkRateLimit(`otp-verify:${phone}`, 12, 15 * 60 * 1000);
   if (!limited.ok) return { ok: false, code: "rate_limited" };
+  // Five digits and fresh codes on demand would otherwise allow hundreds of guesses a day at one number (audit of
+  // 2026-11-09). Counted only while a code is live, so junk calls cannot lock a stranger's number; asked before the
+  // row lock below so a burst of guesses never holds one connection while waiting for another.
+  const live = await get(await getDb(), "SELECT 1 AS yes FROM otp_codes WHERE phone = $1 AND purpose = $2 AND consumed_at IS NULL AND expires_at > NOW() LIMIT 1", [phone, purpose]);
+  if (live) {
+    const daily = await checkRateLimit(`otp-verify-day:${phone}:${String(purpose).split(":")[0]}`, OTP_GUESSES_PER_DAY, 24 * 60 * 60 * 1000);
+    if (!daily.ok) return { ok: false, code: "rate_limited" };
+  }
   return withTransaction(null, async (client) => {
     const row = await get(client, `
       SELECT id, code_hash, attempts FROM otp_codes

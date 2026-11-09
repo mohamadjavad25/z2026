@@ -197,7 +197,7 @@ export function AppearanceSettings({ bare = false }) {
 }
 
 /**
- * In-app alerts, appointment reminders (clients; artists set theirs under booking controls) and the sound. The
+ * In-app alerts, appointment reminders (clients and salons here; artists set theirs under booking controls) and the sound. The
  * «reservationAlerts» switch only governs what shows inside the open app: the phone notification and SMS about a
  * booking always go (audit 2026-10-22: the old label promised more than it did).
  */
@@ -219,6 +219,15 @@ export function NotificationSettings({ profileType, profileSettings, onToggle, b
           icon={profileSettings.reminders ? BellRing : BellOff}
           label="یادآوری نوبت"
           description="یه روز و دو ساعت قبل از نوبت"
+          checked={profileSettings.reminders !== false}
+          onChange={() => onToggle("reminders")}
+        />
+      )}
+      {profileType === "salon" && (
+        <SettingsToggle
+          icon={profileSettings.reminders !== false ? BellRing : BellOff}
+          label="یادآوری مشتری"
+          description="قبل از هر نوبت، به مشتری یادآوری می‌ره"
           checked={profileSettings.reminders !== false}
           onChange={() => onToggle("reminders")}
         />
@@ -309,7 +318,7 @@ export function ArtistBookingSettings({ profileSettings, onToggle, bare = false 
       <SettingsToggle
         icon={Bell}
         label="یادآوری مشتری"
-        description="یه روز و دو ساعت قبل از هر نوبت، به مشتری یادآوری می‌ره"
+        description="قبل از هر نوبت، به مشتری یادآوری می‌ره"
         checked={Boolean(profileSettings.reminders)}
         onChange={() => onToggle("reminders")}
       />

@@ -90,7 +90,8 @@ export async function retryPhotoRead(file, attempt) {
  *  read», client error of 2026-11-04). */
 export async function compressImageToDataUrl(file, {
   maxDimension = MAX_DIMENSION,
-  quality = JPEG_QUALITY
+  quality = JPEG_QUALITY,
+  mustOpen = false
 } = {}) {
   let original = "";
   try {
@@ -102,7 +103,7 @@ export async function compressImageToDataUrl(file, {
     if (typeof document === "undefined" || typeof Image === "undefined") return original;
     const img = await loadImage(original);
     const { width, height } = img;
-    if (!width || !height) return original;
+    if (!width || !height) return mustOpen ? "" : original;
     const scale = Math.min(1, maxDimension / Math.max(width, height));
     // Already small enough, and re-encoding a PNG/GIF with transparency as
     // JPEG would lose that -- only re-encode when actually downscaling.
@@ -124,6 +125,7 @@ export async function compressImageToDataUrl(file, {
       ? compressed
       : original;
   } catch {
-    return original;
+    // `mustOpen`: the caller needs to show the picture (the logo's crop box), so one that cannot be opened is no use.
+    return mustOpen ? "" : original;
   }
 }

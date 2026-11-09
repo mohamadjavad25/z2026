@@ -4,6 +4,7 @@ import { dateKeyAfter } from "../../../shared/lib/artistPlace.js";
 import { timeLabelToMinutes } from "../../../shared/lib/time.js";
 import { toLatinDigits } from "../../../shared/lib/digits.js";
 import { plainPriceAmount } from "../../../shared/lib/money.js";
+import { ARTIST_CONFIRMED as CONFIRMED } from "../../../shared/lib/bookingStates.js";
 
 /**
  * Leave, terms and the ledger between a salon and a team artist (owner's decision 2026-10-28, docs/DECISIONS.md;
@@ -21,7 +22,6 @@ export const LEAVE_MAX_DAYS = 60;
 const WEEKDAYS = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
 const plainDay = (value) => String(value || "").replace(/[‌\s]/g, "");
 
-const CONFIRMED = ["تایید شده", "تایید"];
 
 /** «۶۰»、«60»、«۶۰ درصد» → 60; anything else (e.g. «قابل مذاکره») → null. */
 export function parsePercent(text) {

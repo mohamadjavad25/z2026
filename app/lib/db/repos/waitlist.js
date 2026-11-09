@@ -1,5 +1,6 @@
 import { all, get, getDb, run } from "../connection.js";
 import { formatPersianDateKey } from "../../../shared/lib/persianCalendar.js";
+import { SQL_ARTIST_LIVE, SQL_SALON_LIVE } from "../../../shared/lib/bookingStates.js";
 
 /**
  * «خبرم کن» (owner's decision of 2026-10-27, roadmap ۱۹): a client waits for a time to free up on one day at one salon
@@ -99,11 +100,11 @@ export async function clientHasVisitThere(clientUserId, kind, ownerUserId, booki
   const row = kind === "artist"
     ? await get(db, `
         SELECT 1 FROM artist_bookings WHERE client_user_id = $1 AND artist_user_id = $2 AND booking_date = $3
-          AND source_salon_user_id IS NULL AND status IN ('تازه', 'درخواست', 'تایید', 'تایید شده') LIMIT 1
+          AND source_salon_user_id IS NULL AND status IN (${SQL_ARTIST_LIVE}) LIMIT 1
       `, [clientUserId, ownerUserId, bookingDate])
     : await get(db, `
         SELECT 1 FROM salon_bookings WHERE client_user_id = $1 AND salon_user_id = $2 AND booking_date = $3
-          AND status IN ('تازه', 'درخواست', 'تایید شده', 'در انتظار مشتری') LIMIT 1
+          AND status IN (${SQL_SALON_LIVE}) LIMIT 1
       `, [clientUserId, ownerUserId, bookingDate]);
   return Boolean(row);
 }

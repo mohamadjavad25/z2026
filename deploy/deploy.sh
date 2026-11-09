@@ -54,8 +54,12 @@ echo "    $(du -h "$ARCHIVE" | cut -f1) release archive"
 echo "==> Upload"
 bash "$ROOT/deploy/upload-release.sh" "$ARCHIVE" "$USER_@$HOST"
 
-echo "==> Database migrations (through an SSH tunnel to the server's Postgres)"
 DB_URL="$("${SSH[@]}" sudo /opt/frfro/bin/db-url.sh)"
+# The nightly backup is hours old by evening; a bad migration must be able to come back to this minute.
+echo "==> A copy of the database before migrating"
+printf '%s' "$DB_URL" | "${SSH[@]}" 'umask 077; pg_dump "$(cat)" -Fc -f "$HOME/before-deploy.dump.tmp" && mv "$HOME/before-deploy.dump.tmp" "$HOME/before-deploy.dump" || { rm -f "$HOME/before-deploy.dump.tmp"; exit 1; }'
+
+echo "==> Database migrations (through an SSH tunnel to the server's Postgres)"
 LOCAL_URL="${DB_URL/@127.0.0.1:5432\//@127.0.0.1:$LOCAL_DB_PORT/}"
 ssh -o StrictHostKeyChecking=accept-new -o ExitOnForwardFailure=yes -N -L "$LOCAL_DB_PORT:127.0.0.1:5432" "$USER_@$HOST" &
 TUNNEL=$!

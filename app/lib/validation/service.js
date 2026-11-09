@@ -37,7 +37,7 @@ export function durationProblem(value) {
   if (!text) return null;
   if (text.length > SERVICE_LIMITS.duration) return "مدت خیلی بلنده؛ فقط عدد دقیقه رو بنویس.";
   const match = toAsciiDigits(text).match(/\d+/);
-  if ((!match && !/ساعت/.test(text)) || match?.[0].length > 6) return "مدت رو به دقیقه بنویس؛ مثلاً ۴۵";
+  if ((!match && !/ساعت/.test(text) && !durationTextMinutes(text)) || match?.[0].length > 6) return "مدت رو به دقیقه بنویس؛ مثلاً ۴۵";
   if (/^\s*[-−–]/.test(toAsciiDigits(text))) return "مدت نمی‌تونه منفی باشه.";
   if (!parseBoundedInt(durationTextMinutes(text), { min: 1, max: MAX_BOOKING_MINUTES }).ok) {
     return `مدت باید بین ۱ تا ${MAX_BOOKING_MINUTES} دقیقه باشه.`;

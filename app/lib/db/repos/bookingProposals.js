@@ -10,6 +10,9 @@ import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
 import { resolveRollingPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { parseBookingParts, isMultiPartBooking } from "../../../shared/lib/bookingParts.js";
 import { PROPOSAL_MIN_LEAD_MINUTES, isProposalLapsed, minutesToStart } from "../../../shared/lib/providerRules.js";
+import { ARTIST_CONFIRMED, SALON_CONFIRMED } from "../../../shared/lib/bookingStates.js";
+import { SQL_ARTIST_CONFIRMED } from "../../../shared/lib/bookingStates.js";
+import { dropProposalBackups } from "./smsBackups.js";
 
 /**
  * A provider's proposal on a CONFIRMED booking (owner's rules of 2026-10-22): another time (`proposal_date` /
@@ -22,14 +25,12 @@ import { PROPOSAL_MIN_LEAD_MINUTES, isProposalLapsed, minutesToStart } from "../
  * exactly one consistent result.
  */
 
-export const SALON_CONFIRMED = ["تایید شده", "تازه"];
-export const ARTIST_CONFIRMED = ["تایید شده", "تایید"];
 
 const fail = (error, message, extra = {}) => ({ ok: false, error, message, ...extra });
 const MESSAGES = {
   missing: "این نوبت رو پیدا نکردیم.",
   not_confirmed: "این نوبت دیگه تأییدشده نیست؛ فهرست رو تازه کن.",
-  no_account: "این مشتری حساب فرفرو نداره؛ بهش زنگ بزن.",
+  no_account: "این نوبت دستی ثبت شده؛ بهش زنگ بزن.",
   too_late: "تا نوبت کمتر از ۲ ساعت مونده و دیگه وقت پیشنهاد نیست؛ به مشتری زنگ بزن.",
   slot: "این ساعت خالی نیست؛ یکی از ساعت‌های فهرست رو بزن.",
   same: "این همون ساعت فعلی نوبته.",
@@ -151,6 +152,7 @@ export async function withdrawProposal({ kind, id, providerUserId }) {
     if (!locked) return refuse("missing");
     if (!locked.proposal_at) return { ok: true, booking: locked, nothing: true };
     await clearProposal(tx, table, Number(id));
+    await dropProposalBackups(kind, id);
     return { ok: true, booking: await get(tx, `SELECT * FROM ${table} WHERE id = $1`, [Number(id)]) };
   });
 }
@@ -284,7 +286,7 @@ async function closeLapsedSalonProposal(id) {
   const db = await getDb();
   return get(db, `
     UPDATE salon_bookings SET proposal_date = '', proposal_time = '', proposal_staff = '', proposal_from = '', proposal_at = NULL,
-      proposal_lapsed_at = CASE WHEN status IN ('تایید شده', 'تایید', 'تازه') THEN NOW() ELSE proposal_lapsed_at END
+      proposal_lapsed_at = CASE WHEN status IN (${SQL_ARTIST_CONFIRMED}, 'تازه') THEN NOW() ELSE proposal_lapsed_at END
     WHERE id = $1 AND proposal_at IS NOT NULL RETURNING *
   `, [Number(id)]);
 }
@@ -292,7 +294,7 @@ async function closeLapsedArtistProposal(id) {
   const db = await getDb();
   return get(db, `
     UPDATE artist_bookings SET proposal_date = '', proposal_time = '', proposal_at = NULL,
-      proposal_lapsed_at = CASE WHEN status IN ('تایید شده', 'تایید', 'تازه') THEN NOW() ELSE proposal_lapsed_at END
+      proposal_lapsed_at = CASE WHEN status IN (${SQL_ARTIST_CONFIRMED}, 'تازه') THEN NOW() ELSE proposal_lapsed_at END
     WHERE id = $1 AND proposal_at IS NOT NULL RETURNING *
   `, [Number(id)]);
 }
@@ -346,3 +348,5 @@ export async function listArtistProposalTimes({ artistUserId, id }) {
   }
   return { ok: true, times };
 }
+
+export { ARTIST_CONFIRMED, SALON_CONFIRMED };

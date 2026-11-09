@@ -188,7 +188,7 @@ function OwnerProfileForm({ initialName, initialRoles, profile, joining, busy, o
       setPhotoError("این فایل عکس نیست.");
       return;
     }
-    const dataUrl = await compressImageToDataUrl(file, { maxDimension: 640 });
+    const dataUrl = await compressImageToDataUrl(file, { maxDimension: 640, mustOpen: true });
     if (!dataUrl) {
       setPhotoError(UNREADABLE_PHOTO);
       return;

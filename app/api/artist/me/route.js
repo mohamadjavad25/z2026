@@ -23,6 +23,8 @@ import { noticeClientCancelledByProvider } from "../../../lib/providerNotices.js
 import { STARTED_NO_CANCEL_TEXT, STARTED_TEAM_NO_CANCEL_TEXT, hasStarted } from "../../../shared/lib/providerRules.js";
 import { ownEntryBlock } from "../../../lib/billing/access.js";
 
+import { ARTIST_CONFIRMED } from "../../../shared/lib/bookingStates.js";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -222,7 +224,7 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
     }
     // A confirmed visit that has started can't be cancelled by its artist any more (owner's decision of 2026-10-25):
     // an independent artist marks «نیومد» instead; a salon's visit is the salon's to mark.
-    if (wantsCancel && ["تایید", "تایید شده"].includes(locked.status) && hasStarted(locked.booking_date, locked.time)) {
+    if (wantsCancel && ARTIST_CONFIRMED.includes(locked.status) && hasStarted(locked.booking_date, locked.time)) {
       refusal = json({
         error: locked.source_salon_user_id ? STARTED_TEAM_NO_CANCEL_TEXT : STARTED_NO_CANCEL_TEXT,
         code: "BOOKING_STARTED"
@@ -284,7 +286,7 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
 
   // Cancelling a booking that was already confirmed is a broken promise: the client gets the apology push + SMS
   // (owner's rule of 2026-10-22), never the plain "cancelled" answer on top of it.
-  const confirmedBefore = ["تایید شده", "تایید"].includes(statusBefore);
+  const confirmedBefore = ARTIST_CONFIRMED.includes(statusBefore);
   // A team artist dropping their share of a multi-service visit: the visit goes on, so the client is told nothing.
   const visitGoesOn = Boolean(salonBooking) && salonBooking.status !== "لغو";
   if (nextStatus === "لغو" && confirmedBefore && !visitGoesOn) {

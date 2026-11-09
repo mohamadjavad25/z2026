@@ -18,7 +18,7 @@ function whenText(leave) {
 async function tellSalons(artist, leave, kind) {
   for (const { salon_user_id: salonUserId } of await salonsOfArtist(artist.id)) {
     notifyConnection(salonUserId, kind === "added"
-      ? { title: `${artist.name || "یکی از تیمت"} نمی‌تونه بیاد`, body: `${whenText(leave)}. نوبت‌های اون وقت رو قبلاً جابه‌جا کرده.`, url: "/" }
+      ? { title: `${artist.name || "یکی از تیمت"} نمی‌تونه بیاد`, body: whenText(leave), url: "/" }
       : { title: `${artist.name || "یکی از تیمت"} مرخصی‌ش رو برداشت`, body: `${whenText(leave)} دوباره سر کاره.`, url: "/" });
   }
 }

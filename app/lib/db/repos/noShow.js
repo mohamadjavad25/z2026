@@ -1,5 +1,6 @@
 import { get, run, withTransaction } from "../connection.js";
 import { noShowPhase } from "../../../shared/lib/providerRules.js";
+import { confirmedStatuses } from "../../../shared/lib/bookingStates.js";
 
 /**
  * «نیومد» (owner's decision of 2026-10-25, roadmap ۱۴ stage 1): the salon (its own booking) or an independent artist
@@ -17,7 +18,7 @@ export async function setNoShow({ kind, id, ownerUserId, noShow }) {
       : await get(db, "SELECT * FROM salon_bookings WHERE id = $1 AND salon_user_id = $2 FOR UPDATE", [id, ownerUserId]);
     if (!row) return { ok: false, error: "missing" };
     // A salon's own walk-in entry is «تازه» and already settled; an artist's direct booking is confirmed as «تایید» or «تایید شده».
-    const confirmed = kind === "artist" ? ["تایید", "تایید شده"] : ["تایید شده", "تازه"];
+    const confirmed = confirmedStatuses(kind);
     if (!confirmed.includes(row.status)) return { ok: false, error: "not_confirmed" };
     const phase = noShowPhase(row.booking_date, row.time);
     if (phase === "ahead" || phase === null) return { ok: false, error: "not_started" };

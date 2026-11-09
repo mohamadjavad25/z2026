@@ -4,7 +4,7 @@ import { requireAdmin } from "../../../../../lib/admin.js";
 import * as admin from "../../../../../lib/db/repos/admin.js";
 import * as ops from "../../../../../lib/db/repos/adminOps.js";
 import { sendPushToUser } from "../../../../../lib/push.js";
-import { bookingWhen } from "../../../../../lib/bookingSms.js";
+import { bookingWhen, handEntryCancelTarget } from "../../../../../lib/bookingSms.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -56,6 +56,13 @@ async function _POST(request, { params }) {
     const text = `رزرو «${booking.service || "خدمت"}» ${bookingWhen(booking.booking_date, booking.time)} از طرف پشتیبانی فرفرو لغو شد. ${reason}`.slice(0, 200);
     for (const userId of [booking.client_user_id, booking.provider_id].filter(Boolean)) {
       sendPushToUser(userId, { title: "لغو رزرو", body: text, url: "/" }).catch(() => {});
+    }
+    if (!booking.client_user_id && booking.client_phone) {
+      const accountId = await handEntryCancelTarget(booking.client_phone, {
+        booking: { kind, id, booking_date: booking.booking_date, time: booking.time, ...(kind === "salon" ? { salon_user_id: booking.provider_id } : { artist_user_id: booking.provider_id }) },
+        providerName: before.provider?.name || ""
+      });
+      if (accountId) sendPushToUser(accountId, { title: "لغو رزرو", body: text, url: "/" }).catch(() => {});
     }
   }
   return json({ data: { ok: true } });

@@ -55,6 +55,16 @@ export async function hasPublicPage(userId, runner = null) {
   return row?.settings?.publicPortfolio !== false;
 }
 
+/** The salons and artists with a page search engines may list: not suspended, not set to private. Ids only, for the sitemap. */
+export async function listPublicProviderPages(runner = null) {
+  const db = runner || (await getDb());
+  return all(db, `
+    SELECT u.id, u.type FROM users u LEFT JOIN user_settings s ON s.user_id = u.id
+    WHERE u.type IN ('salon', 'artist') AND u.suspended_at IS NULL AND COALESCE(s.settings->>'publicPortfolio', 'true') <> 'false'
+    ORDER BY u.id DESC
+  `);
+}
+
 export function hidesPrices(settings) {
   return settings?.showPrices === false;
 }

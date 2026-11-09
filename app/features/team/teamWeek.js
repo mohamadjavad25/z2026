@@ -75,8 +75,8 @@ export function leaveLabel(iso) {
 
 /** The return day for «فردا», «۳ روز دیگه», «هفتهٔ بعد» (n days from today), as «YYYY-MM-DD». */
 export function leaveDayAfter(days, from = nowDate()) {
-  const date = new Date(from.getTime() + days * 86400000);
-  return date.toISOString().slice(0, 10);
+  // Tehran's calendar day: after midnight there and before 03:30 UTC would otherwise be yesterday, and «فردا» today.
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tehran" }).format(new Date(from.getTime() + days * 86400000));
 }
 
 /** "۱۰:۳۰" or "10:30" as minutes from midnight; null when it is not a time. */

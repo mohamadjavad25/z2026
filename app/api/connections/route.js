@@ -2,6 +2,8 @@ import { ensureDb } from "../../lib/db/connection.js";
 import { error, json, parseId, readJson, requireUserRole, withErrorHandling } from "../../lib/http.js";
 import * as connections from "../../lib/db/repos/connections.js";
 
+import { notifyNewFollower } from "../../lib/db/repos/social.js";
+
 export const runtime = "nodejs";
 
 // The client's own salons and artists ("سالن و آرتیست من").
@@ -25,6 +27,7 @@ async function _POST(request) {
   if (!targetUserId) return error("کدوم سالن یا آرتیست؟ انتخابش کن.");
   const result = await connections.connect(auth.user.id, targetUserId);
   if (!result.ok) return error("این سالن یا آرتیست رو پیدا نکردیم.", 404);
+  if (!result.alreadyConnected) notifyNewFollower(auth.user.id, targetUserId);
   return json({ data: { profile: result.profile, alreadyConnected: result.alreadyConnected } });
 }
 

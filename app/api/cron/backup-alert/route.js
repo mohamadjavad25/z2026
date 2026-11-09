@@ -4,6 +4,8 @@ import { ensureDb } from "../../../lib/db/connection.js";
 import { pushAdmins } from "../../../lib/adminPush.js";
 import { withErrorHandling } from "../../../lib/http.js";
 
+import { alertAdmins } from "../../../lib/adminNews.js";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,7 @@ async function _POST(request) {
   const body = await request.json().catch(() => ({}));
   const text = MESSAGES[body?.what] || MESSAGES.made;
   const reached = await pushAdmins({ title: "بکاپ فرفرو", body: text });
+  if (!reached.size) await alertAdmins("backup", { title: "بکاپ فرفرو", body: text });
   return NextResponse.json({ data: { reached: reached.size } });
 }
 

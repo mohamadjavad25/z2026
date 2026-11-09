@@ -13,6 +13,7 @@ import { notifyConnection } from "../../connectionNotify.js";
 import { notifyTeamEnd } from "../../teamNotify.js";
 import { salonGone } from "../../artistPlaceRelease.js";
 import { deleteClientAccount } from "./clientExit.js";
+import { ARTIST_CONFIRMED, ARTIST_LIVE, SALON_CONFIRMED, SALON_LIVE } from "../../../shared/lib/bookingStates.js";
 
 /**
  * Leaving: a salon or artist deleting their account, an artist leaving a salon team, a salon removing a team member
@@ -27,10 +28,6 @@ import { deleteClientAccount } from "./clientExit.js";
  * The routes enforce this on the server; the dialogs only show what this returns.
  */
 
-const SALON_LIVE = ["تازه", "درخواست", "تایید شده", "در انتظار مشتری"];
-const ARTIST_LIVE = ["تازه", "درخواست", "تایید", "تایید شده", "در انتظار مشتری"];
-const SALON_CONFIRMED = ["تایید شده", "تازه"];
-const ARTIST_CONFIRMED = ["تایید شده", "تایید"];
 
 /** What a person leaving is leaving: { salonOwnerId } a salon account; { artistId } an artist account; { teamSalonId, names, artistId? } one team. */
 function staffNameSet(rows) {

@@ -1,6 +1,7 @@
 import { all, getDb } from "../connection.js";
 import { formatPersianDateKey } from "../../../shared/lib/persianCalendar.js";
 import { RELIABILITY_MONTHS } from "../../../shared/lib/attendance.js";
+import { SQL_ARTIST_CONFIRMED, SQL_SALON_CONFIRMED } from "../../../shared/lib/bookingStates.js";
 
 /**
  * Each client's record across all of frfro (owner's decision of 2026-10-27): confirmed visits whose day has passed
@@ -27,11 +28,11 @@ export async function clientReliability(clientUserIds, runner = null, now = new 
         MAX(booking_date) FILTER (WHERE no_show_at > NOW() - make_interval(months => $3)) OVER (PARTITION BY client_user_id) AS last_no_show_day
       FROM (
         SELECT client_user_id, no_show_at, booking_date FROM salon_bookings
-        WHERE client_user_id = ANY($1::int[]) AND status IN ('تایید شده', 'تازه')
+        WHERE client_user_id = ANY($1::int[]) AND status IN (${SQL_SALON_CONFIRMED})
           AND (booking_date < $2 OR no_show_at IS NOT NULL)
         UNION ALL
         SELECT client_user_id, no_show_at, booking_date FROM artist_bookings
-        WHERE client_user_id = ANY($1::int[]) AND source_salon_user_id IS NULL AND status IN ('تایید', 'تایید شده')
+        WHERE client_user_id = ANY($1::int[]) AND source_salon_user_id IS NULL AND status IN (${SQL_ARTIST_CONFIRMED})
           AND (booking_date < $2 OR no_show_at IS NOT NULL)
       ) raw
     ) visits

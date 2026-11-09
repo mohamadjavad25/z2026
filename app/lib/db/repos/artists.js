@@ -32,6 +32,7 @@ import { onlineBookingBlock, withoutHiddenProviders } from "../../billing/access
 import { withServicePhotos, applyServicePhotoChoice } from "./servicePhotos.js";
 import { MAX_SERVICES_PER_PROVIDER } from "../../validation/service.js";
 import { proposalView } from "../../../shared/lib/providerRules.js";
+import { ARTIST_LIVE, SQL_ARTIST_LIVE } from "../../../shared/lib/bookingStates.js";
 
 export { ensureArtistHours, listArtistHours, updateArtistHour, saveArtistHoursWeek } from "./artists/hours.js";
 
@@ -1307,7 +1308,7 @@ export async function cancelArtistBookingByClient(id, client) {
     ? await get(db, `SELECT b.* FROM artist_bookings b WHERE b.id = $1 AND b.source_salon_user_id IS NULL AND ${match.sql}`, [id, ...match.params])
     : null;
   if (!current) return { ok: false, error: "missing" };
-  if (!["تازه", "درخواست", "تایید", "تایید شده"].includes(current.status)) return { ok: false, error: "inactive" };
+  if (!ARTIST_LIVE.includes(current.status)) return { ok: false, error: "inactive" };
   if (isPersianDateKey(current.booking_date) && current.booking_date < formatPersianDateKey(new Date())) {
     return { ok: false, error: "past" };
   }
@@ -1316,7 +1317,7 @@ export async function cancelArtistBookingByClient(id, client) {
   // Conditional on it still being active: the sweep or the artist may have closed it since the read above.
   const changed = await run(db, `
     UPDATE artist_bookings SET status = 'لغو', cancelled_by = 'client', proposal_date = '', proposal_time = '', proposal_at = NULL, updated_at = CURRENT_TIMESTAMP
-    WHERE id = $1 AND status IN ('تازه', 'درخواست', 'تایید', 'تایید شده')
+    WHERE id = $1 AND status IN (${SQL_ARTIST_LIVE})
   `, [id]);
   if (!changed.rowCount) return { ok: false, error: "inactive" };
   return { ok: true, booking: { ...current, status: "لغو" }, artistUserId: current.artist_user_id };

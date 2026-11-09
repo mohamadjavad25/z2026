@@ -84,7 +84,7 @@ export async function getDashboard(rangeDays = 7) {
         (SELECT COUNT(*)::int FROM client_errors WHERE created_at >= NOW() - INTERVAL '24 hours') AS client_errors,
         (SELECT COUNT(*)::int FROM users WHERE last_seen_at >= NOW() - INTERVAL '5 minutes') AS online,
         (SELECT COUNT(*)::int FROM users WHERE created_at >= NOW() - INTERVAL '24 hours') AS signups_today,
-        (SELECT COUNT(*)::int FROM salon_bookings WHERE status IN ('تازه', 'درخواست')) + (SELECT COUNT(*)::int FROM artist_bookings WHERE source_salon_user_id IS NULL AND status IN ('تازه', 'درخواست')) AS waiting_bookings
+        (SELECT COUNT(*)::int FROM salon_bookings WHERE status = 'درخواست') + (SELECT COUNT(*)::int FROM artist_bookings WHERE source_salon_user_id IS NULL AND status IN ('تازه', 'درخواست')) AS waiting_bookings
     `),
     all(db, `
       SELECT kind, title, detail, at FROM (

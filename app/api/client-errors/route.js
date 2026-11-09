@@ -15,7 +15,7 @@ export const runtime = "nodejs";
 // capped row for the admin health page.
 const MAX_PER_MINUTE = 300;
 // One address can no longer use up the shared budget and hide everyone else's crashes.
-const MAX_PER_MINUTE_PER_IP = 20;
+const MAX_PER_MINUTE_PER_IP = 60;
 
 // A wave of crashes must not take database connections from bookings: past the budget this copy of the app answers
 // from memory, before any query.

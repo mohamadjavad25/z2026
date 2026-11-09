@@ -10,7 +10,7 @@
 
 ## مرحله ۱: یک‌بار آماده‌سازی سرور
 ۱. روی کامپیوتر خودتان یک کلید SSH مخصوص دیپلوی بسازید: `ssh-keygen -t ed25519 -f frfro-deploy -N ""`
-۲. به سرور وصل شوید (`ssh root@IP`)، پوشه `deploy/` را روی آن کپی کنید (مثلاً `scp -r deploy root@IP:/root/`) و اجرا کنید:
+۲. به سرور وصل شوید (`ssh root@IP`)، پوشه‌های `deploy/` و `scripts/` را روی آن کپی کنید (مثلاً `scp -r deploy scripts root@IP:/root/`) و اجرا کنید:
 
 ```
 cd /root/deploy

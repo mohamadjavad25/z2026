@@ -611,7 +611,7 @@ export function ScheduleBookingMenuModal({
                 <p>
                   {hasAccount
                     ? "لغوش کنی، مشتری با اعلان و پیامک خبردار می‌شه: «ببخشید؛ یه نوبت دیگه بگیر.»"
-                    : "این مشتری حساب فرفرو نداره و پیامکی نمی‌گیره؛ خودت بهش زنگ بزن."}
+                    : (phone ? "لغوش کنی، مشتری پیامک می‌گیره: «ببخشید؛ یه نوبت دیگه بگیر.»" : "شماره‌ای ازش نداریم؛ خودت خبرش کن.")}
                 </p>
                 <div>
                   <button type="button" className="pxBtn is-danger" disabled={actionDisabled} onClick={() => onCancel?.()}>{busy ? "دارم لغو می‌کنم…" : CANCEL_WITH_NOTICE}</button>

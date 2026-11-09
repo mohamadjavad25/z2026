@@ -7,6 +7,7 @@ import { parseBookingParts } from "../shared/lib/bookingParts.js";
 import { DUE_SEND_WINDOW_DAYS, dueText } from "../shared/lib/dueReminder.js";
 import { closedWhileEnforced } from "./billing/access.js";
 import { getProvenPhone, getVerifiedClientByPhone } from "./db/repos/users.js";
+import { SQL_ARTIST_CONFIRMED, SQL_SALON_CONFIRMED } from "../shared/lib/bookingStates.js";
 
 /**
  * «وقتش شده» (owner's decisions of 2026-10-25): once the usual gap after a visit has passed, its client gets ONE push
@@ -37,14 +38,14 @@ async function candidates(db, now) {
   const salon = await all(db, `
     SELECT 'salon' AS kind, b.id, b.client_user_id, b.phone_normalized, b.salon_user_id AS owner_user_id, b.booking_date, b.time, b.service, b.parts, u.name AS place
     FROM salon_bookings b JOIN users u ON u.id = b.salon_user_id
-    WHERE u.due_confirmed_at IS NOT NULL AND b.status IN ('تایید شده', 'تازه') AND b.no_show_at IS NULL
+    WHERE u.due_confirmed_at IS NOT NULL AND b.status IN (${SQL_SALON_CONFIRMED}) AND b.no_show_at IS NULL
       AND (b.client_user_id IS NOT NULL OR EXISTS (SELECT 1 FROM users c WHERE c.phone = b.phone_normalized AND c.type = 'client' AND c.phone_verified_at IS NOT NULL)) AND b.booking_date >= $1 AND b.booking_date <= $2
       AND NOT EXISTS (SELECT 1 FROM due_reminders_sent s WHERE s.booking_kind = 'salon' AND s.booking_id = b.id)
   `, [from, until]);
   const artist = await all(db, `
     SELECT 'artist' AS kind, b.id, b.client_user_id, b.phone_normalized, b.artist_user_id AS owner_user_id, b.booking_date, b.time, b.service, '' AS parts, u.name AS place
     FROM artist_bookings b JOIN users u ON u.id = b.artist_user_id
-    WHERE u.due_confirmed_at IS NOT NULL AND b.source_salon_user_id IS NULL AND b.status IN ('تایید', 'تایید شده') AND b.no_show_at IS NULL
+    WHERE u.due_confirmed_at IS NOT NULL AND b.source_salon_user_id IS NULL AND b.status IN (${SQL_ARTIST_CONFIRMED}) AND b.no_show_at IS NULL
       AND (b.client_user_id IS NOT NULL OR EXISTS (SELECT 1 FROM users c WHERE c.phone = b.phone_normalized AND c.type = 'client' AND c.phone_verified_at IS NOT NULL)) AND b.booking_date >= $1 AND b.booking_date <= $2
       AND NOT EXISTS (SELECT 1 FROM due_reminders_sent s WHERE s.booking_kind = 'artist' AND s.booking_id = b.id)
   `, [from, until]);

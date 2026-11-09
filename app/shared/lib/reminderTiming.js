@@ -29,7 +29,9 @@ export function bookingStartMs(dateKey, time, now = nowDate()) {
 export function eveningForEarlyVisit(kind, time, now = nowDate()) {
   if (kind !== "day" || timeLabelToMinutes(time) >= EARLY_VISIT_BEFORE) return kind;
   const clock = getTehranClockMinutes(now);
-  return clock >= EVENING_FROM && clock < EVENING_UNTIL ? "evening" : kind;
+  // Held for the evening: sending the day reminder at 8 and the same words again at 20 was a second text for one visit.
+  if (clock >= EVENING_FROM && clock < EVENING_UNTIL) return "evening";
+  return clock < EVENING_FROM ? null : kind;
 }
 
 export function dueReminderKind(dateKey, time, now = nowDate()) {

@@ -4,7 +4,8 @@ import { normalizePhone, isValidIranMobile } from "../../../lib/auth.js";
 import { requireAdmin } from "../../../lib/admin.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import * as passwordResetRequests from "../../../lib/db/repos/passwordResetRequests.js";
-import { checkRateLimit } from "../../../lib/rateLimit.js";
+import { checkIpRateLimit, checkRateLimit } from "../../../lib/rateLimit.js";
+import * as users from "../../../lib/db/repos/users.js";
 import { readJson, withErrorHandling } from "../../../lib/http.js";
 import { smsAdminsSupport } from "../../../lib/adminSms.js";
 
@@ -14,6 +15,7 @@ export const runtime = "nodejs";
 // unauthenticated by nature (that's the whole point: it's for people who
 // can't log in), so it's an obvious spam/enumeration target without one.
 const REQUEST_LIMIT = 5;
+const REQUESTS_PER_IP_HOUR = 20;
 const REQUEST_WINDOW_MS = 60 * 60 * 1000;
 
 // No real SMS/OTP provider is wired in yet (deliberately deferred to just
@@ -41,6 +43,11 @@ async function _POST(request) {
       );
     }
 
+    if (!(await checkIpRateLimit(request, "password-reset-request", REQUESTS_PER_IP_HOUR, REQUEST_WINDOW_MS)).ok) {
+      return NextResponse.json({ error: "زیاد درخواست دادی؛ چند دقیقه دیگه دوباره بزن.", code: "rate_limited" }, { status: 429 });
+    }
+    // A number with no account gets the same answer and costs nothing: no queue row, no SMS to the admins.
+    if (!(await users.getUserByPhone(phone))) return NextResponse.json({ data: { id: 0 } });
     const result = await passwordResetRequests.createRequest(phone, note);
     smsAdminsSupport("password-reset", { topic: "بازیابی رمز", who: phone });
     return NextResponse.json({ data: { id: result.id } });
