@@ -67,6 +67,13 @@ export const SMS_TEMPLATES = {
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time, artist: v.artist }),
     preview: (v) => `فرفرو: ${v.who} می‌خواد نوبتت (${v.day} ساعت ${v.time}) رو بده به ${v.artist}. توی فرفرو جواب بده؛ تا جواب ندی، همه‌چی سر جاشه.`
   },
+  booking_made_link: {
+    label: "سالن یا آرتیست برای مشتری نوبت ثبت کرد، با لینک صفحه‌ش (به مشتری)",
+    env: "BOOKING_MADE_LINK",
+    kavenegar: (v) => ({ token: v.time, token10: v.day, token20: v.who, token2: v.code }),
+    faraz: (v) => ({ who: v.who, day: v.day, time: v.time, code: v.code }),
+    preview: (v) => `فرفرو: ${v.who} برات نوبت ${v.day} ساعت ${v.time} گذاشت. frfro.ir/b/${v.code}`
+  },
   booking_made_for_you: {
     label: "سالن یا آرتیست خودش برای مشتری نوبت ثبت کرد (به مشتری)",
     env: "BOOKING_MADE",

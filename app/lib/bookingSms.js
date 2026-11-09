@@ -1,7 +1,8 @@
 import * as users from "./db/repos/users.js";
+import { hasPublicPage } from "./db/repos/userSettings.js";
 import { getDb, get, run } from "./db/connection.js";
 import { checkRateLimit } from "./rateLimit.js";
-import { sendTemplateSms } from "./sms.js";
+import { sendTemplateSms, templateConfigured } from "./sms.js";
 import { chargeClientSms, refundClientSms } from "./billing/smsCredits.js";
 import { pushReachedApp, reachableByAppPush } from "./push.js";
 import { formatRelativeBookingDayLabel } from "../shared/lib/persianCalendar.js";
@@ -9,6 +10,7 @@ import { normalizeBookingTimeLabel } from "../shared/lib/time.js";
 import { toPersianDigits } from "../shared/lib/digits.js";
 import { isSlotInPast } from "../shared/lib/slots.js";
 import { normalizePhone } from "../shared/lib/phone.js";
+import { providerLinkCode } from "../shared/lib/providerLink.js";
 import { sendPushToUser } from "./push.js";
 import * as smsBackups from "./db/repos/smsBackups.js";
 import { logger } from "./logger.js";
@@ -210,6 +212,19 @@ export function smsBookingReminder(clientUserId, { providerName, time, payerUser
   })().catch(() => {});
 }
 
+/** The same two-hour text for a client who has only a number (a booking entered by hand): nothing else can reach them. */
+export function smsReminderToNumber(phone, { providerName, time, payerUserId = null }) {
+  void (async () => {
+    // Typed-in numbers cost money and reach strangers if abused: far above what a busy salon reminds in an hour.
+    const limited = await checkRateLimit(`sms-hand-reminder:${Number(payerUserId)}`, 100, 60 * 60 * 1000);
+    if (!limited.ok) return;
+    await sendClientSms(payerUserId, phone, "booking_reminder", {
+      who: String(providerName || "").trim() || "سالن",
+      time: timeLabel(time)
+    }, { reminder: true });
+  })().catch(() => {});
+}
+
 /**
  * «خبرم کن»: a time opened on the day a client is waiting for. Texted only when the push did not reach their app, and
  * at most a few times a day per client, however many places they wait at.
@@ -245,10 +260,10 @@ export function smsClientCancelled(providerUserId, { client, bookingDate, time }
  * text. Claimed under the same key as the plain "cancelled" answer above, so one booking is never texted twice
  * whichever of the two messages goes first. `gone`: the salon or artist is no longer on frfro («… دیگر در فرفرو نیست»).
  */
-export function smsBookingCancelledByProvider(clientUserId, { providerName, bookingDate, time, booking = null, gone = false }) {
+export function smsBookingCancelledByProvider(clientUserId, { providerName, bookingDate, time, booking = null, gone = false, phone: numberOnly = "" }) {
   void (async () => {
     if (booking && !(await claimBookingAnswerSms(booking.kind, booking.id, "cancelled"))) return;
-    const phone = await phoneOf(clientUserId);
+    const phone = numberOnly || await phoneOf(clientUserId);
     await sendClientSms(await bookingPayerId(booking), phone, gone ? "booking_cancelled_gone" : "booking_cancelled_by_provider", {
       who: String(providerName || "").trim() || "سالن",
       day: dayLabel(bookingDate),
@@ -293,14 +308,44 @@ export function noticeClientBookedByProvider(provider, booking) {
     if (!limited.ok) return;
     const name = String(provider.name || providerUser.name || "").trim() || (provider.type === "artist" ? "آرتیستت" : "سالن");
     const when = bookingWhen(booking.bookingDate, booking.time);
-    const account = await users.getUserByPhone(phone);
-    const clientId = account?.type === "client" ? Number(account.id) : 0;
+    const account = await users.getVerifiedClientByPhone(phone);
+    const clientId = account ? Number(account.id) : 0;
     const push = clientId
       ? sendPushToUser(clientId, { title: "یه نوبت برات ثبت شد", body: `${name} برات نوبت ثبت کرد، ${when}. توی فرفرو ببینش.`, url: "/" }).catch(() => null)
       : null;
     if (clientId && await pushReachedApp(push)) return;
-    await sendClientSms(Number(provider.id), phone, "booking_made_for_you", { who: name, day: dayLabel(booking.bookingDate), time: timeLabel(booking.time) });
+    const values = { who: name, day: dayLabel(booking.bookingDate), time: timeLabel(booking.time) };
+    // The link lets this client book the next visit themselves (owner, 2026-11-09). The text without it stays until its
+    // pattern is approved, and for a salon or artist whose page is private (the link would open nothing).
+    const code = templateConfigured("booking_made_link") && await hasPublicPage(provider.id)
+      ? providerLinkCode(provider.type, provider.id)
+      : "";
+    if (code) await sendClientSms(Number(provider.id), phone, "booking_made_link", { ...values, code });
+    else await sendClientSms(Number(provider.id), phone, "booking_made_for_you", values);
   })().catch(() => {});
+}
+
+/**
+ * A booking entered by hand was cancelled by the salon or artist (owner, 2026-11-09). A verified account hears it the
+ * normal way; a number with no such account gets the SMS. Nothing for a visit already over, nor for the provider's own
+ * number. Returns the account id to notify, or 0 when this function dealt with it. Never throws.
+ */
+export async function handEntryCancelTarget(rawPhone, { booking, providerName, gone = false }) {
+  try {
+    const phone = normalizePhone(rawPhone);
+    if (!/^09\d{9}$/.test(phone) || isSlotInPast(booking.booking_date, booking.time)) return 0;
+    const payer = await bookingPayerId(booking);
+    const owner = payer ? await users.getUserById(payer) : null;
+    if (owner && normalizePhone(owner.phone) === phone) return 0;
+    const account = await users.getVerifiedClientByPhone(phone);
+    if (account) return Number(account.id);
+    // Typed-in numbers: a cap against entering strangers and cancelling them. A provider leaving frfro is the exception.
+    if (!gone && payer && !(await checkRateLimit(`sms-hand-cancel:${payer}`, 100, 60 * 60 * 1000)).ok) return 0;
+    smsBookingCancelledByProvider(0, { providerName, bookingDate: booking.booking_date, time: booking.time, booking: { kind: booking.kind, id: booking.id }, gone, phone });
+  } catch {
+    // a cancelled booking is already saved; a lost notice must not undo it
+  }
+  return 0;
 }
 
 export { dayLabel as smsDayLabel, timeLabel as smsTimeLabel };

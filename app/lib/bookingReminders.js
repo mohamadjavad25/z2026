@@ -1,6 +1,8 @@
 import { getDb, all, get } from "./db/connection.js";
 import { sendPushToUser } from "./push.js";
-import { smsBookingReminder } from "./bookingSms.js";
+import { smsBookingReminder, smsReminderToNumber } from "./bookingSms.js";
+import { getVerifiedClientByPhone } from "./db/repos/users.js";
+import { normalizePhone } from "../shared/lib/phone.js";
 import { bookingStartMs, dueReminderKind, eveningForEarlyVisit } from "../shared/lib/reminderTiming.js";
 import { formatPersianDateKey } from "../shared/lib/persianCalendar.js";
 import { formatRelativeBookingDayLabel } from "../shared/lib/persianCalendar.js";
@@ -25,12 +27,16 @@ import { closedWhileEnforced } from "./billing/access.js";
  * - The day-before reminder waits out the night (22:00 to 08:00 Tehran): a visit confirmed at 1 a.m. for the next
  *   evening is reminded in the morning, not straight after the "confirmed" news. The two-hour one always goes, and
  *   someone no push reached (no app, no browser notifications: most iPhones) gets it as an SMS (booking_reminder).
+ * - A booking entered by hand has only a phone (owner, 2026-11-09). A number an account has proven with a code is treated
+ *   as that account. Any other number gets ONE SMS, the two-hour one, never before 08:00 Tehran. Nothing for a visit
+ *   entered less than two hours ahead (the «برات نوبت گذاشت» text just went) or for the provider's own number.
  */
 const CONFIRMED = "تایید شده";
 const PARALLEL = 10;
 const QUIET_FROM = 22 * 60;
 const QUIET_UNTIL = 8 * 60;
 const TEHRAN_OFFSET_MINUTES = 3 * 60 + 30;
+const SOON_MS = 2 * 3600 * 1000;
 
 /** True between 22:00 and 08:00 in Tehran (no daylight saving), whatever the server's own clock zone. */
 export function tehranNight(now) {
@@ -46,17 +52,36 @@ async function loadCandidates(db, now) {
   const today = formatPersianDateKey(now);
   const dayAfter = formatPersianDateKey(new Date(now.getTime() + 3 * 24 * 3600 * 1000));
   const salon = await all(db, `
-    SELECT 'salon' AS source, b.id, b.client_user_id, b.salon_user_id AS owner_user_id, b.booking_date, b.time, b.service, u.name AS place
+    SELECT 'salon' AS source, b.id, b.client_user_id, b.salon_user_id AS owner_user_id, b.booking_date, b.time, b.service, u.name AS place,
+      b.phone_normalized AS client_phone, b.created_at, u.phone AS owner_phone
     FROM salon_bookings b JOIN users u ON u.id = b.salon_user_id
-    WHERE b.status = $1 AND b.client_user_id IS NOT NULL AND b.booking_date >= $2 AND b.booking_date <= $3
+    WHERE ((b.status = $1 AND b.client_user_id IS NOT NULL) OR (b.client_user_id IS NULL AND b.status IN ('تایید شده', 'تازه') AND b.phone_normalized <> ''))
+      AND b.booking_date >= $2 AND b.booking_date <= $3
   `, [CONFIRMED, today, dayAfter]);
   const artist = await all(db, `
-    SELECT 'artist' AS source, b.id, b.client_user_id, b.artist_user_id AS owner_user_id, b.booking_date, b.time, b.service, u.name AS place
+    SELECT 'artist' AS source, b.id, b.client_user_id, b.artist_user_id AS owner_user_id, b.booking_date, b.time, b.service, u.name AS place,
+      b.phone_normalized AS client_phone, b.created_at, u.phone AS owner_phone
     FROM artist_bookings b JOIN users u ON u.id = b.artist_user_id
-    WHERE b.status = $1 AND b.client_user_id IS NOT NULL AND b.source_salon_user_id IS NULL
+    WHERE ((b.status = $1 AND b.client_user_id IS NOT NULL) OR (b.client_user_id IS NULL AND b.status IN ('تایید شده', 'تایید') AND b.phone_normalized <> ''))
+      AND b.source_salon_user_id IS NULL
       AND b.booking_date >= $2 AND b.booking_date <= $3
   `, [CONFIRMED, today, dayAfter]);
   return [...salon, ...artist];
+}
+
+/**
+ * A booking entered by hand, in the shape the sweep can act on, or null when nothing is due: a verified account takes
+ * the normal path (`client_user_id` set); anyone else is `numberOnly`, for the two-hour SMS in the day only.
+ */
+async function handEntered(booking, kind, night, now) {
+  const phone = normalizePhone(booking.client_phone);
+  if (!/^09\d{9}$/.test(phone) || phone === normalizePhone(booking.owner_phone)) return null;
+  const start = bookingStartMs(booking.booking_date, booking.time, now);
+  if (kind === "soon" && new Date(booking.created_at).getTime() >= start - SOON_MS) return null;
+  const account = await getVerifiedClientByPhone(phone);
+  if (account) return { ...booking, client_user_id: account.id };
+  if (kind !== "soon" || night) return null;
+  return { ...booking, numberOnly: phone };
 }
 
 /** The client can opt out (تنظیمات → یادآوری نوبت); a salon/artist can switch reminders off for their customers. */
@@ -91,8 +116,9 @@ export async function sweepBookingReminders(now = new Date()) {
   const night = tehranNight(now);
   for (const booking of await loadCandidates(db, now)) {
     const kind = eveningForEarlyVisit(dueReminderKind(booking.booking_date, booking.time, now), booking.time, now);
-    if (kind === "day" && night) continue;
-    if (kind) due.push({ booking, kind });
+    if (!kind || (kind === "day" && night)) continue;
+    const ready = booking.client_user_id ? booking : await handEntered(booking, kind, night, now);
+    if (ready) due.push({ booking: ready, kind });
   }
   result.candidates = due.length;
   const closed = await closedWhileEnforced(due.map(({ booking }) => booking.owner_user_id));
@@ -109,6 +135,10 @@ export async function sweepBookingReminders(now = new Date()) {
     `, [booking.source, booking.id, reminderClaimKind(kind, booking), kind]);
     if (!claim) return;
     result.claimed += 1;
+    if (booking.numberOnly) {
+      smsReminderToNumber(booking.numberOnly, { providerName: booking.place, time: booking.time, payerUserId: booking.owner_user_id });
+      return;
+    }
     if (kind === "day") {
       const records = await clientReliability([booking.client_user_id], db).catch(() => new Map());
       booking.attend_ask = needsAttendQuestion(records.get(Number(booking.client_user_id)));

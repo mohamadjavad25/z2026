@@ -218,7 +218,7 @@ export async function cancelItem(item, { by = "provider", userId = null, actor =
     const result = await salons.patchSalonBookingWithArtistSync(item.id, item.salonUserId, { status: "لغو" }, { cancelledBy: { by, userId } });
     if (!result.ok) return result;
     if (purgeMirrorOf.length) await purgeMirrors(item.salonUserId, purgeMirrorOf, item);
-    noticeClientCancelledByProvider(item.clientUserId, { provider: await providerOf(item, actor), booking: { kind: "salon", id: item.id, booking_date: item.date, time: item.time, service: item.service }, gone: by === "gone" });
+    noticeClientCancelledByProvider(item.clientUserId, { provider: await providerOf(item, actor), booking: { kind: "salon", id: item.id, booking_date: item.date, time: item.time, service: item.service }, gone: by === "gone", phone: item.clientPhone });
     return { ok: true, booking: result.booking };
   }
   const done = await withTransaction(null, async (tx) => {
@@ -229,7 +229,7 @@ export async function cancelItem(item, { by = "provider", userId = null, actor =
     return locked;
   });
   if (!done) return { ok: false, error: "inactive" };
-  noticeClientCancelledByProvider(item.clientUserId, { provider: await providerOf(item, actor), booking: { kind: "artist", id: item.id, booking_date: item.date, time: item.time, service: item.service }, gone: by === "gone" });
+  noticeClientCancelledByProvider(item.clientUserId, { provider: await providerOf(item, actor), booking: { kind: "artist", id: item.id, booking_date: item.date, time: item.time, service: item.service }, gone: by === "gone", phone: item.clientPhone });
   return { ok: true };
 }
 
@@ -388,7 +388,7 @@ export async function closeOrphanBookings(now = new Date()) {
       `, [row.id, live]);
       if (result.rowCount) {
         closed += 1;
-        noticeClientCancelledByProvider(row.client_user_id, { provider: { type: kind === "salon" ? "salon" : "artist", name: "" }, booking: { kind, id: row.id, booking_date: row.booking_date, time: row.time, service: row.service }, gone: true });
+        noticeClientCancelledByProvider(row.client_user_id, { provider: { type: kind === "salon" ? "salon" : "artist", name: "" }, booking: { kind, id: row.id, booking_date: row.booking_date, time: row.time, service: row.service }, gone: true, phone: (kind === "salon" ? row.phone : row.client_phone) || "" });
       }
     }
   }

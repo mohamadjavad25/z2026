@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createClient, joinSalonAsArtist, registerUser, futureBookingDay } from "./helpers.js";
+import { smsSettled } from "./exitHelpers.js";
 
 // A salon with a nail artist and a hair artist, each linked by hand to one service, and a client.
 async function setup() {
@@ -144,6 +145,15 @@ describe("multi-service salon booking", () => {
     expect(await myVisitShare(ctx.nail, ctx)).toHaveLength(0);
     row = (await ctx.salonClient.get("/api/salon-bookings")).payload.data.bookings.find((b) => b.id === booking.id);
     expect(row.status).toBe("لغو");
+  });
+
+  it("a team artist dropping their share of a confirmed visit does not tell the client it is cancelled", async () => {
+    const ctx = await setup();
+    const booking = (await requestVisit(ctx, { bookingDate: futureBookingDay(6) })).payload.data.booking;
+    expect((await ctx.salonClient.patch("/api/salon-bookings", { id: booking.id, status: "تایید شده" })).ok).toBe(true);
+    const [hairShare] = await myVisitShare(ctx.hair, ctx);
+    expect((await ctx.hair.client.patch("/api/artist/me", { kind: "booking", id: hairShare.id, status: "لغو", action: "cancel" })).ok).toBe(true);
+    expect(await smsSettled(ctx.client.phone, ["booking_cancelled_by_provider"])).toBe(0);
   });
 
   it("an artist cannot confirm their share of a visit the salon has not approved (it would leave salon and client waiting)", async () => {

@@ -285,16 +285,19 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
   // Cancelling a booking that was already confirmed is a broken promise: the client gets the apology push + SMS
   // (owner's rule of 2026-10-22), never the plain "cancelled" answer on top of it.
   const confirmedBefore = ["تایید شده", "تایید"].includes(statusBefore);
-  if (nextStatus === "لغو" && confirmedBefore) {
+  // A team artist dropping their share of a multi-service visit: the visit goes on, so the client is told nothing.
+  const visitGoesOn = Boolean(salonBooking) && salonBooking.status !== "لغو";
+  if (nextStatus === "لغو" && confirmedBefore && !visitGoesOn) {
     const clientId = Number(current.clientUserId || salonBooking?.client_user_id || 0);
     const viaSalon = salonBooking?.salon_user_id ? await getUserLiteById(Number(salonBooking.salon_user_id)).catch(() => null) : null;
     noticeClientCancelledByProvider(clientId, {
       provider: viaSalon ? { type: "salon", name: viaSalon.name } : { type: "artist", name: artistName },
       booking: viaSalon && salonBooking
         ? { kind: "salon", id: salonBooking.id, booking_date: salonBooking.booking_date, time: salonBooking.time, service: salonBooking.service }
-        : { kind: "artist", id: bookingId, booking_date: current.bookingDate, time: current.time, service: current.service }
+        : { kind: "artist", id: bookingId, booking_date: current.bookingDate, time: current.time, service: current.service },
+      phone: salonBooking?.phone || current.phone || ""
     });
-  } else if (current.clientUserId) {
+  } else if (current.clientUserId && !(nextStatus === "لغو" && visitGoesOn)) {
     const push = sendPushToUser(Number(current.clientUserId), {
       title: nextStatus === "تایید شده" ? "نوبتت تأیید شد" : "نوبتت لغو شد",
       body: `${current.service || "نوبت"}، ${bookingWhen(current.bookingDate, current.time)}`

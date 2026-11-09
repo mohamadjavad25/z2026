@@ -60,6 +60,24 @@ export async function getUserByPhone(phone, runner = null) {
 }
 
 /**
+ * The client account that has PROVEN it owns this number with an SMS code, or null. A hand-entered booking only ties to
+ * an account this way: anyone can sign up with any number while the code is not required (same rule as clientMatch.js).
+ */
+export async function getVerifiedClientByPhone(phone, runner = null) {
+  const normalized = String(phone || "").trim();
+  if (!normalized) return null;
+  const db = runner || (await getDb());
+  return (await get(db, "SELECT id, phone FROM users WHERE phone = $1 AND type = 'client' AND phone_verified_at IS NOT NULL", [normalized])) || null;
+}
+
+/** This account's phone once it has proven it with a code, else "". */
+export async function getProvenPhone(userId, runner = null) {
+  const db = runner || (await getDb());
+  const row = await get(db, "SELECT phone, phone_verified_at FROM users WHERE id = $1", [Number(userId)]);
+  return row?.phone_verified_at ? row.phone : "";
+}
+
+/**
  * True when another salon or artist already holds this name (see app/lib/businessName.js for what counts as the
  * same name). `excludeUserId` is the account itself, so saving a profile without renaming never trips it.
  */

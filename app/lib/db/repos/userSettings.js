@@ -48,6 +48,13 @@ export async function getSettings(userId, runner = null) {
  * comes out as "" (the column's "no price") and `priceHidden` tells the page to leave the spot empty, with no
  * «قیمت توافقی» in its place. Bookings still read the real menu on the server.
  */
+/** Whether this salon's or artist's public page opens for a visitor (the switch in Settings). */
+export async function hasPublicPage(userId, runner = null) {
+  const db = runner || (await getDb());
+  const row = await get(db, "SELECT settings FROM user_settings WHERE user_id = $1", [Number(userId)]);
+  return row?.settings?.publicPortfolio !== false;
+}
+
 export function hidesPrices(settings) {
   return settings?.showPrices === false;
 }

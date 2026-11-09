@@ -37,6 +37,15 @@ describe("«وقتش شده»", () => {
     expect(await sentFor(booking.id)).toBe(1);
   });
 
+  it("a later walk-in with no phone is not this client's later booking", async () => {
+    const { ctx, booking } = await pastVisit("DueWalkIn");
+    await ctx.salonClient.post("/api/due-reminders", { confirm: true });
+    const walkIn = await ctx.salonClient.post("/api/salon-bookings", { service: "کوتاهی مو", bookingDate: futureBookingDay(3), time: "12:00", client: "بدون شماره", phone: "" });
+    expect(walkIn.ok).toBe(true);
+    await reminderSweep(tehranNoon());
+    expect(await sentFor(booking.id)).toBe(1);
+  });
+
   it("not when the client already has a later booking there, has switched it off, or the salon turned the service off", async () => {
     const later = await pastVisit("DueLater");
     await later.ctx.salonClient.post("/api/due-reminders", { confirm: true });

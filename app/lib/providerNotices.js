@@ -1,5 +1,5 @@
 import { sendPushToUser } from "./push.js";
-import { bookingWhen, smsBookingCancelledByProvider, smsBookingProposal, smsDayLabel, smsTimeLabel } from "./bookingSms.js";
+import { bookingWhen, handEntryCancelTarget, smsBookingCancelledByProvider, smsBookingProposal, smsDayLabel, smsTimeLabel } from "./bookingSms.js";
 import {
   ARTIST_GONE_TEXT,
   SALON_GONE_TEXT,
@@ -21,8 +21,16 @@ import {
 const quiet = (promise) => Promise.resolve(promise).catch(() => {});
 
 /** The provider cancelled a booking (or left frfro): the client's push, in-app card (reads cancelled_by) and SMS. */
-export function noticeClientCancelledByProvider(clientUserId, { provider, booking, gone = false }) {
-  if (!clientUserId) return;
+export function noticeClientCancelledByProvider(clientUserId, { provider, booking, gone = false, phone = "" }) {
+  if (!clientUserId) {
+    // Entered by hand: `phone` is all we have. A verified account comes back here as a normal client.
+    if (!phone) return;
+    const providerName = providerLabel(provider?.type === "artist" ? "artist" : "salon", provider?.name);
+    void quiet(handEntryCancelTarget(phone, { booking, providerName, gone }).then((id) => {
+      if (id) noticeClientCancelledByProvider(id, { provider, booking, gone });
+    }));
+    return;
+  }
   const type = provider?.type === "artist" ? "artist" : "salon";
   const body = gone
     ? `${providerLabel(type, provider?.name)} دیگه توی فرفرو نیست و نوبتت (${booking.service || "نوبت"}) لغو شد. می‌تونی یه جای دیگه نوبت بگیری.`

@@ -20,11 +20,11 @@ describe("a booking a salon or artist enters by hand tells the client", () => {
     const phone = uniquePhone();
     const made = await salonEntry(salon, { phone });
     expect(made.status).toBe(201);
-    const texts = await smsEventually(phone, "booking_made_for_you", 1);
+    const texts = await smsEventually(phone, "booking_made_link", 1);
     expect(texts).toHaveLength(1);
     expect(texts[0].body).toContain(salon.user.name);
     expect(texts[0].body).toContain("برات نوبت");
-    expect(await smsSettled(phone, ["booking_made_for_you"])).toBe(1);
+    expect(await smsSettled(phone, ["booking_made_link"])).toBe(1);
   });
 
   it("a salon's entry for a client with an account reaches that client (no app push in tests, so the SMS goes)", async () => {
@@ -32,7 +32,7 @@ describe("a booking a salon or artist enters by hand tells the client", () => {
     const client = await newClient("Hand Known Client");
     const made = await salonEntry(salon, { phone: client.phone, client: client.user.name, time: "12:00" });
     expect(made.status).toBe(201);
-    expect(await smsEventually(client.phone, "booking_made_for_you", 1)).toHaveLength(1);
+    expect(await smsEventually(client.phone, "booking_made_link", 1)).toHaveLength(1);
   });
 
   it("an artist's own entry for a client texts the client once", async () => {
@@ -40,10 +40,10 @@ describe("a booking a salon or artist enters by hand tells the client", () => {
     const phone = uniquePhone();
     const made = await artistEntry(artist, { phone });
     expect(made.status).toBe(201);
-    const texts = await smsEventually(phone, "booking_made_for_you", 1);
+    const texts = await smsEventually(phone, "booking_made_link", 1);
     expect(texts).toHaveLength(1);
     expect(texts[0].body).toContain(artist.user.name);
-    expect(await smsSettled(phone, ["booking_made_for_you"])).toBe(1);
+    expect(await smsSettled(phone, ["booking_made_link"])).toBe(1);
   });
 
   it("the same booking is never texted twice, and a second entry at the same time is not a second message", async () => {
@@ -51,14 +51,14 @@ describe("a booking a salon or artist enters by hand tells the client", () => {
     const phone = uniquePhone();
     const first = await salonEntry(salon, { phone, time: "15:00" });
     expect(first.status).toBe(201);
-    await smsEventually(phone, "booking_made_for_you", 1);
+    await smsEventually(phone, "booking_made_link", 1);
     const again = await salonEntry(salon, { phone, time: "15:00" });
     const id = first.payload.data.booking.id;
     expect((await q("SELECT status FROM booking_sms_sent WHERE booking_kind = 'salon' AND booking_id = $1", [id])).map((r) => r.status)).toEqual(["made"]);
     // a refused or repeated entry adds nothing; a genuinely new booking (another row) may be texted on its own
     const sameRow = again.status === 201 && again.payload.data.booking.id === id;
     const want = again.status === 201 && !sameRow ? 2 : 1;
-    expect(await smsSettled(phone, ["booking_made_for_you"])).toBe(want);
+    expect(await smsSettled(phone, ["booking_made_link"])).toBe(want);
   });
 
   it("a visit already over is history: no message", async () => {
@@ -67,7 +67,7 @@ describe("a booking a salon or artist enters by hand tells the client", () => {
     const past = slotAhead(-180);
     const made = await artistEntry(artist, { phone, day: past.date, time: past.time });
     // whether the calendar takes an earlier slot or not, nobody is texted about it
-    if (made.status === 201) expect(await smsSettled(phone, ["booking_made_for_you"], 1500)).toBe(0);
+    if (made.status === 201) expect(await smsSettled(phone, ["booking_made_link"], 1500)).toBe(0);
     else expect(made.status).toBeGreaterThanOrEqual(400);
   });
 
@@ -75,7 +75,7 @@ describe("a booking a salon or artist enters by hand tells the client", () => {
     const salon = await newSalon("Hand Salon Self");
     const made = await salonEntry(salon, { phone: salon.phone, time: "16:00" });
     expect(made.status).toBe(201);
-    expect(await smsSettled(salon.phone, ["booking_made_for_you"], 1500)).toBe(0);
+    expect(await smsSettled(salon.phone, ["booking_made_link"], 1500)).toBe(0);
   });
 
   it("a client's own request is not a hand entry: the client gets no «برایت نوبت … ثبت کرد»", async () => {
@@ -83,7 +83,7 @@ describe("a booking a salon or artist enters by hand tells the client", () => {
     const client = await newClient("Hand Request Client");
     const made = await client.api.post("/api/salon-bookings", { salonUserId: salon.id, service: "کوتاهی مو", bookingDate: FAR_DAY(3), time: "13:00", client: client.user.name, phone: client.phone });
     expect(made.status).toBe(201);
-    expect(await smsSettled(client.phone, ["booking_made_for_you"], 1500)).toBe(0);
+    expect(await smsSettled(client.phone, ["booking_made_link"], 1500)).toBe(0);
   });
 });
 

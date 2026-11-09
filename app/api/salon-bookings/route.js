@@ -322,10 +322,11 @@ async function _PATCH(request) {
     const bookingClientUserId = result.booking.client_user_id ? Number(result.booking.client_user_id) : null;
     // Cancelling a booking that was already confirmed is a broken promise: the client gets the apology push + SMS
     // (booking_cancelled_by_provider), never the plain "cancelled" answer on top of it.
-    if (bookingClientUserId && patch.status === "لغو" && proposals.SALON_CONFIRMED.includes(statusBefore)) {
+    if (patch.status === "لغو" && proposals.SALON_CONFIRMED.includes(statusBefore)) {
       noticeClientCancelledByProvider(bookingClientUserId, {
         provider: { type: "salon", name: auth.user.name },
-        booking: { kind: "salon", id, booking_date: result.booking.booking_date, time: result.booking.time, service: result.booking.service }
+        booking: { kind: "salon", id, booking_date: result.booking.booking_date, time: result.booking.time, service: result.booking.service },
+        phone: result.booking.phone || ""
       });
     } else if (bookingClientUserId) {
       const push = sendPushToUser(bookingClientUserId, {
