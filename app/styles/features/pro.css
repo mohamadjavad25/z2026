@@ -1,0 +1,106 @@
+/* /s: the page an SMS to salon owners and artists opens. An ink hero with the brand's pink and violet light, then a
+   white sheet listing what frfro takes off their hands, and one pink button that stays at the bottom of the screen. */
+.proPage {
+  --p-ink: var(--brand-ink);
+  --p-pink: var(--brand-pink);
+  --p-violet: var(--brand-violet);
+  --p-paper: var(--brand-white);
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  background: var(--p-ink);
+  color: var(--p-paper);
+  font-family: Vazirmatn, Tahoma, sans-serif;
+  padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+}
+.proPage__hero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: max(22px, env(safe-area-inset-top, 0px)) 20px 40px;
+  text-align: center;
+}
+.proPage__hero > * { position: relative; }
+.proPage__glow { position: absolute; border-radius: 50%; filter: blur(70px); opacity: 0.55; }
+.proPage__glow--pink { width: 260px; height: 260px; background: var(--p-pink); top: -110px; inset-inline-start: -100px; }
+.proPage__glow--violet { width: 300px; height: 300px; background: var(--p-violet); bottom: -170px; inset-inline-end: -120px; }
+.proPage__brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.1rem; }
+.proPage__brand img { width: 36px; height: 36px; border-radius: 10px; }
+.proPage__tag {
+  margin-top: 14px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgb(var(--brand-pink-rgb) / 0.5);
+  color: var(--p-pink);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.proPage h1 { margin: 0; font-size: 2.3rem; line-height: 1.35; font-weight: 800; }
+.proPage h1 em { font-style: normal; background: var(--brand-blend); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.proPage__hero p { margin: 0; font-size: 1.05rem; line-height: 1.9; opacity: 0.85; }
+.proPage__cta {
+  display: block;
+  width: min(100%, 420px);
+  padding: 16px;
+  border-radius: 20px;
+  background: var(--p-pink);
+  color: var(--p-ink);
+  font-weight: 800;
+  font-size: 1.15rem;
+  text-align: center;
+  text-decoration: none;
+}
+.proPage__bazaar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: min(100%, 420px);
+  padding: 11px 16px;
+  border-radius: 20px;
+  border: 1.5px solid color-mix(in srgb, var(--p-paper) 50%, transparent);
+  color: var(--p-paper);
+  font-weight: 700;
+  text-decoration: none;
+}
+.proPage__bazaar img { width: 28px; height: 28px; border-radius: 7px; background: var(--p-paper); }
+.proPage__cta:focus-visible, .proPage__bazaar:focus-visible, .proPage__roles button:focus-visible, .proPage__price a:focus-visible { outline: 3px solid var(--p-violet); outline-offset: 3px; }
+
+.proPage__body {
+  position: relative;
+  display: grid;
+  gap: 18px;
+  width: min(100%, 520px);
+  margin: 0 auto;
+  padding: 22px 18px 28px;
+  border-radius: 32px;
+  background: var(--p-paper);
+  color: var(--p-ink);
+}
+.proPage__roles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 5px; border-radius: 18px; background: rgb(var(--brand-violet-rgb) / 0.12); }
+.proPage__roles button { border: 0; border-radius: 14px; padding: 12px 8px; background: transparent; color: var(--p-ink); font: inherit; font-weight: 700; cursor: pointer; }
+.proPage__roles button.is-on { background: var(--p-violet); color: var(--p-ink); }
+.proPage h2 { margin: 6px 0 0; font-size: 1.3rem; font-weight: 800; }
+.proPage__points { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.proPage__points li { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; }
+.proPage__icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: rgb(var(--brand-pink-rgb) / 0.22); color: var(--p-ink); }
+.proPage__points b { display: block; font-size: 1.05rem; }
+.proPage__points p { margin: 2px 0 0; line-height: 1.8; opacity: 0.75; }
+.proPage__steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; counter-reset: pro; }
+.proPage__steps li { counter-increment: pro; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: rgb(var(--brand-violet-rgb) / 0.1); font-weight: 600; }
+.proPage__steps li::before { content: counter(pro, persian); display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--p-violet); color: var(--p-ink); font-weight: 800; }
+.proPage__price { margin: 0; text-align: center; line-height: 1.9; opacity: 0.85; }
+.proPage__price a { color: var(--p-ink); font-weight: 700; }
+
+.proPage__bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 5;
+  display: grid;
+  justify-items: center;
+  padding: 12px 18px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to top, var(--p-ink) 62%, transparent);
+}
