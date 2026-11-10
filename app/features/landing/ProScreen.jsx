@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { BellRing, CalendarDays, Images, Link2, PhoneOff, Repeat, Store, Users } from "lucide-react";
+import { BellRing, CalendarDays, Images, Link2, PhoneOff, Repeat, Store, Users, X } from "lucide-react";
 import { BAZAAR_PAGE } from "../../shared/lib/appUpdate";
 import { APP_DOWNLOADS_OPEN, HOME_LANDING_SKIP_KEY } from "./constants";
 import { proSourceTag } from "./proSource";
@@ -10,7 +9,8 @@ import { proSourceTag } from "./proSource";
 /**
  * /s: the page an SMS to salon owners and artists opens. It names what frfro takes off their hands (each line is
  * something the app really does today), lets them switch between «سالن دارم» and «آرتیستم», and has one button
- * into the app. Opens, enters and Bazaar taps are counted per message tag (landing_visits, the same counter as /go).
+ * into the app. «قیمت‌ها» opens a sheet on this same page (owner, 2026-11-10: the price page's back link led to the
+ * home page and the visitor was lost); the phone's back key closes it. Opens, enters and Bazaar taps are counted per message tag (landing_visits, the same counter as /go).
  */
 const ROLES = [
   { id: "salon", label: "سالن دارم" },
@@ -45,10 +45,11 @@ function beacon(source, kind) {
   } catch {}
 }
 
-export function ProScreen({ trialDays, salonPrice, artistPrice }) {
+export function ProScreen({ trialDays, salonPrice, artistPrice, plans }) {
   const [role, setRole] = useState("salon");
   const [source, setSource] = useState("sms");
   const [android, setAndroid] = useState(false);
+  const [priceOpen, setPriceOpen] = useState(false);
 
   useEffect(() => {
     const tag = proSourceTag(window.location.pathname);
@@ -56,6 +57,23 @@ export function ProScreen({ trialDays, salonPrice, artistPrice }) {
     setAndroid(/Android/i.test(navigator.userAgent || ""));
     beacon(tag, "open");
   }, []);
+
+  // The price sheet is one step in the phone's history, so the back key closes it and the visitor stays on this page.
+  useEffect(() => {
+    const onPop = () => setPriceOpen(false);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  function openPrice() {
+    window.history.pushState({ proPrice: true }, "");
+    setPriceOpen(true);
+  }
+
+  function closePrice() {
+    if (window.history.state?.proPrice) window.history.back();
+    else setPriceOpen(false);
+  }
 
   function enter(event) {
     event.preventDefault();
@@ -123,12 +141,36 @@ export function ProScreen({ trialDays, salonPrice, artistPrice }) {
         <p className="proPage__price">
           {trialDays} روز رایگان. بعدش {role === "salon" ? `سالن ماهی ${salonPrice}` : `آرتیست ماهی ${artistPrice}`} هزار تومن.
         </p>
-        <Link className="proPage__priceLink" href="/pricing">قیمت‌ها</Link>
+        <button type="button" className="proPage__priceLink" onClick={openPrice}>قیمت‌ها</button>
       </section>
 
       <div className="proPage__bar">
         <a className="proPage__cta" href="/" onClick={enter}>{cta}</a>
       </div>
+
+      {priceOpen ? (
+        <div className="proPage__sheetWrap" onClick={closePrice}>
+          <section className="proPage__sheet" role="dialog" aria-modal="true" aria-label="قیمت‌ها" onClick={(event) => event.stopPropagation()}>
+            <header>
+              <h2>{role === "salon" ? "اشتراک سالن" : "اشتراک آرتیست"}</h2>
+              <button type="button" className="proPage__sheetClose" aria-label="بستن" onClick={closePrice}><X size={22} /></button>
+            </header>
+            <p className="proPage__sheetFree">{trialDays} روز اول رایگانه.</p>
+            <ul className="proPage__plans">
+              {(plans?.[role] || []).map((plan) => (
+                <li key={plan.id}>
+                  <span>
+                    {plan.label}
+                    {plan.gift ? <small>{plan.gift}</small> : null}
+                  </span>
+                  <b>{plan.price}</b>
+                </li>
+              ))}
+            </ul>
+            <a className="proPage__cta" href="/" onClick={enter}>{cta}</a>
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }
