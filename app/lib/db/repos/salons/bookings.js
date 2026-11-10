@@ -1304,7 +1304,10 @@ export async function answerSalonTimeOffer(id, client, accept) {
     id,
     current.salon_user_id,
     { status: accept ? "تایید شده" : "لغو" },
-    { clientAnswer: true }
+    // The offer must still be waiting when the change is made, not only when it was looked up above: a second
+    // answer arriving at the same instant (accept and decline together) found the first one's result and acted on
+    // it, so both "won" (stress test 4b, seen in CI on 2026-11-10).
+    { clientAnswer: true, expectStatus: AWAITING_CLIENT }
   );
   return result.ok ? { ...result, salonUserId: current.salon_user_id } : result;
 }
@@ -1329,6 +1332,8 @@ async function patchSalonBookingUncached(id, salonUserId, data, options = {}) {
     SELECT * FROM salon_bookings WHERE id = $1 AND salon_user_id = $2
   `, [id, salonUserId]);
   if (!current) return { ok: false, error: "missing" };
+  // The caller acts only on a booking in one known state (the client answering an offered time).
+  if (options.expectStatus && current.status !== options.expectStatus) return { ok: false, error: "inactive" };
 
   // Past bookings are review-only. Persian date keys (YYYY-MM-DD, zero
   // padded) sort lexicographically, so a plain string compare is enough.
