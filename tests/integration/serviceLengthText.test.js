@@ -20,7 +20,8 @@ describe("a service's length and price come from what its owner saved", () => {
 
   it("«۵ ساعت» holds five hours, and the next client cannot book inside them", async () => {
     const artist = await artistWith("۵ ساعت", "از ۲ میلیون");
-    const day = futureBookingDay(2);
+    // Not a Thursday: it closes at 18:00 by default, so the 15:00 visit (five hours) would not fit and the test failed every Tuesday.
+    const day = futureBookingDay(2, { notOn: ["پنجشنبه"] });
     const first = await book(await booker("Long First"), artist.id, day, "10:00");
     expect(first.ok).toBe(true);
     expect(Number(first.payload.data.booking.duration_minutes ?? first.payload.data.booking.durationMinutes)).toBe(300);

@@ -60,7 +60,7 @@
   width: min(100%, 420px);
   padding: 11px 16px;
   border-radius: 20px;
-  border: 1.5px solid color-mix(in srgb, var(--p-paper) 50%, transparent);
+  border: 1.5px solid rgb(var(--brand-pink-rgb) / 0.5);
   color: var(--p-paper);
   font-weight: 700;
   text-decoration: none;
