@@ -35,7 +35,7 @@ const POINTS = {
   ]
 };
 
-const STEPS = ["صفحه‌ت رو بساز", "خدمات و ساعت کاری رو بچین", "لینکت رو برای مشتری بفرست"];
+const STEPS = ["صفحه‌ت رو بساز", "خدمات و ساعت کاری رو بچین", "مشتری‌هات رو دعوت کن"];
 
 function beacon(source, kind) {
   try {
@@ -121,8 +121,9 @@ export function ProScreen({ trialDays, salonPrice, artistPrice }) {
         </ol>
 
         <p className="proPage__price">
-          {trialDays} روز رایگان. بعدش {role === "salon" ? `سالن ماهی ${salonPrice}` : `آرتیست ماهی ${artistPrice}`} هزار تومن. <Link href="/pricing">قیمت‌ها</Link>
+          {trialDays} روز رایگان. بعدش {role === "salon" ? `سالن ماهی ${salonPrice}` : `آرتیست ماهی ${artistPrice}`} هزار تومن.
         </p>
+        <Link className="proPage__priceLink" href="/pricing">قیمت‌ها</Link>
       </section>
 
       <div className="proPage__bar">

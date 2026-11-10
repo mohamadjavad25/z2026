@@ -66,7 +66,7 @@
   text-decoration: none;
 }
 .proPage__bazaar img { width: 28px; height: 28px; border-radius: 7px; background: var(--p-paper); }
-.proPage__cta:focus-visible, .proPage__bazaar:focus-visible, .proPage__roles button:focus-visible, .proPage__price a:focus-visible { outline: 3px solid var(--p-violet); outline-offset: 3px; }
+.proPage__cta:focus-visible, .proPage__bazaar:focus-visible, .proPage__roles button:focus-visible, .proPage__priceLink:focus-visible { outline: 3px solid var(--p-violet); outline-offset: 3px; }
 
 .proPage__body {
   position: relative;
@@ -87,12 +87,12 @@
 .proPage__points li { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; }
 .proPage__icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: rgb(var(--brand-pink-rgb) / 0.22); color: var(--p-ink); }
 .proPage__points b { display: block; font-size: 1.05rem; }
-.proPage__points p { margin: 2px 0 0; line-height: 1.8; opacity: 0.75; }
+.proPage__points p { margin: 2px 0 0; line-height: 1.8; opacity: 0.75; text-wrap: pretty; }
 .proPage__steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; counter-reset: pro; }
 .proPage__steps li { counter-increment: pro; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: rgb(var(--brand-violet-rgb) / 0.1); font-weight: 600; }
 .proPage__steps li::before { content: counter(pro, persian); display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--p-violet); color: var(--p-ink); font-weight: 800; }
 .proPage__price { margin: 0; text-align: center; line-height: 1.9; opacity: 0.85; }
-.proPage__price a { color: var(--p-ink); font-weight: 700; }
+.proPage__priceLink { justify-self: center; margin-top: -12px; color: var(--p-ink); font-weight: 700; }
 
 .proPage__bar {
   position: fixed;
