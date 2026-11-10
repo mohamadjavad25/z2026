@@ -35,7 +35,9 @@ jobs:
       - run: node scripts/guard/check-rules.mjs --base "${{ github.event.pull_request.base.sha || github.event.before }}"
 
   build:
-    runs-on: ubuntu-latest
+    # Pinned (2026-11-10): ubuntu-latest moved to Ubuntu 26, where this Playwright cannot install its browser
+    # packages (`playwright install --with-deps` failed on every run from 2026-11-09). Move on after upgrading Playwright.
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
