@@ -74,6 +74,7 @@ Branch: `claude/find-claude-github-work-cbh2jo` (from 2026-11-11 midday; it star
    13 files passed and 1 skipped (91 tests); the two-accounts run, all four rounds, 44 of 44 steps (with made-up
    numbers on a throwaway database: the owner's own numbers are not in a cloud session). The first run failed one
    step, on main too: the script looked for «شنبه» and tapped «پنجشنبه» (fixed in the script, `DAY_WORD`).
+   The pictures for the owner: https://claude.ai/artifact/A2HRBj7VaJwSW5HrNtnHaf .
 3. Main server: the owner's word is «tonight between 23:00 and 24:00 Italian time» (2026-11-11), and only after the
    owner has seen the pictures of the two-accounts run. Then merge to main and deploy with the GitHub button. Before the
    main server: the two-accounts run (`scripts/verify/two-accounts.mjs`) on the booking flows, since the booking code
