@@ -69,7 +69,8 @@ Branch: `claude/find-claude-github-work-cbh2jo` (from 2026-11-11 midday; it star
 1. Left whole on purpose: `repos/billing.js` (653 lines). It is the one place money SQL lives (a hard rule), it reads
    as 23 small functions, and the first real payment is days away. Split it only after the payment check, if at all.
    `useHomeApp.jsx` (770) is wiring only; `storyDrawing.js` (408) is one drawing.
-2. The owner has the summary page (system map and review, link in the session). Waiting for the owner's answers on
+2. The owner has the summary page (system map, a booking's life, the review and four questions with a recommended
+   answer each): https://claude.ai/artifact/RyUq2vqnULaRBvyTv8PcTT . Record the answers in `docs/DECISIONS.md`. Waiting for the owner's answers on
    the proven faults below; each fix is its own piece of work with the `frfro-bug` routine.
 3. Only when the owner says so: ask «اول روی ورسل تست کنیم یا مستقیم روی سرور اصلی؟», then merge to main. Before the
    main server: the two-accounts run (`scripts/verify/two-accounts.mjs`) on the booking flows, since the booking code
