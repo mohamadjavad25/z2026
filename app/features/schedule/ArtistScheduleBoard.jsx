@@ -17,6 +17,7 @@ import { activeNowBreak, breakDaysText, hasDailyBreak } from "../../shared/lib/a
 import { formatPersianDateKey } from "../../shared/lib/persianCalendar";
 import { LeaveLines, LeaveSheet, useArtistLeaves } from "../team/LeaveSheet";
 import { nowDate } from "../../shared/lib/clock.js";
+import { emptyDayLine } from "./emptyDayLine";
 
 /**
  * Artist owner — bookings/schedule tab.
@@ -114,7 +115,7 @@ export function ArtistScheduleBoard({
           )) : (
             <div className="salonTodayEmpty">
               <Mascot pose="free-day" size={150} />
-              <b>«{dayLabel}» نوبتی نداری؛ وقت یه چایی‌ه</b>
+              <b>{emptyDayLine(dayLabel)}</b>
             </div>
           )}
         </div>

@@ -15,6 +15,7 @@ import { shortServiceLabel } from "../../shared/lib/serviceBundle";
 import { TeamBusyRow, TeamVisitRow, useTeamClientTimes } from "../salons/SalonDirectVisits";
 import { buildSharedPhoneLookup } from "../salons/customers";
 import { timeLabelToMinutes } from "../../shared/lib/time";
+import { emptyDayLine } from "./emptyDayLine";
 
 /**
  * Salon owner overview — the day schedule; a pending booking request is answered on its own row. Artists asking to
@@ -172,7 +173,7 @@ export function SalonScheduleDashboard({
           )) : (
             <div className="salonTodayEmpty">
               <Mascot pose="free-day" size={140} />
-              <b>«{emptyDayLabel}» نوبتی نداری؛ وقت یه چایی‌ه</b>
+              <b>{emptyDayLine(emptyDayLabel)}</b>
             </div>
           )}
         </div>

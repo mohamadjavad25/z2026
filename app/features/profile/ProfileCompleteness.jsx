@@ -93,10 +93,9 @@ export function ProfileCompleteness({ profile, serviceCount = 0, logoEditing = f
           </svg>
         </div>
         <div className="pccCopy">
-          <strong>صفحه‌ت {toPersianDigits(percent)}٪ آماده‌ست</strong>
-          <small>{remaining === 1 ? "فقط یه قدم دیگه" : `${toPersianDigits(remaining)} قدم دیگه`}</small>
+          <strong>پروفایلت رو کامل کن</strong>
+          <small>{remaining === 1 ? "فقط یه قدم مونده" : `${toPersianDigits(remaining)} قدم مونده`}</small>
         </div>
-        <button type="button" className="pccStart" onClick={startFlow}>بریم</button>
         <button type="button" className="profileCompletenessClose" aria-label="بستن یادآوری تکمیل پروفایل" onClick={() => setDismissed(true)}>
           <X size={16} aria-hidden="true" />
         </button>

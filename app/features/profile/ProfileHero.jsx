@@ -50,7 +50,8 @@ function PublicPreviewButton({ onClick }) {
       aria-label="صفحه‌م رو مثل مشتری ببینم"
       title="صفحه‌م رو مثل مشتری ببینم"
     >
-      <Eye size={18} />
+      <Eye size={18} aria-hidden="true" />
+      صفحهٔ من
     </button>
   );
 }
