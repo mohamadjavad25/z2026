@@ -69,18 +69,18 @@ Branch: `claude/find-claude-github-work-cbh2jo` (from 2026-11-11 midday; it star
 1. Left whole on purpose: `repos/billing.js` (653 lines). It is the one place money SQL lives (a hard rule), it reads
    as 23 small functions, and the first real payment is days away. Split it only after the payment check, if at all.
    `useHomeApp.jsx` (770) is wiring only; `storyDrawing.js` (408) is one drawing.
-2. The owner has the summary page (system map, a booking's life, the review and four questions with a recommended
-   answer each): https://claude.ai/artifact/RyUq2vqnULaRBvyTv8PcTT . Record the answers in `docs/DECISIONS.md`. Waiting for the owner's answers on
-   the proven faults below; each fix is its own piece of work with the `frfro-bug` routine.
-3. Only when the owner says so: ask «اول روی ورسل تست کنیم یا مستقیم روی سرور اصلی؟», then merge to main. Before the
+2. The owner saw the summary page (https://claude.ai/artifact/RyUq2vqnULaRBvyTv8PcTT) and took every recommended
+   answer. The branch is on the test server (Vercel preview of this branch).
+3. Main server: the owner's word is «tonight between 23:00 and 24:00 Italian time» (2026-11-11), and only after the
+   owner has seen the pictures of the two-accounts run. Then merge to main and deploy with the GitHub button. Before the
    main server: the two-accounts run (`scripts/verify/two-accounts.mjs`) on the booking flows, since the booking code
    moved.
 
 ## System review (2026-11-11): what is proven, what is read in the code, what is still open
 
-Nothing here is fixed: each fix changes behaviour, so the owner decides first (routine `frfro-bug`). The two proven
-faults are pinned in `tests/integration/reviewLeads.test.js` with `it.fails`: the suite stays green, and the day one is
-fixed its test turns red until `it.fails` becomes `it`.
+The owner answered the same day («با همه چیزایی که گفتی موافقم», `docs/DECISIONS.md` 2026-11-11): items 1, 2 and 6
+are FIXED on this branch, with tests (`tests/integration/teamSeatAndCopy.test.js`, `landingVisits.test.js`). Items 3,
+4, 5, 7 and 8 are still only written down.
 
 ### Proven with a test
 
@@ -94,14 +94,16 @@ fixed its test turns red until `it.fails` becomes `it`.
    Likely further effect, not proven: `syncSalonBookingsForArtist` (item 3) would then copy that salon's old bookings
    under this name (client names and phones) into the stranger's calendar. The same door is open for the phone match
    (a reused SIM) if the row keeps a phone.
-   Fix to propose: delete the artist's team rows when the account goes (the salon is already told), and drop the name
-   match (keep nothing but `artist_user_id`); one migration to clear old unlinked rows only after the owner sees them.
+   FIXED 2026-11-11: the seat is deleted with the account, a seat is tied to an account only by `artist_user_id`
+   (no phone or name match, and `PATCH /api/salon-staff` no longer takes an account id from the salon). Old rows
+   without an account on the main server stay as plain names; the salon can remove them.
 2. **An artist declining her calendar copy can cancel another artist's booking.** The way back
    (`salons/bookings/artistSync.js`) finds the salon's row by client name, phone, service, day and time, newest first,
    without the artist. Test: the salon writes two bookings under one name and number (a mother for herself and her
    daughter), same service and time, one per artist; the first artist declines hers → the second artist's booking is
-   cancelled and the first stays live with nobody doing it. Fix to propose: store `salon_booking_id` on every copy
-   (multi-service visits already do) and match by it; a migration fills it for old rows by the same fingerprint.
+   cancelled and the first stays live with nobody doing it. FIXED 2026-11-11 the small way: the match also asks
+   for the artist's own name at that salon (or no name). Still better, later: store `salon_booking_id` on every copy
+   (multi-service visits already do) and match by it.
 
 ### Read in the code (no test yet; each is a fact about the code, the effect in real use is an estimate)
 
@@ -119,7 +121,8 @@ fixed its test turns red until `it.fails` becomes `it`.
    `leaveOrRemoveFromTeam`. Small and safe to wrap.
 6. **Nothing shows the visits of the advertising SMS page.** `landingVisitTotals` has no caller: no admin screen, no
    report. The first SMS went out on 2026-11-11 and its result is due on 22 Aban (`docs/FOLLOWUPS.md`); today the
-   numbers can only be read from the database by hand at the owner's PC.
+   numbers can only be read from the database by hand at the owner's PC. FIXED 2026-11-11: the admin reports page has
+   the card «نتیجهٔ پیامک تبلیغی و لینک‌ها» (`landingVisitDays`).
 7. **Big reads on a timer.** The salon's app asks for its newest 1500 bookings (`SELECT *`) every 20 seconds; the
    artist's list has the same limit; a client's own list has none. Fine for today's sizes; the first thing to bound
    when a salon passes a few hundred bookings.

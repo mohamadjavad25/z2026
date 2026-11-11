@@ -1,15 +1,16 @@
 import { describe, it, expect } from "vitest";
 import { createClient, futureBookingDay, joinSalonAsArtist, registerUser } from "./helpers.js";
+import { q } from "./exitHelpers.js";
 
 /**
- * Leads from the system review of 2026-11-11 (docs/TIDY_WORK.md, «System review»). Each test says what should be
- * true. One written with `it.fails` is a proven fault that is not fixed yet (the fix changes behaviour, so the owner
- * decides first): the day it is fixed that test turns red and `it.fails` becomes `it`.
+ * The two faults the system review of 2026-11-11 proved (docs/TIDY_WORK.md), fixed the same day on the owner's word
+ * (docs/DECISIONS.md): a team seat belongs to the account that joined and to nobody else, and an artist's answer to her
+ * copy of a salon booking only touches her own booking.
  */
 const tag = () => String(Math.floor(Math.random() * 1e8));
 
-describe("review leads: a team seat after its artist is gone", () => {
-  it.fails("a new artist who takes a deleted artist's name does not land in that artist's old team", async () => {
+describe("a team seat belongs to the account that joined", () => {
+  it("a new artist who takes a deleted artist's name does not land in that artist's old team", async () => {
     const salonClient = createClient();
     const salon = await registerUser(salonClient, { type: "salon", name: `سالن مرور ${tag()}` });
     const name = `آرتیست مرور ${tag()}`;
@@ -25,16 +26,38 @@ describe("review leads: a team seat after its artist is gone", () => {
     const stranger = await registerUser(strangerClient, { type: "artist", name });
     expect(stranger.user.name).toBe(name);
 
+    // The seat went with the account: the salon's team no longer lists the name, and the newcomer is in no team.
     const staff = (await salonClient.get("/api/salon-staff")).payload.data.staff;
-    const seat = staff.find((person) => person.name === name);
-    const teams = (await strangerClient.get("/api/artist/teams")).payload.data.teams;
-    expect(seat?.artist_user_id ?? null).toBeNull();
-    expect(teams).toEqual([]);
+    expect(staff.find((person) => person.name === name)).toBeUndefined();
+    expect((await strangerClient.get("/api/artist/teams")).payload.data.teams).toEqual([]);
+    // And the name is free for the newcomer to really join with.
+    expect((await joinSalonAsArtist(strangerClient, salonClient, salon.user.id)).ok).toBe(true);
+  });
+
+  it("an old seat with no account is never tied to an artist by name or phone, nor by the salon naming an account", async () => {
+    const salonClient = createClient();
+    const salon = await registerUser(salonClient, { type: "salon", name: `سالن مرور ${tag()}` });
+    const artistClient = createClient();
+    const artist = await registerUser(artistClient, { type: "artist", name: `آرتیست مرور ${tag()}` });
+    // A row from before team members had to be accounts: the salon typed this artist's name and number.
+    const [row] = await q("INSERT INTO salon_staff (salon_user_id, name, phone, role, state) VALUES ($1, $2, $3, 'ناخن', 'فعال') RETURNING id", [salon.user.id, artist.user.name, artist.phone]);
+
+    let seat = (await salonClient.get("/api/salon-staff")).payload.data.staff.find((person) => person.id === row.id);
+    expect(seat.artist_user_id ?? null).toBeNull();
+    expect(seat.has_artist_profile).toBe(false);
+
+    // The salon cannot attach an account to the seat by sending its id either.
+    const patched = await salonClient.patch("/api/salon-staff", { id: row.id, artistUserId: artist.user.id, artist_user_id: artist.user.id });
+    expect(patched.ok).toBe(true);
+    seat = (await salonClient.get("/api/salon-staff")).payload.data.staff.find((person) => person.id === row.id);
+    expect(seat.artist_user_id ?? null).toBeNull();
+    expect((await q("SELECT artist_user_id FROM salon_staff WHERE id = $1", [row.id]))[0].artist_user_id).toBeNull();
+    expect((await artistClient.get("/api/artist/teams")).payload.data.teams).toEqual([]);
   });
 });
 
-describe("review leads: a salon booking and its artist's calendar copy", () => {
-  it.fails("an artist declining her copy cancels her own booking, not the same client's booking with another artist", async () => {
+describe("a salon booking and its artist's calendar copy", () => {
+  it("an artist declining her copy cancels her own booking, not the same client's booking with another artist", async () => {
     const salonClient = createClient();
     const salon = await registerUser(salonClient, { type: "salon", menu: true, name: `سالن مرور ${tag()}` });
     await salonClient.get("/api/salon-hours");

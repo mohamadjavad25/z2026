@@ -42,7 +42,15 @@ async function syncSalonBookingFromArtistMirrorUncached(artistBooking, status, r
     artistBooking.service || "",
     day
   ]);
-  const match = rows.find((row) => normalizeBookingTimeLabel(row.time || "") === time);
+  // Only a booking that is this artist's: one with her name on it at this salon, else one with no name (the salon let
+  // the system pick her). Without this, the same client's booking at the same time with ANOTHER artist (a mother and
+  // her daughter under one name and number) was the one cancelled (review of 2026-11-11).
+  const names = new Set((await all(db, `
+    SELECT name FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2
+  `, [salonUserId, Number(artistBooking.artist_user_id ?? artistBooking.artistUserId ?? 0)])).map((item) => String(item.name || "").trim()));
+  const sameTime = rows.filter((row) => normalizeBookingTimeLabel(row.time || "") === time);
+  const match = sameTime.find((row) => names.has(String(row.staff || "").trim()))
+    || sameTime.find((row) => !String(row.staff || "").trim());
   if (!match) return null;
   // The visit waits on the client's answer to a new time; the artist agreeing does not settle it.
   if (match.status === AWAITING_CLIENT && status === "تایید شده") return null;

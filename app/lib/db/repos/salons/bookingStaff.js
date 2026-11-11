@@ -2,7 +2,7 @@
  * The team member a salon booking belongs to: the one named on it, else the first who does its service. Apart from
  * ./staff.js because it needs the services too (services.js reads the team, so the team must not read the services).
  */
-import { getDb, get, run } from "../../connection.js";
+import { getDb, get } from "../../connection.js";
 import { listSalonServices } from "./services.js";
 import { artistAvatarUrl, resolveArtistUserForStaff } from "./staff.js";
 
@@ -38,13 +38,6 @@ export async function findSalonStaffForBooking(salonUserId, staffName, serviceNa
   }
   if (!row) return null;
   const artist = await resolveArtistUserForStaff(row, db);
-  if (artist?.id && !row.artist_user_id) {
-    await run(db, `
-      UPDATE salon_staff
-      SET artist_user_id = $1, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $2 AND salon_user_id = $3
-    `, [artist.id, row.id, salonUserId]);
-  }
   return {
     ...row,
     artist_user_id: artist?.id || row.artist_user_id || null,

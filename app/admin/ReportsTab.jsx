@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Clock3, Map as MapIcon, Megaphone, Scissors, Sparkles, Store, Target, TrendingUp } from "lucide-react";
+import { Clock3, Link2, Map as MapIcon, Megaphone, Scissors, Sparkles, Store, Target, TrendingUp } from "lucide-react";
 import { toPersianDigits } from "../shared/lib/digits";
 import { Button } from "../components/ui";
-import { BOOKING_TONE, TYPE_LABEL, ago, num } from "./format";
+import { BOOKING_TONE, TYPE_LABEL, ago, fmtDay, num } from "./format";
 import { Bars } from "./Dashboard";
 import { ActivityReport } from "./ActivityReport";
 import { PageHead } from "./PageHead";
@@ -40,6 +40,37 @@ function Heatmap({ cells }) {
       </div>
       {busiest ? <p className="admMuted">شلوغ‌ترین زمان ثبت رزرو: <b>{DAYS[busiest.dow - 1]}</b> حدود ساعت <b>{toPersianDigits(busiest.hour)}</b>.</p> : null}
     </>
+  );
+}
+
+// The link pages by their counter tag (landingVisits.js): /go is the reel link, /s the advertising SMS (/s/a → sms-a).
+const linkName = (source) => (source === "sms" ? "پیامک" : source.startsWith("sms-") ? `پیامک ${source.slice(4)}` : source === "go" ? "لینک ریلز" : source);
+
+/** What the advertising SMS and the reel link brought, a row per day: opened the link, tapped «شروع», new salons and artists. */
+function LinkResults({ rows }) {
+  if (!rows.length) return <p className="admMuted">در این بازه کسی لینکی باز نکرده.</p>;
+  const sum = (key) => rows.reduce((total, row) => total + row[key], 0);
+  return (
+    <div className="admTableWrap">
+      <table className="admTable">
+        <thead><tr><th>روز</th><th>لینک را باز کردند</th><th>«شروع» را زدند</th><th>سالن تازه</th><th className="admHideNarrow">آرتیست تازه</th></tr></thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.day}>
+              <td>{fmtDay(row.day)}</td>
+              <td><b>{num(row.opened)}</b>{row.sources.length > 1 ? <small>{row.sources.map((item) => `${linkName(item.source)} ${num(item.opened)}`).join(" • ")}</small> : row.sources.length ? <small>{linkName(row.sources[0].source)}</small> : null}</td>
+              <td>{num(row.started)}{row.opened ? <small>{toPersianDigits(pct(row.started, row.opened))}٪</small> : null}</td>
+              <td>{num(row.salons)}</td>
+              <td className="admHideNarrow">{num(row.artists)}</td>
+            </tr>
+          ))}
+          <tr>
+            <td><b>جمع</b></td><td><b>{num(sum("opened"))}</b></td><td><b>{num(sum("started"))}</b></td><td><b>{num(sum("salons"))}</b></td><td className="admHideNarrow"><b>{num(sum("artists"))}</b></td>
+          </tr>
+        </tbody>
+      </table>
+      <p className="admMuted">ثبت‌نام‌ها همهٔ ثبت‌نام‌های همان روزند، نه فقط کسانی که از لینک آمده‌اند.</p>
+    </div>
   );
 }
 
@@ -97,6 +128,10 @@ export function ReportsTab({ onGo }) {
           </ul>
         </Card>
       </div>
+
+      <Card title="نتیجهٔ پیامک تبلیغی و لینک‌ها" icon={Link2}>
+        <LinkResults rows={data.links || []} />
+      </Card>
 
       <ActivityReport days={days} />
 
