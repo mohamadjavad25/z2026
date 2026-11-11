@@ -3,7 +3,7 @@
 ## لایه‌ها
 - **Next.js 16 (App Router) + React 19**، پایگاه داده Postgres (`pg`)، مایگریشن با `node-pg-migrate` (در دیپلوی Vercel خودکار).
 - **`app/api/**`**: route handlerها. همه با `withErrorHandling`، اعتبارسنجی با zod (`validateBody`: پیام کاربر فقط فارسی)، نرخ‌محدودی روی دیتابیس، سشن با کوکی httpOnly.
-- **`app/lib/db/repos/**`**: تنها جایی که SQL می‌نویسد. route‌ها فقط repo صدا می‌زنند.
+- **`app/lib/db/repos/**`**: تنها جایی که SQL می‌نویسد. route‌ها فقط repo صدا می‌زنند. هر دامنهٔ بزرگ یک پوشه از فایل‌های کوچک است پشت یک فایل «در» با همان اسم قدیمی (`salons/bookings.js`، `artists.js`، `salons.js`): بیرون از پوشه فقط از «در» import می‌شود (`app/lib/README.md`).
 - **`app/lib/*Sweep.js` / `bookingReminders.js`**: کارهای زمان‌بندی‌شده؛ با endpointهای `app/api/cron/*` و workflowهای GitHub Actions اجرا می‌شوند (نه تایمر درون‌پروسه، چون سرورلس است).
 - **`app/lib/billing` + `app/lib/payments`**: اشتراک سالن و آرتیست. `plans.js` (قیمت‌ها)، `period.js` و `reminders.js` (قاعده‌های خالص زمان)، `service.js` (پرداخت، تأیید، اعلان، کرون)، `access.js` (گیت فهرست و نوبت آنلاین). هر درگاه یک فایل در `app/lib/payments` با یک رابط مشترک. تنها جای SQL پول: `repos/billing.js`. رابط: `features/billing` (کارت، برگه‌ها، نوار) و `app/pay` (صفحهٔ بازگشت از بانک، بدون ورود).
 - **`app/features/<دامنه>`**: رابط به تفکیک دامنه (auth، profile، salons، artist، client، schedule، settings، shell، booking). `booking` فرم رزرو چندخدمتی است که مشتری، آرتیست و سالن هر سه با آن رزرو می‌کنند (`docs/VISIT_BOOKER.md`). هر دامنه hook(های) داده + کامپوننت‌های ارائه‌ای دارد.
@@ -12,7 +12,7 @@
 
 ## پوستهٔ اصلی (`features/shell`)
 `HomeApp.jsx` فقط ۱۵ خط است: `useHomeApp()` همهٔ حالت مشترک را می‌سازد و در `HomeContext` می‌گذارد؛ `HomeView` آن را نمایش می‌دهد. هر صفحه/شیت با `useHome()` فقط همان چیزی را که لازم دارد برمی‌دارد (دیگر پراپ‌دریلینگ با دهه‌ها پراپ نداریم).
-- `useHomeApp` (حالت پایه + نشست) ← `useHomeWorkspaces` (سالن/آرتیست/مشتری) ← `useHomeChrome` (مشتقات و برنامه‌ها)، به‌اضافهٔ `useShellNavigation`، `useScheduleViews`، `useSalonDerived`، `useProfileEditor`، `useServiceComposer`، `useBookingCreateSheet`.
+- `useHomeApp` (حالت پایه + نشست) ← `useHomeWorkspaces` (سالن/آرتیست/مشتری) ← `useHomeChrome` (مشتقات و برنامه‌ها)، به‌اضافهٔ `useArrival` (لینک پیوستن و «رزرو» صفحهٔ عمومی که از ثبت‌نام رد می‌شود)، `useClientBookingsSeen`، `useShellNavigation`، `useScheduleViews`، `useSalonDerived`، `useProfileEditor`، `useServiceComposer`، `useBookingCreateSheet`.
 - کامپوننت‌های `shell/home/*`: `ContentPages`، `ProfilePanelBody`، شیت‌های اعلان، `OwnerBookingSheet`، `PublicArtistHost`، `ScheduleMenuHost`، `PushSoftAsk`.
 - `useSalonWorkspace` و `useArtistWorkspace` به hookهای زیرمجموعه (`useSalonCatalogActions`، `useSalonPortfolioActions`، `useSalonInviteActions`، `useArtistHours`، `useArtistRailDrag`، `useArtistWorkActions`) شکسته شده‌اند.
 

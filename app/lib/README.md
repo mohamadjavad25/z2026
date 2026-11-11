@@ -21,16 +21,29 @@ app/lib/db/
     sessions.js           session token issue/lookup/revoke
     salons.js            public facade for salon data operations
     salons/
-      bookings.js        salon booking queries and visit history mapping
+      bookings.js        door only: re-exports the parts in bookings/
+      bookings/          columns, cancellation, day, draft, plan, mirrors, unavailable, lists, create, update,
+                         patch, client, artistSync (each file says what it holds in its first lines)
+      bookingStaff.js    the team member a booking belongs to
       common.js          shared salon repo helpers
       hours.js           salon hours and default schedule setup
-      invites.js         salon <-> artist collab invite flow
+      invites.js         the salon inviting an artist, and her answer
+      joinLink.js        joining by the salon's link or QR, and its secret
+      membership.js      what every way into a team shares (pair lock, agreed terms, invite states)
+      artistTeams.js     the teams an artist is in, and leaving one
       portfolio.js       salon portfolio/posts persistence
       services.js        salon service persistence
       staff.js           salon staff and artist-link helpers
-    artists.js           public facade for artist data operations
+    artists.js           door only: re-exports the parts in artists/
     artists/
       hours.js           artist hours and default schedule setup
+      services.js        the artist's own services
+      breaks.js          the daily break and «الان استراحت می‌کنم»
+      collabs.js         asking to join a salon's team, and the salon's answers
+      calendar.js        what already holds an artist's day
+      bookings.js        writing bookings (direct ones and calendar copies of salon bookings)
+      bookingLists.js    the artist's list and a client's list
+      directory.js       the public page, the list of artists, saved artists
     posts.js              explore-feed / portfolio posts (rating system removed)
     social.js             follows and saved-profiles
     media.js              shared data:-URL parsing for avatar/poster streaming
@@ -39,6 +52,10 @@ app/lib/db/
     push.js                push_subscriptions persistence
     userSettings.js        per-user notification/preference toggles
 ```
+
+A large domain is a folder of small files behind one «door» file with the old name (`salons/bookings.js`,
+`artists.js`, `salons.js`): code outside the folder imports from the door, the parts import each other directly.
+No file here should grow past about 400 lines; split it the same way (`scripts/tidy/slice.mjs`, `docs/TIDY_WORK.md`).
 
 Route handlers should stay thin:
 

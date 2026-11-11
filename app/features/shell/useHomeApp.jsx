@@ -8,11 +8,10 @@ import { getVisibleSalonServiceItems } from "../salons/useSalonDirectory";
 import { useContinueService } from "../follow/useContinueService";
 import { useArtistWorkspace } from "../artist";
 import { apiFetch } from "../../shared/api/client";
-import { connectTo } from "../../shared/api/connections";
-import { cleanPendingServices, parseOpenParam, peekPendingOpen, rememberPendingOpen, takePendingOpen } from "../../shared/lib/appHandoff";
 import { notify } from "../../shared/notice/noticeStore";
-import { pushNotificationsSupported, subscribeToPushNotifications } from "./homeAppHelpers";
-import { appPushAvailable, startAppPush } from "../../shared/lib/nativePush";
+import { startPushOrAsk } from "./homeAppHelpers";
+import { useArrival } from "./useArrival";
+import { useClientBookingsSeen } from "./useClientBookingsSeen";
 import { trackScreen } from "../../shared/lib/activity";
 import { useHomeChrome } from "./useHomeChrome";
 import { useHomeWorkspaces } from "./useHomeWorkspaces";
@@ -24,55 +23,6 @@ export function useHomeApp() {
     trackScreen(`tab:${activeTab}`);
   }, [activeTab]);
 
-  // Capture ?join={salonId} from a /join-salon/[id] QR/link redirect (guest
-  // branch — see JoinSalonPageClient) before the auth gate renders, so the
-  // pending join survives the login/signup round trip. Runs once, first
-  // hook in the tree, so it always wins the race against useAuthSession's
-  // own mount effect below. useAuthSession's onAuthenticated callback reads
-  // this same key once a session exists (login/register/already-booted).
-  // `?open=salon-12` (a public salon/artist page's «رزرو», shared/lib/appHandoff.js) is kept the same
-  // way, so the visitor lands on that place after signing up instead of an empty home.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const joinSalonId = params.get("join");
-    const openTarget = parseOpenParam(params.get("open"));
-    if (!joinSalonId && !openTarget) return;
-    if (joinSalonId) {
-      try {
-        window.localStorage.setItem("frfro_pending_join_salon", JSON.stringify({ id: joinSalonId, code: params.get("k") || "", termsVersion: params.get("v") ?? null }));
-      } catch {
-        // ignore — join just won't auto-fire post-login
-      }
-    }
-    if (openTarget) {
-      // The public page may have stored the name already; a bare link (a desktop QR) has only the id.
-      const stored = peekPendingOpen();
-      // Keep what the guest had ticked on the public page (name and services) when the same place is opened by id.
-      // `&s=…`: a «وقتش شده» push names the service, so the booking form opens on it (owner's decision of 2026-10-25).
-      const named = cleanPendingServices(params.getAll("s"));
-      const same = stored?.id === openTarget.id;
-      rememberPendingOpen({ ...openTarget, name: same ? stored.name : "", services: named.length ? named : same ? stored.services : [], staffId: same && !named.length ? stored.staffId : 0 });
-    }
-    // Keep the router's own history state: replacing it with {} made Next treat the page as a new one on its next
-    // history change, so closing the services menu that opened here remounted the app back on the home screen.
-    window.history.replaceState(window.history.state, "", window.location.pathname);
-  }, []);
-  // What a guest came for, so the sign-up screen can say it and skip the role picker
-  // (null, or { kind: "open", name, type, id } / { kind: "join" }); read once on mount, after the effect above.
-  const [arrivalIntent, setArrivalIntent] = useState(null);
-  useEffect(() => {
-    const target = peekPendingOpen();
-    if (target) {
-      setArrivalIntent({ kind: "open", name: target.name, type: target.type, id: target.id });
-      return;
-    }
-    try {
-      if (window.localStorage.getItem("frfro_pending_join_salon")) setArrivalIntent({ kind: "join" });
-    } catch {
-      // no pending join
-    }
-  }, []);
   const continueServiceRef = useRef(null);
   const refreshSavedPostsRef = useRef(null);
   const refreshArtistWorkspaceRef = useRef(null);
@@ -81,6 +31,8 @@ export function useHomeApp() {
   const authCascadeRef = useRef({});
   // Every top-of-screen notice goes through the shared store (app/shared/notice). Callers may still pass a string.
   const setAppToast = notify;
+  // A join link or a public page's «رزرو», kept through sign-up (useArrival.js).
+  const { arrivalIntent, tryJoinPendingSalon, tryOpenPendingPlace } = useArrival({ setAppToast, setActiveTab, authCascadeRef, continueServiceRef });
   const [pushSoftAskVisible, setPushSoftAskVisible] = useState(false);
   const [clientBookingSettings, setClientBookingSettings] = useState(null);
   // Right after a client books: the «درخواستت رسید» screen (features/client/BookingReceipt) and, on
@@ -100,84 +52,6 @@ export function useHomeApp() {
   const [scheduleViewDay, setScheduleViewDay] = useState("");
   const [salonWeekHistoryOpen, setSalonWeekHistoryOpen] = useState(false);
   const [scheduleNow, setScheduleNow] = useState(() => nowDate());
-
-  // Fires from useAuthSession's onAuthenticated below (boot/login/register —
-  // covers an artist who was already logged in when they opened the
-  // /join-salon/[id] link too, not just the guest→signup round trip).
-  async function tryJoinPendingSalon(profile) {
-    if (profile?.type !== "artist" || typeof window === "undefined") return;
-    let pendingRaw = "";
-    try {
-      pendingRaw = window.localStorage.getItem("frfro_pending_join_salon") || "";
-    } catch {
-      return;
-    }
-    if (!pendingRaw) return;
-    try {
-      window.localStorage.removeItem("frfro_pending_join_salon");
-    } catch {
-      // ignore
-    }
-    // Older links (before the join code existed) stored a bare salon id string;
-    // such a pending join has no code to offer and is simply dropped.
-    let pendingSalonId = 0;
-    let pendingCode = "";
-    let pendingVersion = null;
-    try {
-      const parsed = JSON.parse(pendingRaw);
-      pendingSalonId = Number(parsed?.id) || 0;
-      pendingCode = String(parsed?.code || "");
-      // The version of the terms she read on the join page; the server refuses (409) if they changed since.
-      pendingVersion = parsed?.termsVersion == null || parsed.termsVersion === "" ? null : Number(parsed.termsVersion);
-    } catch {
-      return;
-    }
-    if (!pendingSalonId) return;
-    try {
-      const { ok, payload } = await apiFetch("/api/artist/join-salon", {
-        method: "POST",
-        body: JSON.stringify({ salonUserId: pendingSalonId, code: pendingCode, termsVersion: Number.isFinite(pendingVersion) ? pendingVersion : undefined })
-      });
-      if (ok) {
-        setAppToast(`رفتی توی تیم «${payload?.data?.salon?.name || "سالن"}»!`);
-      } else if (payload?.code === "TERMS_CHANGED") {
-        setAppToast("شرایط سالن عوض شده. لینک رو دوباره باز کن و بخونش.");
-      } else if (payload?.code !== "ALREADY_STAFF") {
-        setAppToast(payload?.error || "نشد بری توی تیم سالن؛ دوباره بزن.");
-      }
-    } catch {
-      setAppToast("نشد بری توی تیم سالن؛ دوباره بزن.");
-    }
-  }
-
-  // A client who came from a public page's «رزرو»: connect them to that place (it lands in
-  // «سالن و آرتیست من») and open its services menu. Salons and artists don't book, so it is dropped.
-  async function tryOpenPendingPlace(profile) {
-    if (typeof window === "undefined") return;
-    const target = takePendingOpen();
-    setArrivalIntent(null);
-    if (!target || profile?.type !== "client") return;
-    const c = authCascadeRef.current;
-    let place = { id: target.id, type: target.type, name: target.name };
-    try {
-      const { ok, payload } = await connectTo(target.id);
-      if (ok && payload?.data?.profile) {
-        place = payload.data.profile;
-        if (!payload.data.alreadyConnected) setAppToast(`«${place.name}» اضافه شد به سالن و آرتیست‌هات.`);
-        c.refreshFollows?.();
-      }
-    } catch {
-      // the page still opens; connecting can be done there
-    }
-    if (place.type !== "artist") setActiveTab("salons");
-    // The guest had ticked a service on the public page: open the page plain and let it open the booking form on that service.
-    if (target.services?.length && place.type !== "artist") {
-      continueServiceRef.current?.begin(place.id, target.services, target.staffId);
-      c.openConnectedProfile?.(place, null);
-      return;
-    }
-    c.openConnectedProfile?.(place, { services: [], label: "همه خدمات" });
-  }
 
   const {
     authChecked,
@@ -248,27 +122,7 @@ export function useHomeApp() {
       }
       if (source === "boot" && profile?.type === "client") await c.refreshClientBookings?.();
       await tryOpenPendingPlace(profile);
-      // Real push notifications (see app/lib/push.js) so a salon/artist/client
-      // finds out about a new/expired request even when the app isn't open.
-      // Only auto-(re)subscribe silently when permission is already granted;
-      // a cold Notification.requestPermission() with zero context is a
-      // reliable way to get a reflexive "Block" (and a denied permission can
-      // never be re-prompted per the browser spec), so a fresh "default"
-      // permission instead shows an in-app soft-ask banner that explains why
-      // before the real browser prompt fires — see pushSoftAskVisible below.
-      // Inside the Android app the WebView has no Web Push: the app's own push takes over (nativePush.js).
-      if (appPushAvailable()) {
-        void startAppPush();
-      } else if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-        void subscribeToPushNotifications();
-      } else if (
-        typeof Notification !== "undefined" &&
-        Notification.permission === "default" &&
-        pushNotificationsSupported() &&
-        !window.localStorage.getItem("frfro_push_soft_ask_dismissed")
-      ) {
-        setPushSoftAskVisible(true);
-      }
+      startPushOrAsk(setPushSoftAskVisible);
     },
     onLoggedOut: async () => {
       const c = authCascadeRef.current;
@@ -386,43 +240,7 @@ export function useHomeApp() {
     return () => window.clearTimeout(timer);
   }, [freshBookingKey, bookingReceipt, activeTab]);
 
-  // Clients don't have a real-time "seen" flag from the server, so we track
-  // which booking statuses the client has already looked at locally: a
-  // {bookingId: status} snapshot in localStorage, scoped per account. A
-  // booking counts as "unseen" when its current status differs from the
-  // last snapshot taken (covers both "never seen this booking" and "status
-  // changed since I last opened the panel"), for the 3 statuses worth
-  // surfacing a notification for (pending doesn't need one — it's expected).
-  const clientSeenStorageKey = createdProfile?.type === "client" && createdProfile?.id
-    ? `frfro_client_seen_bookings_${createdProfile.id}`
-    : "";
-  const unseenClientBookingCount = useMemo(() => {
-    if (!clientSeenStorageKey || typeof window === "undefined") return 0;
-    let seenMap = {};
-    try {
-      seenMap = JSON.parse(window.localStorage.getItem(clientSeenStorageKey) || "{}");
-    } catch {
-      seenMap = {};
-    }
-    return clientBookingList.filter((booking) => {
-      const status = booking.status || "";
-      if (!["تایید شده", "لغو", "منقضی شده"].includes(status)) return false;
-      return seenMap[booking.id] !== status;
-    }).length;
-  }, [clientBookingList, clientSeenStorageKey]);
-
-  function markClientBookingsSeen() {
-    if (!clientSeenStorageKey || typeof window === "undefined") return;
-    const seenMap = {};
-    clientBookingList.forEach((booking) => {
-      if (booking.id != null) seenMap[booking.id] = booking.status || "";
-    });
-    try {
-      window.localStorage.setItem(clientSeenStorageKey, JSON.stringify(seenMap));
-    } catch {
-      // best-effort only
-    }
-  }
+  const { unseenClientBookingCount, markClientBookingsSeen } = useClientBookingsSeen(createdProfile, clientBookingList);
 
   const {
     artistSocialStats,

@@ -1,5 +1,6 @@
 import { toIsoLikeTimestamp } from "../../shared/lib/time";
 import { nowMs } from "../../shared/lib/clock.js";
+import { appPushAvailable, startAppPush } from "../../shared/lib/nativePush";
 
 export function isWithinLastHours(timestamp, hours) {
   const isoLike = toIsoLikeTimestamp(timestamp);
@@ -61,5 +62,30 @@ export async function subscribeToPushNotifications() {
   } catch {
     // Best-effort — a failed subscribe attempt must never block or crash
     // the login flow it's piggybacking on.
+  }
+}
+
+/** Once a session exists: start push where it is already allowed, or show the in-app soft ask first. */
+export function startPushOrAsk(setPushSoftAskVisible) {
+  // Real push notifications (see app/lib/push.js) so a salon/artist/client
+  // finds out about a new/expired request even when the app isn't open.
+  // Only auto-(re)subscribe silently when permission is already granted;
+  // a cold Notification.requestPermission() with zero context is a
+  // reliable way to get a reflexive "Block" (and a denied permission can
+  // never be re-prompted per the browser spec), so a fresh "default"
+  // permission instead shows an in-app soft-ask banner that explains why
+  // before the real browser prompt fires — see pushSoftAskVisible below.
+  // Inside the Android app the WebView has no Web Push: the app's own push takes over (nativePush.js).
+  if (appPushAvailable()) {
+    void startAppPush();
+  } else if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+    void subscribeToPushNotifications();
+  } else if (
+    typeof Notification !== "undefined" &&
+    Notification.permission === "default" &&
+    pushNotificationsSupported() &&
+    !window.localStorage.getItem("frfro_push_soft_ask_dismissed")
+  ) {
+    setPushSoftAskVisible(true);
   }
 }
