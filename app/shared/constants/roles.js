@@ -73,8 +73,4 @@ export const beautySpecialtyOptions = [
   "ماساژ و اسپا"
 ];
 
-// Kept for any older import still expecting these two names.
-export const salonRegistrationServices = beautySpecialtyOptions;
-export const artistSpecialties = beautySpecialtyOptions;
 export const salonArtistRoleOptions = ["ناخن‌کار", "رنگ و لایت", "میکاپ آرتیست", "ابرو و پوست", "براشینگ و شینیون", "کراتین و احیا"];
-export const salonArtistStatusOptions = ["فعال", "غیرفعال", "مرخصی"];

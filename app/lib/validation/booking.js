@@ -51,10 +51,3 @@ export const createBookingSchema = z.object({
   // An artist the client follows to send a direct artist request to if the hour runs out.
   fallbackArtistUserId: z.union([z.string().max(20), z.number(), z.null()]).optional()
 });
-
-/** Status values a caller is ever allowed to request through a PATCH --
- *  matches the whitelist already enforced in app/api/salon-bookings/route.js
- *  and app/api/artist/me/route.js's patchOwnArtistBooking; kept here too so
- *  it's defined once and can be reused by future routes/tests instead of
- *  re-typing the literal strings. */
-export const PATCHABLE_BOOKING_STATUSES = ["تایید شده", "لغو"];

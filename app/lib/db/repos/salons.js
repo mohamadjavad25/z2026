@@ -19,7 +19,6 @@ export { listSalonPortfolio, addSalonPortfolio, updateSalonPortfolio, deleteSalo
 export { listSalonServices, addSalonService, updateSalonService, deleteSalonService } from "./salons/services.js";
 export {
   listSalonStaff,
-  findSalonStaffForBooking,
   addSalonStaff,
   addSalonStaffFromCollab,
   updateSalonStaff,
@@ -29,20 +28,17 @@ export {
   getSalonOwnerProfile,
   getSalonOwnerPhoto
 } from "./salons/staff.js";
+export { findSalonStaffForBooking } from "./salons/bookingStaff.js";
 export {
   listSalonArtistInvites,
   listArtistSalonInvites,
   countPendingArtistInvites,
   createSalonArtistInvite,
   cancelSalonArtistInvite,
-  respondArtistSalonInvite,
-  listArtistTeams,
-  leaveSalonTeam,
-  joinSalonByArtist,
-  getOrCreateSalonJoinSecret,
-  renewSalonJoinSecret,
-  getSalonJoinPreview
+  respondArtistSalonInvite
 } from "./salons/invites.js";
+export { listArtistTeams, leaveSalonTeam } from "./salons/artistTeams.js";
+export { joinSalonByArtist, getOrCreateSalonJoinSecret, renewSalonJoinSecret, getSalonJoinPreview } from "./salons/joinLink.js";
 export { getJoinTerms, saveJoinTerms, joinTermsReady, rulesLines, getSalonRulesText } from "./salons/joinTerms.js";
 
 /**

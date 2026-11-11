@@ -13,7 +13,3 @@ export function recallSearch(owner, now = Date.now()) {
   if (!memory || memory.owner !== owner || now - memory.at > TTL_MS) return null;
   return memory;
 }
-
-export function forgetSearch() {
-  memory = null;
-}

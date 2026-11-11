@@ -57,12 +57,6 @@ export function expandPartsForPeople(parts, people) {
   return Array.from({ length: count }, (_, person) => list.map((part) => ({ ...part, ...(person ? { person } : {}) }))).flat();
 }
 
-/** "۲ نفر" for a group's booking; "" for one person. */
-export function peopleLabel(booking) {
-  const people = bookingPeople(booking);
-  return people > 1 ? `${toPersianDigits(people)} نفر` : "";
-}
-
 /**
  * The booking's service text and total length for these parts. A group's length is the longest
  * person's (they run side by side) and its text names one person's services and the head count.

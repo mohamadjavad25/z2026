@@ -43,19 +43,16 @@ features/settings/
   index.js
 
 features/profile/
-  ProfileAuthModeSwitch.jsx
   ProfileEmptyState.jsx
   ProfileGallery.jsx
   ProfileHeroActions.jsx
   ProfileLocationSettings.jsx
   ProfileModeRail.jsx
-  ProfilePanel.jsx
   ProfilePostComposer.jsx
   ProfileRoleGrid.jsx
   ProfileSavedPosts.jsx
   ProfileSettingsPanel.jsx
   ProfileSheet.jsx
-  ProfileSignupSteps.jsx
 
 features/salons/
   SalonClientBookingModal.jsx

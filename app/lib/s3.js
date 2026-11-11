@@ -54,6 +54,6 @@ export function signV4(config, method, url, headers, body, now = new Date()) {
   const signingKey = hmac(hmac(hmac(hmac(`AWS4${config.secretKey}`, day), config.region), "s3"), "aws4_request");
   const signature = createHmac("sha256", signingKey).update(toSign).digest("hex");
   // fetch sets Host itself from the URL; it is signed but not passed on.
-  const { host, ...sent } = all;
+  const { host: _host, ...sent } = all;
   return { ...sent, Authorization: `AWS4-HMAC-SHA256 Credential=${config.accessKey}/${scope}, SignedHeaders=${names.join(";")}, Signature=${signature}` };
 }

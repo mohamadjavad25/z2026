@@ -1,10 +1,9 @@
 import { getDb, all, get, run } from "../../connection.js";
-import { normalizePhone } from "./common.js";
 import { defaultArtistHours } from "../artists/hours.js";
 import { listLeavesFor } from "../teamAgreements.js";
 import { tehranClock } from "../../../adminNews.js";
 
-function artistAvatarUrl(artist) {
+export function artistAvatarUrl(artist) {
   return artist?.avatar ? `/api/media/avatar/${artist.id}` : "";
 }
 
@@ -17,10 +16,6 @@ export async function listSalonStaff(salonUserId, runner = null) {
     ORDER BY st.id
   `, [salonUserId]);
 
-  // resolveArtistUserForStaff can run an unindexed phone-matching scan for
-  // any staff member not yet linked to an artist account -- independent
-  // per row, so resolve (and self-heal artist_user_id) for every row
-  // concurrently instead of one at a time.
   // A leave with a return day ends by itself: the member goes back to «فعال» on that day (owner's decision 2026-10-28).
   const today = tehranClock().day;
   const ended = rows.filter((row) => row.state === "مرخصی" && row.leave_until && row.leave_until <= today);
@@ -47,14 +42,6 @@ export async function listSalonStaff(salonUserId, runner = null) {
     };
     if (row.is_owner) return { ...(await decorateOwnerStaff(row, db)), ...extra, hours: [] };
     const artist = await resolveArtistUserForStaff(row, db);
-    if (artist?.id && !row.artist_user_id) {
-      await run(db, `
-        UPDATE salon_staff
-        SET artist_user_id = $1, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $2 AND salon_user_id = $3
-          AND NOT EXISTS (SELECT 1 FROM salon_staff seat WHERE seat.salon_user_id = $3 AND seat.artist_user_id = $1)
-      `, [artist.id, row.id, salonUserId]);
-    }
     const staffAvatarUrl = artistAvatarUrl(artist);
     return {
       ...row,
@@ -110,44 +97,20 @@ async function teamPostCounts(salonUserId, db) {
   return map;
 }
 
-async function resolveArtistUserForStaff(staff, runner = null) {
-  // The manager's own row is the salon account itself, never an artist found by phone/name.
-  if (!staff || staff.is_owner) return null;
+/**
+ * The artist account behind a team seat: only the account that joined (`artist_user_id`). A seat is never tied to an
+ * account by a matching phone or name (owner's decision 2026-11-11): a stranger who signed up under a deleted artist's
+ * name used to land in that artist's old team, and the salon saw the stranger's number.
+ */
+export async function resolveArtistUserForStaff(staff, runner = null) {
+  // The manager's own row is the salon account itself.
+  if (!staff || staff.is_owner || !staff.artist_user_id) return null;
   const db = runner || (await getDb());
-
-  if (staff.artist_user_id) {
-    const linked = await get(db, `
-      SELECT id, name, phone, area, service, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, type
-      FROM users WHERE id = $1 AND type = 'artist'
-      LIMIT 1
-    `, [staff.artist_user_id]);
-    if (linked) return linked;
-  }
-
-  const rawPhone = String(staff.phone || "").trim();
-  const phone = normalizePhone(rawPhone);
-  if (phone) {
-    // users.phone is already normalized (Persian/Arabic digits -> ASCII) at
-    // write time in app/api/auth/register/route.js, so a plain equality
-    // check is correct here and, unlike a REPLACE()-wrapped comparison,
-    // can use the column's own UNIQUE index.
-    const byPhone = await get(db, `
-      SELECT id, name, phone, area, service, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, type
-      FROM users
-      WHERE type = 'artist' AND phone = $1
-      LIMIT 1
-    `, [phone]);
-    if (byPhone) return byPhone;
-  }
-
-  const name = String(staff.name || "").trim();
-  if (!name) return null;
   return get(db, `
     SELECT id, name, phone, area, service, (avatar <> '' OR avatar_url IS NOT NULL) AS avatar, type
-    FROM users
-    WHERE type = 'artist' AND name = $1
+    FROM users WHERE id = $1 AND type = 'artist'
     LIMIT 1
-  `, [name]);
+  `, [staff.artist_user_id]);
 }
 
 let ownerColumnReady;
@@ -302,54 +265,6 @@ export async function upsertSalonOwnerStaff(salonUserId, { name, role, photo, fa
   return { ok: true, person: await getSalonOwnerStaff(salonUserId, db) };
 }
 
-export async function findSalonStaffForBooking(salonUserId, staffName, serviceName = "", runner = null) {
-  const db = runner || (await getDb());
-  const name = String(staffName || "").trim();
-  const service = String(serviceName || "").trim();
-  let row = name
-    ? await get(db, `
-      SELECT * FROM salon_staff
-      WHERE salon_user_id = $1 AND name = $2
-      LIMIT 1
-    `, [salonUserId, name])
-    : null;
-  if (!row && service) {
-    // No artist named: the first one who actually does this service (skill match + hand picks).
-    const { listSalonServices } = await import("./services.js");
-    const match = (await listSalonServices(salonUserId, db)).find((item) => String(item.name || "").trim() === service);
-    const firstId = match?.staff_ids?.[0];
-    row = firstId
-      ? await get(db, "SELECT * FROM salon_staff WHERE id = $1 AND salon_user_id = $2", [Number(firstId), salonUserId]) || null
-      : null;
-  }
-  if (!row && service) {
-    row = await get(db, `
-      SELECT *
-      FROM salon_staff
-      WHERE salon_user_id = $1
-        AND artist_user_id IS NOT NULL
-        AND (role = $2 OR bio LIKE $3)
-      ORDER BY id DESC
-      LIMIT 1
-    `, [salonUserId, service, `%${service}%`]) || null;
-  }
-  if (!row) return null;
-  const artist = await resolveArtistUserForStaff(row, db);
-  if (artist?.id && !row.artist_user_id) {
-    await run(db, `
-      UPDATE salon_staff
-      SET artist_user_id = $1, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $2 AND salon_user_id = $3
-    `, [artist.id, row.id, salonUserId]);
-  }
-  return {
-    ...row,
-    artist_user_id: artist?.id || row.artist_user_id || null,
-    avatar: artistAvatarUrl(artist),
-    staff_avatar: artistAvatarUrl(artist)
-  };
-}
-
 /** Visits are tied to team members by name, so two people with one name would cancel each other's visits on leaving. */
 export const SAME_NAME_IN_TEAM = "توی این تیم یکی با همین اسم هست؛ اسمت رو یه کم فرق بده.";
 
@@ -472,7 +387,8 @@ export async function updateSalonStaff(id, salonUserId, data) {
   // may only change what is genuinely the salon's: state, access level, booking tally.
   const linked = Boolean(current.artist_user_id);
   const nextDraft = {
-    artist_user_id: linked ? current.artist_user_id : (data.artistUserId ?? data.artist_user_id ?? current.artist_user_id),
+    // Never from the request: a seat gets its account only by that artist joining (invite, link, proposal).
+    artist_user_id: current.artist_user_id,
     name: linked ? current.name : (data.name ?? current.name),
     phone: linked ? current.phone : (data.phone ?? current.phone),
     role: linked ? current.role : (data.role ?? current.role),
@@ -481,12 +397,7 @@ export async function updateSalonStaff(id, salonUserId, data) {
     state: data.state ?? current.state,
     access_level: data.accessLevel ?? data.access_level ?? current.access_level
   };
-  const resolvedArtist = await resolveArtistUserForStaff(nextDraft, db);
-  // One seat per salon and artist (migration 081): an old unlinked row stays unlinked when the artist already has a row.
-  const seatTaken = !nextDraft.artist_user_id && resolvedArtist?.id
-    ? await get(db, "SELECT 1 AS taken FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2 AND id <> $3", [salonUserId, resolvedArtist.id, id])
-    : null;
-  const artistUserId = nextDraft.artist_user_id || (seatTaken ? null : resolvedArtist?.id) || null;
+  const artistUserId = nextDraft.artist_user_id || null;
   await run(db, `
     UPDATE salon_staff SET
       artist_user_id = $1, name = $2, phone = $3, role = $4, bio = $5, booked = $6, state = $7, access_level = $8, updated_at = CURRENT_TIMESTAMP

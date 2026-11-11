@@ -65,6 +65,8 @@ function targetDay() {
   return { key: formatPersianDateKey(day), weekday: getPersianWeekday(day) };
 }
 const DAY = targetDay();
+// The day's card by its weekday, as a whole word: «شنبه» must not pick «پنجشنبه» (it did on a run made on a Wednesday, 2026-11-11).
+const DAY_WORD = new RegExp(`(^|[^\u0600-\u06FF])${DAY.weekday}`);
 
 let browser;
 async function open(person, { entered = true } = {}) {
@@ -180,7 +182,7 @@ async function openHours(view) {
   const { page } = view;
   await openServices(page);
   await page.locator(".sduConfirm").click();
-  await page.locator(".vbDayCard, .bspDay").filter({ hasText: DAY.weekday }).first().click();
+  await page.locator(".vbDayCard, .bspDay").filter({ hasText: DAY_WORD }).first().click();
   await page.locator(".vbTime, .bspTime").first().waitFor();
   await settle(page);
   return (await page.locator(".vbTime, .bspTime").allInnerTexts()).map((text) => text.trim());
@@ -359,7 +361,7 @@ async function ownEntry(owner) {
     await page.locator(".vbSubmit").click();
     await page.locator(".vbService").first().click();
     await page.locator(".vbSubmit").click();
-    await page.locator(".vbDayCard, .vbDay").filter({ hasText: DAY.weekday }).first().click();
+    await page.locator(".vbDayCard, .vbDay").filter({ hasText: DAY_WORD }).first().click();
     await page.locator(".vbTime").nth(2).click();
     await settle(page);
     const before = await shot(page, "own-entry-form");
@@ -506,7 +508,8 @@ const ROUNDS = {
 };
 if (!ROUNDS[round]) throw new Error(`Rounds: ${Object.keys(ROUNDS).join(", ")}`);
 
-browser = await chromium.launch();
+// PW_CHROMIUM: a Chromium binary when Playwright's own is not the installed one (the cloud container), as in tests/e2e/browser.js.
+browser = await chromium.launch(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {});
 try {
   const views = await ROUNDS[round]();
   for (const view of views) await view.context.close();

@@ -252,11 +252,6 @@ export async function updateUser(id, data) {
   return getUserById(id, db);
 }
 
-export async function listUsersByType(type) {
-  const db = await getDb();
-  return all(db, `SELECT ${USER_COLUMNS} FROM users WHERE type = $1 ORDER BY created_at DESC`, [type]);
-}
-
 export async function countFollowers(userId, runner = null) {
   const db = runner || (await getDb());
   const row = await get(db, "SELECT COUNT(*) AS c FROM follows WHERE target_user_id = $1", [userId]);

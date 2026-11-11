@@ -344,6 +344,9 @@ export async function deleteProviderAccount({ user, cancelAll = false, byAdmin =
         await cancelItem(item, { by: "provider", userId: user.id, actor: user, purgeMirrorOf: [user.id] });
       }
       await detachFromTeam({ salonUserId: salon, artistId: user.id, names, now: new Date() });
+      // The seat goes with the account (owner's decision 2026-11-11). Left behind it became a nameless-account row
+      // that the next artist with the same name was tied to; past bookings keep her name as text.
+      await run(await getDb(), "DELETE FROM salon_staff WHERE salon_user_id = $1 AND artist_user_id = $2", [salon, Number(user.id)]);
       notifyConnection(salon, { title: "یه آرتیست از تیم رفت", body: `${user.name || "یه آرتیست"} حسابش رو پاک کرد؛ نوبت‌هایی که آرتیست ندارن رو ببین.`, url: "/" });
     }
   }

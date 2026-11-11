@@ -65,19 +65,6 @@ export function canClientCancel(booking) {
   return isBookingActive(booking) && !hasBookingStarted(booking);
 }
 
-/** The soonest still-active booking that hasn't passed yet (date, then clock time). */
-export function pickNextBooking(bookings = []) {
-  const toKey = (booking) => {
-    const raw = booking?.booking_date || booking?.date || "";
-    const day = raw ? resolveRollingPersianDate(raw).getTime() : 0;
-    const clock = String(booking?.time || "").replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/\D/g, "").padStart(4, "0");
-    return day * 10000 + Number(clock || 0);
-  };
-  return bookings
-    .filter((booking) => isBookingAhead(booking))
-    .sort((a, b) => toKey(a) - toKey(b))[0] || null;
-}
-
 /** When a booking ends ("21:15"), from its services or its length; "" when that isn't known. */
 export function bookingEndLabel(booking) {
   const parts = scheduleBookingParts(booking?.time, booking?.parts);

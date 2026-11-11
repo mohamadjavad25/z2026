@@ -103,7 +103,7 @@ export function SalonNearbyInviteSheet({
   const [termsReload, setTermsReload] = useState(0);
   const termsSaved = joinTerms.status === "ready" && Boolean(joinTerms.terms);
 
-  // The link only works carrying this secret (see app/lib/db/repos/salons/invites.js) — without
+  // The link only works carrying this secret (see app/lib/db/repos/salons/joinLink.js) — without
   // it the sheet shows no link at all rather than one that would 400 when scanned.
   // The server hands out the code only once the terms are saved (409 before that), so it is asked again the moment
   // they are: asking once on open left a salon that saved its terms in this sheet with a spinner for good (2026-10-30).

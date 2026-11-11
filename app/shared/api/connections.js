@@ -20,11 +20,6 @@ export async function connectTo(targetUserId) {
   return apiFetch("/api/connections", { method: "POST", body: JSON.stringify({ targetUserId }) });
 }
 
-/** DELETE /api/connections { targetUserId } → { removed } */
-export async function disconnectFrom(targetUserId) {
-  return apiFetch("/api/connections", { method: "DELETE", body: JSON.stringify({ targetUserId }) });
-}
-
 /** GET /api/connections/code → { code } (the client's personal QR content) */
 export async function getMyConnectCode() {
   return apiJson("/api/connections/code");
@@ -40,9 +35,3 @@ export async function lookupScannedCode(code) {
   return apiJson(`/api/connections/lookup?code=${encodeURIComponent(code)}`);
 }
 
-/** POST /api/artist/join-salon { salonUserId, code } (artist) → joins the salon's team; 201.
- *  `code` is the secret from the salon's dedicated join link/QR — see
- *  app/lib/db/repos/salons/invites.js. */
-export async function joinSalonTeam(salonUserId, code) {
-  return apiFetch("/api/artist/join-salon", { method: "POST", body: JSON.stringify({ salonUserId, code }) });
-}

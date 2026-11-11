@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "../../shared/api/client";
-import { getSaves } from "../../shared/api/saves";
 import { ProfileSavedPosts } from "../profile/ProfileSavedPosts";
 import { nowDate } from "../../shared/lib/clock.js";
+import { buildOwnPublicSalon as buildOwnPublicSalonFrom, resolvePostOwner as resolvePostOwnerFrom } from "./postOwner";
+import { useSavedProfilesSync } from "./useSavedProfilesSync";
 
 export function useShellNavigation({
   authCascadeRef,
@@ -75,59 +76,15 @@ function getPassportMatch(post) {
   }
 
 
-  async function refreshFollows() {
-    try {
-      const { ok, payload } = await apiFetch("/api/follows");
-      if (!ok) return;
-      const ids = (payload.data?.followingIds || []).map(String);
-      setFollowedArtists(ids);
-      setFollowedSalons(ids);
-    } catch {
-      // ignore
-    }
-  }
-
-  // Seeds real saved-salon/saved-artist state from the server — mirrors
-  // refreshFollows above (same "one id list feeds both salon + artist local
-  // state" shape, since a save target can be either type). Also stashes the
-  // full card arrays for the "ذخیره‌شده‌ها" profile tab so it doesn't have to
-  // derive from whatever's currently loaded in salonDirectory.
-  async function refreshSaves() {
-    try {
-      const { ok, data } = await getSaves();
-      if (!ok) return;
-      const ids = (data?.savedTargetIds || []).map(String);
-      setSavedSalonKeys(ids);
-      setSavedArtists(ids);
-      setSavedProfiles({ salons: data?.salons || [], artists: data?.artists || [] });
-    } catch {
-      // ignore
-    }
-  }
-
-  // toggleSaveSalon/toggleSavePublicArtist only update the id-only
-  // savedSalonKeys/savedArtists lists (for button state elsewhere) — they
-  // don't know about savedProfiles' full card arrays, which only the
-  // "ذخیره‌شده‌ها" tab renders. Without this, removing a card from that tab
-  // toggled the DB correctly but left the stale card on screen until the
-  // next full refreshSaves() (e.g. a reload) — DB and UI silently diverged.
-  function removeSavedSalon(salon) {
-    toggleSaveSalon(salon);
-    const key = String(salon.id || salon.source_key || salon.name);
-    setSavedProfiles((prev) => ({
-      ...prev,
-      salons: prev.salons.filter((item) => String(item.id || item.source_key || item.name) !== key)
-    }));
-  }
-
-  function removeSavedArtist(artist) {
-    toggleSavePublicArtist(artist);
-    const key = String(artist.id || artist.name);
-    setSavedProfiles((prev) => ({
-      ...prev,
-      artists: prev.artists.filter((item) => String(item.id || item.name) !== key)
-    }));
-  }
+  const { refreshFollows, refreshSaves, removeSavedSalon, removeSavedArtist } = useSavedProfilesSync({
+    setFollowedArtists,
+    setFollowedSalons,
+    setSavedSalonKeys,
+    setSavedArtists,
+    setSavedProfiles,
+    toggleSaveSalon,
+    toggleSavePublicArtist
+  });
 
   authCascadeRef.current = {
     refreshSavedPosts,
@@ -188,90 +145,8 @@ function getPassportMatch(post) {
     setActiveTab(tab);
   }
 
-  function resolvePostOwner(post) {
-    if (!post) return null;
-    const fromDirectory = salonDirectory.find((salon) => (
-      salon.name === post.salon
-      || String(salon.id) === String(post.ownerUserId)
-      || String(salon.source_key) === String(post.ownerUserId)
-    ));
-    const isOwnPost = Boolean(
-      createdProfile
-      && (createdProfile.type === "artist" || createdProfile.type === "salon")
-      && (
-        String(post.ownerUserId) === String(createdProfile.id)
-        || createdProfile.data?.name === post.salon
-      )
-    );
-
-    if (isOwnPost) {
-      return {
-        id: createdProfile.id,
-        name: createdProfile.data.name,
-        area: createdProfile.data.area || post.area || "",
-        role: createdProfile.data.service || post.tag || (createdProfile.type === "salon" ? "سالن" : "آرتیست"),
-        source: createdProfile.type === "salon"
-          ? (fromDirectory || null)
-          : createdProfile,
-        kind: "self",
-        entityType: createdProfile.type
-      };
-    }
-
-    if (post.ownerType === "salon" || fromDirectory) {
-      return {
-        id: fromDirectory?.id || post.ownerUserId,
-        name: fromDirectory?.name || post.salon || "سالن",
-        area: fromDirectory?.area || post.area || "",
-        role: fromDirectory?.tag || post.tag || "سالن",
-        source: fromDirectory || null,
-        kind: "salon",
-        entityType: "salon"
-      };
-    }
-
-    return {
-      id: post.ownerUserId,
-      name: post.salon || "آرتیست",
-      area: post.area || "",
-      role: post.ownerService ? `آرتیست ${post.ownerService}` : (post.tag || "آرتیست"),
-      source: null,
-      kind: "artist",
-      entityType: "artist"
-    };
-  }
-
-  function buildOwnPublicSalon() {
-    const fromDirectory = salonDirectory.find((salon) => (
-      String(salon.id) === String(createdProfile?.id)
-      || String(salon.source_key) === String(createdProfile?.id)
-      || salon.name === createdProfile?.data?.name
-    ));
-    if (fromDirectory) {
-      return {
-        ...fromDirectory,
-        portfolio: fromDirectory.portfolio?.length ? fromDirectory.portfolio : salonPortfolioList,
-        staff: fromDirectory.staff?.length ? fromDirectory.staff : salonStaffList,
-        services: fromDirectory.services?.length ? fromDirectory.services : salonServiceList
-      };
-    }
-    if (createdProfile?.type !== "salon") return null;
-    return {
-      id: createdProfile.id,
-      source_key: String(createdProfile.id),
-      name: createdProfile.data?.name || "سالن",
-      area: createdProfile.data?.area || "",
-      tag: createdProfile.data?.tag || createdProfile.data?.service || "سالن",
-      open: createdProfile.data?.open || "امروز",
-      avatar: createdProfile.data?.avatar || "",
-      post_count: salonPortfolioList.length,
-      follower_count: Number(createdProfile.data?.follower_count || 0),
-      following_count: Number(createdProfile.data?.following_count || 0),
-      portfolio: salonPortfolioList,
-      staff: salonStaffList,
-      services: salonServiceList
-    };
-  }
+  const resolvePostOwner = (post) => resolvePostOwnerFrom(post, { salonDirectory, createdProfile });
+  const buildOwnPublicSalon = () => buildOwnPublicSalonFrom({ salonDirectory, createdProfile, salonPortfolioList, salonStaffList, salonServiceList });
 
   // Hoisted out of openPostOwnerProfile (below) so it can also be reused
   // as the "رزرو دوباره" (book again) navigation from the client's own

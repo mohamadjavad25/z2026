@@ -3,13 +3,9 @@
 import { usePolling } from "../../shared/lib/usePolling";
 import { useAppRefresh } from "../../shared/lib/appRefresh";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createArtistMe, deleteArtistMe, getArtistHours, getArtistMe, respondArtistInvite, getArtistTeams, leaveArtistTeam, updateArtistBooking, updateArtistMe } from "../../shared/api/artists";
+import { createArtistMe, deleteArtistMe, getArtistHours, getArtistMe, getArtistTeams, updateArtistMe } from "../../shared/api/artists";
 import { getPosts } from "../../shared/api/posts";
-import { markNoShow, proposeArtistTime, withdrawProposal } from "../../shared/api/providerExit";
-import { toPersianDigits } from "../../shared/lib/digits";
-import { getTodayPersianWeekday, timeLabelToMinutes } from "../../shared/lib/time";
-import { persianWeekdayIndex } from "../../shared/lib/persianCalendar";
-import { ALL_BREAK_DAYS } from "../../shared/lib/artistBreak";
+import { getTodayPersianWeekday } from "../../shared/lib/time";
 import { mapPortfolioItem } from "../posts/mappers";
 import {
   buildArtistBookingWeekTabs,
@@ -22,7 +18,10 @@ import { readArtistRailDock } from "./railUtils";
 import { useArtistWorkActions } from "./useArtistWorkActions";
 import { useArtistRailDrag } from "./useArtistRailDrag";
 import { useArtistHours } from "./useArtistHours";
-import { exitRefusalOf, openExitDialog } from "../exit/exitDialogBus";
+import { useArtistBreak } from "./useArtistBreak";
+import { useArtistCollabOffers } from "./useArtistCollabOffers";
+import { useArtistTeams } from "./useArtistTeams";
+import { useArtistBookingAnswers } from "./useArtistBookingAnswers";
 
 /**
  * Artist-owner workspace: portfolio, services, bookings, break, outbound collabs,
@@ -82,15 +81,8 @@ export function useArtistWorkspace({
   });
 
   const [artistSocialStats, setArtistSocialStats] = useState({ followers: 0 });
-  const [artistSalonInviteList, setArtistSalonInviteList] = useState([]);
-  const [artistTeams, setArtistTeams] = useState([]);
-  const [artistTeamBusyId, setArtistTeamBusyId] = useState("");
   const [artistWorkSaving, setArtistWorkSaving] = useState(false);
-  const [artistInviteRespondBusyId, setArtistInviteRespondBusyId] = useState("");
   const artistBookingSubmittingRef = useRef(false);
-  const [artistBreakSaving, setArtistBreakSaving] = useState(false);
-  const [artistRequestBusyId, setArtistRequestBusyId] = useState("");
-  const artistRequestBusyIdRef = useRef("");
   const [artistWorkspaceLoading, setArtistWorkspaceLoading] = useState(true);
   const [artistGalleryFilter, setArtistGalleryFilter] = useState("همه");
   const [artistPortfolioItems, setArtistPortfolioItems] = useState([]);
@@ -99,19 +91,7 @@ export function useArtistWorkspace({
   const [artistWorkTagMenuOpen, setArtistWorkTagMenuOpen] = useState(false);
   const [artistBookingList, setArtistBookingList] = useState([]);
   const [artistServiceList, setArtistServiceList] = useState([]);
-  const [artistBreakTime, setArtistBreakTime] = useState(null);
-  const [artistBreakEditorOpen, setArtistBreakEditorOpen] = useState(false);
-  const [artistBreakDraft, setArtistBreakDraft] = useState({ start: "", end: "", days: ALL_BREAK_DAYS });
   const [artistBookingCreateOpen, setArtistBookingCreateOpen] = useState(false);
-  const [artistCollabOffers, setArtistCollabOffers] = useState([]);
-  const [artistCollabDraft, setArtistCollabDraft] = useState({
-    salonId: "",
-    days: "شنبه، دوشنبه، چهارشنبه",
-    from: "۱۰:۰۰",
-    to: "۱۸:۰۰",
-    share: "۴۰",
-    capacity: "۴"
-  });
   const [artistBookingRailOpen, setArtistBookingRailOpen] = useState(false);
   const [artistBookingSelectedDay, setArtistBookingSelectedDay] = useState(getTodayPersianWeekday());
   const [artistHoursList, setArtistHoursList] = useState([]);
@@ -120,6 +100,38 @@ export function useArtistWorkspace({
   const [artistRailDragging, setArtistRailDragging] = useState(false);
   const [artistRailDragPos, setArtistRailDragPos] = useState(null);
   const [artistRailSize, setArtistRailSize] = useState({ w: 68, h: 200 });
+  const {
+    artistBreakTime,
+    setArtistBreakTime,
+    artistBreakEditorOpen,
+    setArtistBreakEditorOpen,
+    artistBreakDraft,
+    setArtistBreakDraft,
+    artistBreakSaving,
+    openArtistBreakEditor,
+    closeArtistBreakEditor,
+    saveArtistBreakTime,
+    clearArtistBreakTime,
+    startArtistBreakNow
+  } = useArtistBreak({ artistHoursList, notify });
+  const {
+    artistCollabOffers,
+    setArtistCollabOffers,
+    artistCollabDraft,
+    setArtistCollabDraft,
+    addArtistCollabOffer,
+    deleteArtistCollabOffer
+  } = useArtistCollabOffers({ createdProfile, salonDirectory, artistServiceList, notify });
+  const {
+    artistSalonInviteList,
+    setArtistSalonInviteList,
+    artistTeams,
+    setArtistTeams,
+    artistTeamBusyId,
+    artistInviteRespondBusyId,
+    respondArtistSalonInvite,
+    leaveArtistSalonTeam
+  } = useArtistTeams({ shellNotify });
 
   // The owner always sees every one of their own posts (the server already orders pinned
   // first, then newest) -- never filtered down by profile specialty.
@@ -350,95 +362,6 @@ export function useArtistWorkspace({
     }
   }
 
-  function openArtistBreakEditor() {
-    // A window already saved opens as it is; a new one starts empty (two taps pick it) on the artist's open days.
-    const openDays = artistHoursList.filter((item) => item?.active).map((item) => persianWeekdayIndex(item.day)).sort((a, b) => a - b);
-    const hasWindow = Boolean(artistBreakTime?.start && artistBreakTime?.end);
-    setArtistBreakDraft({
-      start: hasWindow ? artistBreakTime.start : "",
-      end: hasWindow ? artistBreakTime.end : "",
-      days: hasWindow && Array.isArray(artistBreakTime.days) ? artistBreakTime.days : (openDays.length ? openDays : ALL_BREAK_DAYS)
-    });
-    setArtistBreakEditorOpen(true);
-  }
-
-  function closeArtistBreakEditor() {
-    setArtistBreakEditorOpen(false);
-  }
-
-  async function saveArtistBreakTime() {
-    if (artistBreakSaving) return;
-    if (timeLabelToMinutes(artistBreakDraft.end) <= timeLabelToMinutes(artistBreakDraft.start)) {
-      notify("آخر استراحت باید بعد از اولش باشه.");
-      return;
-    }
-    setArtistBreakSaving(true);
-    try {
-      const { ok, payload } = await createArtistMe({
-        kind: "break",
-        startTime: artistBreakDraft.start,
-        endTime: artistBreakDraft.end,
-        days: artistBreakDraft.days
-      });
-      if (!ok) {
-        notify(payload.error || "استراحت ذخیره نشد؛ دوباره بزن.");
-        return;
-      }
-      setArtistBreakTime(payload.data?.breakTime || {
-        start: artistBreakDraft.start,
-        end: artistBreakDraft.end,
-        days: artistBreakDraft.days,
-        now: artistBreakTime?.now || null
-      });
-      setArtistBreakEditorOpen(false);
-      notify(`تایم استراحت ${artistBreakDraft.start} تا ${artistBreakDraft.end} ذخیره شد.`);
-    } catch {
-      notify("استراحت ذخیره نشد؛ دوباره بزن.");
-    } finally {
-      setArtistBreakSaving(false);
-    }
-  }
-
-  async function clearArtistBreakTime() {
-    if (artistBreakSaving) return;
-    setArtistBreakSaving(true);
-    try {
-      const { ok, payload } = await createArtistMe({ kind: "break", clear: true });
-      if (!ok) {
-        notify("استراحت پاک نشد؛ دوباره بزن.");
-        return;
-      }
-      // A «now» break running today stays.
-      setArtistBreakTime(payload?.data?.breakTime || null);
-      setArtistBreakEditorOpen(false);
-      notify("استراحت پاک شد.");
-    } catch {
-      notify("استراحت پاک نشد؛ دوباره بزن.");
-    } finally {
-      setArtistBreakSaving(false);
-    }
-  }
-
-  // «الان استراحت می‌کنم»: 15, 30 or 60 minutes from now, today only; 0 ends it.
-  async function startArtistBreakNow(minutes) {
-    if (artistBreakSaving) return;
-    setArtistBreakSaving(true);
-    try {
-      const { ok, payload } = await createArtistMe({ kind: "break-now", minutes });
-      if (!ok) {
-        notify(payload?.error || "استراحت ثبت نشد؛ دوباره بزن.");
-        return;
-      }
-      const next = payload?.data?.breakTime || null;
-      setArtistBreakTime(next);
-      setArtistBreakEditorOpen(false);
-      notify(minutes ? `استراحتی تا ${next?.now?.end || ""}؛ تا اون موقع کسی ازت نوبت نمی‌گیره.` : "استراحت تموم شد.");
-    } catch {
-      notify("استراحت ثبت نشد؛ دوباره بزن.");
-    } finally {
-      setArtistBreakSaving(false);
-    }
-  }
 
   async function deleteArtistService(id) {
     const target = artistServiceList.find((item) => item.id === id);
@@ -473,72 +396,6 @@ export function useArtistWorkspace({
     return true;
   }
 
-  async function addArtistCollabOffer(event) {
-    event.preventDefault();
-    const salon = salonDirectory.find((item) => (
-      String(item.id) === String(artistCollabDraft.salonId)
-      || String(item.source_key) === String(artistCollabDraft.salonId)
-      || item.name === artistCollabDraft.salonId
-    )) || salonDirectory[0];
-    if (!salon) {
-      notify("هنوز سالنی پیدا نشد.");
-      return;
-    }
-    const service = String(createdProfile?.data?.service || artistServiceList[0]?.name || "").trim();
-    const days = String(artistCollabDraft.days || "").trim();
-    const from = String(artistCollabDraft.from || "").trim();
-    const to = String(artistCollabDraft.to || "").trim();
-    const share = String(artistCollabDraft.share || "").trim();
-    const capacity = String(artistCollabDraft.capacity || "").trim();
-    if (!service || !days || !from || !to || !share) {
-      notify(service ? "روز، ساعت و سهمت رو کامل کن." : "اول کارهات یا یه خدمت رو بذار.");
-      return;
-    }
-    if (timeLabelToMinutes(to) <= timeLabelToMinutes(from)) {
-      notify("ساعت آخر باید بعد از اول باشه.");
-      return;
-    }
-    try {
-      const { ok, payload } = await createArtistMe({
-        kind: "collab",
-        salonId: salon.id,
-        salonName: salon.name || "سالن منتخب",
-        area: salon.area || salon.city || "",
-        service,
-        days,
-        from,
-        to,
-        share,
-        capacity: capacity || "۱",
-        status: "آماده ارسال"
-      });
-      if (!ok) {
-        notify(payload.error || "پیشنهاد همکاری نرفت؛ دوباره بزن.");
-        return;
-      }
-      setArtistCollabOffers((items) => ([payload.data?.collab, ...items].filter(Boolean)));
-      notify(`پیشنهاد همکاریت رفت برای «${salon.name || "سالن"}».`);
-    } catch {
-      notify("پیشنهاد همکاری نرفت؛ دوباره بزن.");
-    }
-  }
-
-  async function deleteArtistCollabOffer(id) {
-    if (typeof window !== "undefined" && !window.confirm("این پیشنهاد همکاری پاک بشه؟")) {
-      return;
-    }
-    try {
-      const { ok, payload } = await deleteArtistMe({ kind: "collab", id });
-      if (!ok) {
-        notify(payload.error || "پاک نشد؛ دوباره بزن.");
-        return;
-      }
-      setArtistCollabOffers((items) => items.filter((item) => item.id !== id));
-      notify("پیشنهاد همکاری پاک شد.");
-    } catch {
-      notify("پاک نشد؛ دوباره بزن.");
-    }
-  }
   const {
     openArtistWorkPreview,
     closeArtistWorkPreview,
@@ -563,182 +420,15 @@ export function useArtistWorkspace({
     setArtistPortfolioItems
   });
 
-
-  /**
-   * Confirms a REAL pending direct artist_bookings row (status "تازه") via
-   * PATCH /api/artist/me — mirrors approveReservationRequest in
-   * useSalonWorkspace.js exactly (same optimistic-list-replace shape),
-   * for the direct-artist-booking equivalent of that salon flow.
-   */
-  const confirmArtistBookingRequest = useCallback(async (bookingId) => {
-    if (artistRequestBusyIdRef.current) return;
-    const busyKey = `booking:${bookingId}`;
-    artistRequestBusyIdRef.current = busyKey;
-    setArtistRequestBusyId(busyKey);
-    try {
-      const { ok, payload } = await updateArtistBooking({ id: bookingId, status: "تایید شده" });
-      if (!ok) {
-        shellNotify(payload?.error || "تأیید نشد؛ دوباره بزن.");
-        return;
-      }
-      if (Array.isArray(payload.data?.bookings)) {
-        setArtistBookingList(payload.data.bookings.map(mapArtistBooking).filter(Boolean));
-      }
-      shellNotify("تأیید شد؛ مشتری خبردار شد.");
-    } catch {
-      shellNotify("تأیید نشد؛ دوباره بزن.");
-    } finally {
-      artistRequestBusyIdRef.current = "";
-      setArtistRequestBusyId("");
-    }
-  }, [shellNotify]);
-
-  /**
-   * Declines (cancels) a REAL pending direct artist_bookings row — mirrors
-   * declineReservationRequest in useSalonWorkspace.js, same cancel path
-   * (status "لغو", action "cancel") PATCH /api/artist/me now supports.
-   */
-  const declineArtistBookingRequest = useCallback(async (bookingId) => {
-    if (artistRequestBusyIdRef.current) return;
-    const busyKey = `booking:${bookingId}`;
-    artistRequestBusyIdRef.current = busyKey;
-    setArtistRequestBusyId(busyKey);
-    try {
-      const { ok, payload } = await updateArtistBooking({ id: bookingId, status: "لغو", action: "cancel" });
-      if (!ok) {
-        shellNotify(payload?.error || "رد نشد؛ دوباره بزن.");
-        return;
-      }
-      if (Array.isArray(payload.data?.bookings)) {
-        setArtistBookingList(payload.data.bookings.map(mapArtistBooking).filter(Boolean));
-      }
-      shellNotify("رد شد؛ مشتری خبردار شد.");
-    } catch {
-      shellNotify("رد نشد؛ دوباره بزن.");
-    } finally {
-      artistRequestBusyIdRef.current = "";
-      setArtistRequestBusyId("");
-    }
-  }, [shellNotify]);
-
-  /**
-   * One change to the artist's own confirmed direct booking from its screen: «نیومد», «پیشنهاد ساعت دیگه», taking the
-   * proposal back, or cancelling with notice. The list comes back from the server; true when it went through.
-   */
-  const runArtistBookingCall = useCallback(async (bookingId, call, notice) => {
-    if (artistRequestBusyIdRef.current) return false;
-    const busyKey = `booking:${bookingId}`;
-    artistRequestBusyIdRef.current = busyKey;
-    setArtistRequestBusyId(busyKey);
-    try {
-      const { ok, payload } = await call();
-      if (!ok) {
-        shellNotify(payload?.error || "نشد؛ دوباره بزن.");
-        return false;
-      }
-      if (Array.isArray(payload.data?.bookings)) {
-        setArtistBookingList(payload.data.bookings.map(mapArtistBooking).filter(Boolean));
-      }
-      shellNotify(notice);
-      return true;
-    } catch {
-      shellNotify("نشد؛ دوباره بزن.");
-      return false;
-    } finally {
-      artistRequestBusyIdRef.current = "";
-      setArtistRequestBusyId("");
-    }
-  }, [shellNotify]);
-
-  const markArtistNoShow = useCallback((bookingId, noShow) => runArtistBookingCall(
-    bookingId,
-    () => markNoShow({ kind: "artist", id: bookingId, noShow }),
-    noShow ? "زدی که نیومد." : "برگشت؛ دیگه «نیومد» نیست."
-  ), [runArtistBookingCall]);
-
-  const proposeArtistBookingTime = useCallback((bookingId, time) => runArtistBookingCall(
-    bookingId,
-    () => proposeArtistTime({ id: bookingId, time }),
-    `ساعت ${toPersianDigits(time)} رو به مشتری پیشنهاد دادیم. تا قبول نکنه، نوبت همون ساعت قبلی می‌مونه.`
-  ), [runArtistBookingCall]);
-
-  const withdrawArtistProposal = useCallback((bookingId) => runArtistBookingCall(
-    bookingId,
-    () => withdrawProposal({ kind: "artist", id: bookingId }),
-    "پیشنهاد رو پس گرفتی؛ نوبت همون ساعت قبلیه."
-  ), [runArtistBookingCall]);
-
-  const cancelArtistConfirmedBooking = useCallback((bookingId) => runArtistBookingCall(
-    bookingId,
-    () => updateArtistBooking({ id: bookingId, status: "لغو", action: "cancel" }),
-    "نوبت لغو شد؛ مشتری خبردار شد."
-  ), [runArtistBookingCall]);
-
-  async function respondArtistSalonInvite(inviteId, status) {
-    if (!inviteId || artistInviteRespondBusyId) return;
-    setArtistInviteRespondBusyId(String(inviteId));
-    try {
-      const { ok, payload } = await respondArtistInvite({ id: inviteId, status });
-      if (!ok) {
-        shellNotify(payload.error || "جوابت نرسید؛ دوباره بزن.");
-        return false;
-      }
-      setArtistSalonInviteList(payload.data?.invites || []);
-      if (status === "تایید شد") {
-        const teamsRes = await getArtistTeams();
-        if (teamsRes.ok) setArtistTeams(teamsRes.data?.teams || []);
-      }
-      shellNotify(status === "تایید شد"
-        ? "قبول کردی؛ حالا توی تیم سالنی!"
-        : "دعوت رو رد کردی.");
-      return true;
-    } catch {
-      shellNotify("جوابت نرسید؛ دوباره بزن.");
-    } finally {
-      setArtistInviteRespondBusyId("");
-    }
-    return false;
-  }
-
-  async function leaveArtistSalonTeam(salonUserId) {
-    if (!salonUserId || artistTeamBusyId) return;
-    if (typeof window !== "undefined" && !window.confirm("از تیم می‌ری بیرون و دیگه توی برنامهٔ سالن نیستی. مطمئنی؟")) return;
-    setArtistTeamBusyId(String(salonUserId));
-    // One try; a refusal because of confirmed bookings (owner's rules of 2026-10-22) opens the list dialog, whose
-    // «ادامه» repeats this same try (with «لغو همهٔ نوبت‌ها» when chosen).
-    const attempt = async ({ cancelAll = false } = {}) => {
-      const result = await leaveArtistTeam({ salonUserId, ...(cancelAll ? { cancelAll: true } : {}) });
-      if (result.ok) {
-        setArtistTeams(result.payload.data?.teams || []);
-        shellNotify("از تیم اومدی بیرون.");
-        return { ok: true };
-      }
-      const refusal = exitRefusalOf(result);
-      if (refusal) return { ok: false, plan: refusal.plan, message: refusal.message, refusal };
-      return { ok: false, message: result.payload?.error || "از تیم بیرون نیومدی؛ دوباره بزن." };
-    };
-    try {
-      const result = await attempt();
-      if (result.ok) return;
-      if (result.refusal) {
-        openExitDialog({
-          scope: "team",
-          params: { salonUserId },
-          plan: result.plan,
-          message: result.message,
-          title: "از تیم بری بیرون؟",
-          confirmLabel: "آره، برم بیرون",
-          retry: attempt
-        });
-        return;
-      }
-      shellNotify(result.message);
-    } catch {
-      shellNotify("از تیم بیرون نیومدی؛ دوباره بزن.");
-    } finally {
-      setArtistTeamBusyId("");
-    }
-  }
+  const {
+    artistRequestBusyId,
+    confirmArtistBookingRequest,
+    declineArtistBookingRequest,
+    markArtistNoShow,
+    proposeArtistBookingTime,
+    withdrawArtistProposal,
+    cancelArtistConfirmedBooking
+  } = useArtistBookingAnswers({ shellNotify, setArtistBookingList });
 
   return {
     artistWorkSaving,

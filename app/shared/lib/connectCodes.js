@@ -26,7 +26,7 @@ export function buildClientCode(userId, secret) {
  * `{ type: "salon" | "artist", id, joinCode }` for a public profile link, else null.
  * `joinCode` is the `?k=` secret when the link is a salon's dedicated join link
  * (app/join-salon/[id]) — "" for a plain profile link, which proves nothing
- * (see app/lib/db/repos/salons/invites.js for why that distinction matters).
+ * (see app/lib/db/repos/salons/joinLink.js for why that distinction matters).
  */
 export function parseProfileLink(text) {
   const trimmed = String(text || "").trim();

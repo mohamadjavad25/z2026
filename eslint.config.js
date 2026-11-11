@@ -3,21 +3,22 @@ import n from "eslint-plugin-n";
 import globals from "globals";
 
 /**
- * Minimal flat config -- eslint:recommended + eslint-plugin-n (Node-
- * specific rules, useful since this is server-side code), not a heavy
- * opinionated preset, to keep the initial adoption diff small.
+ * Two passes:
  *
- * Scoped to the backend surface this rewrite actually touched (app/api,
- * app/lib, migrations tooling, scripts, tests, config files) -- not
- * app/features/**\/app/components/**\ (the pre-existing React/JSX
- * frontend), which is out of scope for a backend/database-focused
- * rewrite and would otherwise surface an unrelated pile of findings this
- * pass never reviewed. Extend the `files` list here if/when the frontend
- * gets its own lint pass.
+ * 1. The server side (app/api, app/lib, scripts, tests, config files): eslint:recommended + eslint-plugin-n.
+ * 2. The React side (everything else under app/): only the rules that catch code that cannot run, above all a name
+ *    that does not exist (`no-undef`). A hook or component split that forgets an import or a value is the one mistake
+ *    no test catches until someone opens that screen, so it is refused here (added 2026-11-11 with the split of the
+ *    large hooks). Style and unused names are not judged on this side.
+ *
+ * The React files carry `eslint-disable` comments for rules of two plugins that are not installed
+ * (react-hooks, @next/next); the stand-ins below only make those names known, they check nothing.
  */
+const knownRules = (names) => ({ rules: Object.fromEntries(names.map((name) => [name, { create: () => ({}) }])) });
+
 export default [
   {
-    ignores: ["node_modules/**", ".next/**", "app/features/**", "app/components/**", "app/**/*.jsx", "public/**", "mobile/**"]
+    ignores: ["node_modules/**", ".next/**", "public/**", "mobile/**", "graphify-out/**"]
   },
   {
     files: ["app/api/**/*.js", "app/lib/**/*.js", "scripts/**/*.js", "scripts/**/*.mjs", "tests/**/*.js", "*.config.js", "*.mjs"],
@@ -32,6 +33,31 @@ export default [
       "n/no-missing-import": "error",
       "n/no-unsupported-features/es-syntax": "off",
       "no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }]
+    }
+  },
+  {
+    files: ["app/**/*.js", "app/**/*.jsx"],
+    ignores: ["app/api/**", "app/lib/**"],
+    plugins: {
+      "react-hooks": knownRules(["exhaustive-deps", "rules-of-hooks"]),
+      "@next/next": knownRules(["no-img-element"])
+    },
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: "module",
+      parserOptions: { ecmaFeatures: { jsx: true } },
+      globals: { ...globals.browser, ...globals.node }
+    },
+    linterOptions: { reportUnusedDisableDirectives: "off" },
+    rules: {
+      "no-undef": "error",
+      "no-const-assign": "error",
+      "no-dupe-args": "error",
+      "no-dupe-keys": "error",
+      "no-func-assign": "error",
+      "no-import-assign": "error",
+      "no-redeclare": "error",
+      "no-unreachable": "error"
     }
   }
 ];

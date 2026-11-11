@@ -160,33 +160,8 @@ export function getTehranClockMinutes(date = nowDate()) {
   return hour * 60 + minute;
 }
 
-export function shortPersianWeekday(day) {
-  const map = {
-    شنبه: "ش",
-    یکشنبه: "ی",
-    دوشنبه: "د",
-    "سه‌شنبه": "س",
-    "سه شنبه": "س",
-    چهارشنبه: "چ",
-    پنجشنبه: "پ",
-    جمعه: "ج"
-  };
-  return map[day] || String(day || "").slice(0, 1);
-}
-
 // Owner's decision of 2026-11-08: working hours run from 6:00 to 24:00. 24:00 is only ever a closing time.
 export const SALON_HOUR_TIME_OPTIONS = buildClockOptions(6 * 60, 24 * 60, 60);
-
-// SQLite CURRENT_TIMESTAMP strings are UTC with no offset marker ("YYYY-MM-DD
-// HH:MM:SS"); append "Z" so Date parses them as UTC instead of silently
-// treating them as local time — same trick used everywhere a "respond by"
-// deadline is computed from a row's created_at.
-const requestExpiryDeadlineTimeFmt = new Intl.DateTimeFormat("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-  timeZone: "Asia/Tehran"
-});
 
 /** Normalizes a row's created_at/updated_at into something `new Date()`/
  *  `Date.parse()` parses as UTC. Handles both shapes this codebase's API
@@ -199,34 +174,4 @@ export function toIsoLikeTimestamp(value) {
   const raw = String(value || "").trim();
   if (!raw) return "";
   return raw.includes("T") ? raw : `${raw.replace(" ", "T")}Z`;
-}
-
-/** Wall-clock "HH:MM" (Persian digits, Tehran time) a pending booking
- *  request auto-expires at, given its created_at and the sweep's timeout
- *  window (60 minutes by default — see bookingExpirySweep.js). Shared single
- *  source for every "respond by" / "waiting until" deadline shown across
- *  client and owner UI (salon bookings, direct artist bookings) so none of
- *  them can drift out of sync with each other or with the sweep's own
- *  DEFAULT_TIMEOUT_MINUTES. */
-export function formatRequestExpiryDeadline(createdAt, minutes = 60) {
-  const isoLike = toIsoLikeTimestamp(createdAt);
-  if (!isoLike) return "";
-  const created = new Date(isoLike);
-  if (Number.isNaN(created.getTime())) return "";
-  const deadline = new Date(created.getTime() + minutes * 60 * 1000);
-  return toPersianDigits(requestExpiryDeadlineTimeFmt.format(deadline));
-}
-
-/** Minutes left before a pending request's auto-expiry sweep picks it up
- *  (see formatRequestExpiryDeadline above) -- null when createdAt can't be
- *  parsed, so callers can distinguish "unknown" from "already expired"
- *  (a real, negative-but-defined number). Used to style the deadline badge
- *  as urgent once only a few minutes remain, not just show a static time. */
-export function getRequestExpiryMinutesLeft(createdAt, minutes = 60) {
-  const isoLike = toIsoLikeTimestamp(createdAt);
-  if (!isoLike) return null;
-  const created = new Date(isoLike);
-  if (Number.isNaN(created.getTime())) return null;
-  const deadline = created.getTime() + minutes * 60 * 1000;
-  return Math.round((deadline - nowMs()) / 60000);
 }

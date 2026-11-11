@@ -39,3 +39,19 @@ export function buildClientHistoryLookup(rows, keysOf) {
     return [...seen].sort((a, b) => a - b).map((i) => rows[i]);
   };
 }
+
+/**
+ * The ten dots beside a client's name: their last ten visits in this history, oldest first (1 = came, 2 = VIP, 0 = an
+ * empty dot). A cancelled booking and a «نیومد» are not visits.
+ */
+export function visitLevels(historyRows) {
+  const recent = [...historyRows]
+    .filter((item) => item && item.status !== "لغو" && !item.no_show_at)
+    .sort((a, b) => Number(a.id || 0) - Number(b.id || 0))
+    .slice(-10);
+  const visits = Array.from({ length: 10 }, () => 0);
+  recent.forEach((item, index) => {
+    visits[index] = item.status === "VIP" ? 2 : 1;
+  });
+  return visits;
+}
