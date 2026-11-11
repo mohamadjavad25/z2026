@@ -273,16 +273,6 @@ export async function forgetArtistPlace(artistUserId, salonUserId, runner = null
   }
 }
 
-/** The salon's own switch for one member. */
-export async function setDirectAllowed(salonUserId, staffId, allowed) {
-  const db = await getDb();
-  const result = await run(db, `
-    UPDATE salon_staff SET direct_allowed = $1, updated_at = CURRENT_TIMESTAMP
-    WHERE id = $2 AND salon_user_id = $3 AND NOT is_owner
-  `, [Boolean(allowed), staffId, salonUserId]);
-  return result.rowCount > 0;
-}
-
 /**
  * What the salon sees about the clients its members bring: per member (by artist account) the bookings held at this
  * salon from today on, how many different people booked this month and how many of those are connected to the salon.

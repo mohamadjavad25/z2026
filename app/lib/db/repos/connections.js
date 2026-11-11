@@ -313,7 +313,7 @@ export async function disconnect(clientUserId, targetUserId) {
 
 // ---- What a scanned profile code means to the person who scanned it ----
 
-const INVITE_PENDING = "در انتظار تایید"; // salon_artist_invites.status, see repos/salons/invites.js
+const INVITE_PENDING = "در انتظار تایید"; // salon_artist_invites.status, see repos/salons/membership.js
 
 /**
  * The salon/artist behind a scanned link, plus how the viewer relates to it, so

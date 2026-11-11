@@ -42,7 +42,7 @@ export async function lookupScannedCode(code) {
 
 /** POST /api/artist/join-salon { salonUserId, code } (artist) → joins the salon's team; 201.
  *  `code` is the secret from the salon's dedicated join link/QR — see
- *  app/lib/db/repos/salons/invites.js. */
+ *  app/lib/db/repos/salons/joinLink.js. */
 export async function joinSalonTeam(salonUserId, code) {
   return apiFetch("/api/artist/join-salon", { method: "POST", body: JSON.stringify({ salonUserId, code }) });
 }

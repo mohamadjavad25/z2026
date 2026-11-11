@@ -42,7 +42,3 @@ export function bumpSalonAvailability(salonUserId) {
   salonKeys.delete(id);
 }
 
-export function clearAvailabilityCache() {
-  entries.clear();
-  salonKeys.clear();
-}

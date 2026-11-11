@@ -4,7 +4,7 @@ import { all, getDb, get, run } from "./db/connection.js";
 import * as adminRepo from "./db/repos/admin.js";
 import { DUMMY_PASSWORD_HASH, hashPassword, normalizeDigits, normalizePhone, verifyPassword } from "./auth.js";
 import { checkRateLimit, clientIp } from "./rateLimit.js";
-import { adminPhoneList, isAdminPhone } from "./admin.js";
+import { adminPhoneList, isAdminPhone } from "./adminPhones.js";
 import { generateTotpSecret, totpUri, verifyTotp } from "./totp.js";
 
 /**

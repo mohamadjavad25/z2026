@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 // The secret embedded in the salon's own QR/link (app/join-salon/[id]?k=...),
 // shown to the salon owner so they can build/share that link; see
-// app/lib/db/repos/salons/invites.js for why the id alone isn't enough.
+// app/lib/db/repos/salons/joinLink.js for why the id alone isn't enough.
 async function _GET(request) {
   await ensureDb();
   const auth = await requireUserRole(request, "salon", "این بخش مال سالن‌هاست.");

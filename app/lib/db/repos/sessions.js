@@ -18,15 +18,6 @@ export async function createSession(token, userId, expiresAt) {
   `, [hashToken(token), userId, new Date(expiresAt).toISOString()]);
 }
 
-export async function getValidSession(token) {
-  const db = await getDb();
-  const row = await get(db, `
-    SELECT * FROM sessions
-    WHERE token = $1 AND expires_at > NOW()
-  `, [hashToken(token)]);
-  return row || null;
-}
-
 export async function deleteSession(token) {
   const db = await getDb();
   await run(db, "DELETE FROM sessions WHERE token = $1", [hashToken(token)]);

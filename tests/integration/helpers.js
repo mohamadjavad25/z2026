@@ -111,7 +111,7 @@ export async function ensureJoinTerms(salonClient, terms = DEFAULT_JOIN_TERMS) {
 
 /** POST /api/artist/join-salon on the artist's behalf, fetching the salon's own join
  *  code first (as the real "artist scans the salon's QR" flow does) -- the endpoint
- *  rejects a bare salonUserId with no code (see app/lib/db/repos/salons/invites.js).
+ *  rejects a bare salonUserId with no code (see app/lib/db/repos/salons/joinLink.js).
  *  The salon's terms are saved on demand and their version sent, as the join page does. */
 export async function joinSalonAsArtist(artistClient, salonClient, salonUserId, { keepTerms = false, keepNotice = false } = {}) {
   const terms = await ensureJoinTerms(salonClient);
