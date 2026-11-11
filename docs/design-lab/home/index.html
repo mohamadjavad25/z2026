@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-role="pro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نمونهٔ خانهٔ سالن و آرتیست</title>
+<link rel="stylesheet" href="../../../app/styles/tokens.css">
+<link rel="stylesheet" href="lab.css">
+<script>
+  // ?role=salon|artist  ?theme=light|dark  ?state=empty|busy
+  var q = new URLSearchParams(location.search);
+  if (q.get("theme")) document.documentElement.dataset.theme = q.get("theme");
+  document.documentElement.dataset.state = q.get("state") || "empty";
+  document.documentElement.dataset.who = q.get("role") || "salon";
+</script>
+<style>
+  html[data-who="salon"] .only-artist, html[data-who="artist"] .only-salon { display: none !important; }
+  html[data-state="empty"] .only-busy, html[data-state="busy"] .only-empty { display: none !important; }
+</style>
+</head>
+<body>
+<main class="phone">
+  <header>
+    <div class="cover">
+      <div class="cover-actions">
+        <button class="round" aria-label="کد من"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg></button>
+        <div>
+          <button class="round" aria-label="اعلان‌ها"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg><span class="dot"></span></button>
+          <button class="round" aria-label="پشتیبانی"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15v3a3 3 0 0 1-3 3h-3"/><rect x="2" y="14" width="4" height="6" rx="1.5"/><rect x="18" y="14" width="4" height="6" rx="1.5"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <div class="identity">
+      <div class="avatar"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 4-6 8-6s7.2 2 8 6"/></svg></div>
+      <div class="who">
+        <h1><span class="only-salon">سالن نیلوفر</span><span class="only-artist">الهام نوری</span></h1>
+        <p><span class="only-salon">سالن · اهواز</span><span class="only-artist">آرتیست ناخن · اهواز</span></p>
+      </div>
+      <button class="mypage"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg> صفحهٔ من</button>
+    </div>
+    <nav class="tabs" aria-label="بخش‌ها">
+      <button class="tab" aria-current="page"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/><path d="m9 15 2 2 4-4"/></svg>نوبت‌ها</button>
+      <button class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h.01M8 12h.01M8 16h.01M12 8h4M12 12h4M12 16h4"/></svg>خدمات</button>
+      <button class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>نمونه‌کار</button>
+    </nav>
+  </header>
+
+  <section class="body">
+    <button class="row">
+      <span class="ring" style="--p:25"></span>
+      <span class="grow"><b>صفحه‌ت ۲۵٪ آماده‌ست</b><small>۳ قدم دیگه</small></span>
+      <span class="chev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></span>
+    </button>
+
+    <button class="row is-live only-busy">
+      <span class="count">۲</span>
+      <span class="grow"><b>درخواست منتظر جواب</b><small>یکی برای فردا، یکی برای شنبه</small></span>
+      <span class="chev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></span>
+    </button>
+
+    <div class="day-head"><h2>امروز، پنجشنبه</h2><span class="only-empty">بدون نوبت</span><span class="only-busy">۳ نوبت</span></div>
+    <div class="week" role="group" aria-label="هفته">
+      <button class="d"><small>ش</small><b>۲۲</b></button>
+      <button class="d"><small>ی</small><b>۲۳</b><i class="only-busy"></i></button>
+      <button class="d"><small>د</small><b>۲۴</b></button>
+      <button class="d"><small>س</small><b>۲۵</b></button>
+      <button class="d"><small>چ</small><b>۲۶</b></button>
+      <button class="d" aria-current="date"><small>پ</small><b>۲۰</b><i class="only-busy"></i></button>
+      <button class="d"><small>ج</small><b>۲۱</b><i class="only-busy"></i></button>
+    </div>
+
+    <div class="empty only-empty">
+      <img src="../../../public/brand/mascot/no-bookings.webp" alt="">
+      امروز نوبتی نیست
+    </div>
+
+    <div class="list only-busy">
+      <article class="card is-wait">
+        <div class="time">۰۹:۳۰<small>تا ۱۰:۳۰</small></div>
+        <div><h3>مریم ساختگی</h3><p>کوتاهی مو · الهام نوری</p></div>
+        <span class="pill wait">منتظر جواب</span>
+        <div class="answer"><button class="btn no"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg> رد</button><button class="btn go"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg> تأیید</button></div>
+      </article>
+      <article class="card">
+        <div class="time">۱۱:۰۰<small>تا ۱۲:۰۰</small></div>
+        <div><h3>پریسا کریمی</h3><p>رنگ مو · الهام نوری</p></div>
+        <span class="pill ok">قطعی</span>
+      </article>
+      <article class="card">
+        <div class="time">۱۴:۰۰<small>تا ۱۴:۴۵</small></div>
+        <div><h3>آیدا مرادی</h3><p>مانیکور · ترانه</p></div>
+        <span class="pill ok">قطعی</span>
+      </article>
+    </div>
+
+    <button class="row only-artist">
+      <span class="grow"><b>تأیید خودکار</b></span>
+      <span class="switch" role="switch" aria-checked="false"></span>
+    </button>
+  </section>
+
+  <nav class="dock" aria-label="پایین">
+    <div><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>تنظیمات</div>
+    <div><span class="plus"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></div>
+    <div><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="3"/><circle cx="17" cy="9" r="3"/><path d="M3 20c.5-3 3-4.5 6-4.5"/></svg>مشتری‌هام</div>
+  </nav>
+</main>
+</body>
+</html>

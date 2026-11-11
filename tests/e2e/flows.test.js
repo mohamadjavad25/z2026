@@ -598,7 +598,8 @@ describe("profile completeness (browser)", () => {
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     const card = page.locator(".profileCompleteness");
     await card.waitFor();
-    expect(await card.innerText()).toContain("۴ قدم دیگه");
+    expect(await card.innerText()).toContain("۴ قدم مونده");
+    expect(await card.innerText()).toContain("پروفایلت رو کامل کن");
     await page.getByRole("button", { name: "بستن یادآوری تکمیل پروفایل" }).click();
     await card.waitFor({ state: "detached" });
     await page.reload({ waitUntil: "networkidle" });

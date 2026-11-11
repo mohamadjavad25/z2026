@@ -1340,7 +1340,8 @@ body:has(.salonQrSheetOverlay) .profileModeRail.is-dockRail {
 .profilePanel.page-profile:has(.createdProfile.is-artist) .artistHeroNameText {
   color: inherit !important;
   display: inline-block !important;
-  max-width: 74px !important;
+  font-size: var(--text-lg) !important;
+  max-width: 150px !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;

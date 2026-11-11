@@ -198,7 +198,7 @@ a:hover > .igFolder .igFolderPost.is-3, a:active > .igFolder .igFolderPost.is-3,
 .homeCards { display: grid; gap: 6px; margin: 12px 14px 0; }
 .homeCardsTrack { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; border-radius: 22px; }
 .homeCardsTrack::-webkit-scrollbar { display: none; }
-.homeCardsTrack > section { flex: 0 0 100%; box-sizing: border-box; height: 92px; margin: 0; scroll-snap-align: center; }
+.homeCardsTrack > section { flex: 0 0 100%; box-sizing: border-box; height: 72px; margin: 0; scroll-snap-align: center; }
 .homeCardsDots { display: flex; justify-content: center; gap: 6px; }
 .homeCardsDots button { position: relative; width: 7px; height: 7px; padding: 0; border: 0; border-radius: 99px; background: var(--n-200); cursor: pointer; transition: width 0.25s ease, background 0.25s ease; }
 .homeCardsDots button::after { content: ""; position: absolute; inset: -8px -4px; }
