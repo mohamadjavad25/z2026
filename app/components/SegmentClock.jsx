@@ -214,13 +214,3 @@ export function SegmentClock({
     </Tag>
   );
 }
-
-export function SegmentClockRange({ open, close, size = "sm", className = "" }) {
-  return (
-    <span className={`segmentClockRange ${className}`.trim()}>
-      <SegmentClock value={open} size={size} as="span" />
-      <em>تا</em>
-      <SegmentClock value={close} size={size} as="span" />
-    </span>
-  );
-}

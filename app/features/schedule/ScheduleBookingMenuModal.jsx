@@ -1,12 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ServiceIcon } from "../../components/ServiceIcon";
-import { ownerAttendanceState, reliabilityView } from "../../shared/lib/attendance";
 import {
-  AlertTriangle,
   ArrowRight,
-  BadgeCheck,
   CalendarCheck,
   Check,
   CheckCircle2,
@@ -14,7 +11,6 @@ import {
   Clock3,
   Eye,
   Phone,
-  Sparkles,
   Timer,
   TimerOff,
   Trash2,
@@ -27,19 +23,18 @@ import { getBookingDateOffsetDays, getBookingTimelinePhase } from "../artist/boo
 import { formatRelativeBookingDayLabel, isPersianDateKey } from "../../shared/lib/persianCalendar";
 import { SegmentClock } from "../../components/SegmentClock";
 import { toLatinDigits, toPersianDigits } from "../../shared/lib/digits";
-import { minutesToPersianTime, normalizeBookingTimeLabel, timeLabelToMinutes } from "../../shared/lib/time";
-import { getArtistProposalTimes } from "../../shared/api/providerExit";
 import { bookingWaitMinutes, requestMinutesLeft } from "../../shared/lib/bookingWindow";
 import { RequestExpiryBadge } from "./RequestExpiryBadge";
 import { isMultiPartBooking, parseBookingParts, scheduleBookingParts } from "../../shared/lib/bookingParts";
 import { ArtistOptionList, ArtistPickSheet, BookingPartsEditor } from "./BookingPartsEditor";
 import { ArtistBookingPlace } from "./ArtistBookingPlace";
-import { getSalonBookingMoveTimes, getSalonBookingStaffOptions } from "../../shared/api/salons";
 import { useBackHandler } from "../../shared/hooks/useBackHandler";
 import { AWAITING_CLIENT, bookingTimeOffer } from "../../shared/lib/bookingOffer";
 import { bookingStatusLabel, hasBookingEnded } from "../client/bookingStatus";
 import { CALL_FIRST_TEXT, CANCEL_WITH_NOTICE, CLIENT_CAN_CALL, NO_SHOW_HOURS, NO_SHOW_LABEL, NO_SHOW_UNDO_LABEL, PROPOSE_LABEL, noShowPhase, shortClock, startsSoon } from "../../shared/lib/providerRules";
-import { nowDate } from "../../shared/lib/clock.js";
+import { MoveTimeList } from "./MoveTimeList";
+import { AutoAssignCard, useStaffAvailability } from "./StaffAutoAssign";
+import { ClientTrust } from "./ClientTrust";
 
 // Shown when a customer / staff member / source has no uploaded photo.
 const DEFAULT_AVATAR = "/profile-icon.svg";
@@ -83,209 +78,6 @@ const BOOKING_STATUS_ICONS = {
   bad: XCircle,
   expired: TimerOff
 };
-
-/**
- * «تغییر ساعت»: only the times this booking really fits at, asked from the server with the same
- * rules the move itself is checked by -- its services with their artists, nothing else in the
- * way, ending by closing time. Times that run past closing come last, marked with how much
- * longer the salon would stay, and are sent only as a deliberate choice. On top, «پیشنهادی»: the
- * free times closest to the current one, the likeliest move. Each time is a chip at the start
- * of its row, and the row's empty side fades out.
- */
-function MoveTimeList({ booking, disabled, onPick }) {
-  const [state, setState] = useState({ id: null, loading: true, times: [], close: "", closed: false, failed: false });
-  useEffect(() => {
-    let alive = true;
-    setState({ id: booking.id, loading: true, times: [], close: "", closed: false, failed: false });
-    // An independent artist's own booking: the free times of its day from GET /api/booking-proposals (no overtime).
-    const load = booking.ownerType === "salon"
-      ? getSalonBookingMoveTimes(booking.id)
-      : getArtistProposalTimes(booking.id).then(({ ok, payload }) => ({
-        ok,
-        data: {
-          times: (payload?.data?.times || []).map((time) => ({
-            time,
-            end: minutesToPersianTime(timeLabelToMinutes(time) + (Number(booking.durationMinutes) || 60)),
-            overtimeMinutes: 0
-          }))
-        }
-      }));
-    load.then(({ ok, data }) => {
-      if (!alive) return;
-      setState({ id: booking.id, loading: false, times: ok ? data.times || [] : [], close: data?.close || "", closed: Boolean(data?.closed), failed: !ok });
-    }).catch(() => {
-      if (alive) setState({ id: booking.id, loading: false, times: [], close: "", closed: false, failed: true });
-    });
-    return () => { alive = false; };
-  }, [booking.id, booking.time, booking.parts]);
-
-  const current = normalizeBookingTimeLabel(booking.time || "");
-  const inHours = state.times.filter((option) => !option.overtimeMinutes);
-  const late = state.times.filter((option) => option.overtimeMinutes > 0);
-  const others = inHours.filter((option) => option.time !== current);
-  const currentMinutes = timeLabelToMinutes(current);
-  const suggested = Number.isFinite(currentMinutes)
-    ? [...others].sort((a, b) => Math.abs(timeLabelToMinutes(a.time) - currentMinutes) - Math.abs(timeLabelToMinutes(b.time) - currentMinutes)).slice(0, 3)
-      .sort((a, b) => timeLabelToMinutes(a.time) - timeLabelToMinutes(b.time))
-    : others.slice(0, 3);
-
-  if (state.loading) return <p className="sbmMoveNote">دارم ساعت‌های خالی رو پیدا می‌کنم…</p>;
-  if (state.failed) return <p className="sbmMoveNote is-warn">ساعت‌های خالی نیومد؛ دوباره بزن.</p>;
-  if (state.closed) return <p className="sbmMoveNote is-warn">سالن این روز تعطیله.</p>;
-
-  const row = (option, overtime) => {
-    const active = option.time === current;
-    return (
-      <button
-        type="button"
-        key={option.time}
-        className={`${active ? "is-selected" : ""}${overtime ? " is-overtime" : ""}`}
-        disabled={disabled || active}
-        onClick={() => {
-          if (overtime && typeof window !== "undefined" && !window.confirm(
-            `این نوبت تا ${toPersianDigits(option.end)} طول می‌کشه؛ یعنی ${toPersianDigits(option.overtimeMinutes)} دقیقه بیشتر از ساعت کاری می‌مونی. بفرستم؟`
-          )) return;
-          onPick(option.time, overtime);
-        }}
-      >
-        <span className="sbmMoveChip"><SegmentClock value={option.time} size="xs" as="span" backgroundColor="transparent" /></span>
-        <span className="sbmMoveCopy">
-          <b>تا {toPersianDigits(option.end)}</b>
-          {active ? <small>ساعت فعلی</small> : overtime ? <small>{toPersianDigits(option.overtimeMinutes)} دقیقه بیشتر می‌مونی</small> : null}
-        </span>
-        {active ? <Check size={16} /> : null}
-      </button>
-    );
-  };
-
-  return (
-    <div className="scheduleBookingPickList is-move">
-      {suggested.length ? (
-        <div className="sbmSuggest">
-          <p className="sbmSuggestHead"><Sparkles size={14} aria-hidden="true" /> پیشنهادی</p>
-          <div className="sbmSuggestRow">
-            {suggested.map((option) => (
-              <button type="button" key={option.time} disabled={disabled} onClick={() => onPick(option.time, false)} aria-label={`جابه‌جایی به ${toPersianDigits(option.time)} تا ${toPersianDigits(option.end)}`}>
-                <b>{toPersianDigits(option.time)}</b>
-                <small>تا {toPersianDigits(option.end)}</small>
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : null}
-      {others.length === 0 ? (
-        <p className="sbmMoveNote is-warn">
-          {late.length
-            ? `تا آخر ساعت کاری (${toPersianDigits(state.close)}) ساعت خالی دیگه‌ای برای این نوبت نیست.`
-            : "این روز ساعت خالی دیگه‌ای برای این نوبت نیست."}
-        </p>
-      ) : null}
-      {inHours.map((option) => row(option, false))}
-      {late.length ? (
-        <>
-          <p className="sbmMoveHead">اگه بعد از ساعت کاری بمونی (سالن تا {toPersianDigits(state.close)} بازه)</p>
-          {late.map((option) => row(option, true))}
-        </>
-      ) : null}
-    </div>
-  );
-}
-
-/**
- * Who on the team is free for each service of this booking (salon, editable bookings only),
- * fetched again whenever its day, time, split or status changes.
- * → { ready, availability: [Map(name → { free, skilled, away })] per service, suggested: [name] }
- */
-function useStaffAvailability(booking, enabled) {
-  const id = booking?.id;
-  const key = enabled && id != null
-    ? [id, booking.booking_date || "", booking.time || "", booking.parts || "", booking.staff || "", booking.status || ""].join("|")
-    : "";
-  const [state, setState] = useState({ key: "", parts: [], suggested: [] });
-  useEffect(() => {
-    if (!key) return undefined;
-    let alive = true;
-    const settle = (parts = [], suggested = []) => {
-      if (alive) setState({ key, parts, suggested });
-    };
-    getSalonBookingStaffOptions(id)
-      .then(({ ok, data }) => (ok ? settle(data?.parts || [], data?.suggested || []) : settle()))
-      .catch(() => settle());
-    return () => { alive = false; };
-  }, [key, id]);
-  return useMemo(() => {
-    if (!key || state.key !== key) return { ready: false, availability: [], suggested: [] };
-    return {
-      ready: state.parts.length > 0,
-      availability: state.parts.map((part) => new Map((part.options || []).map((option) => [option.name, option]))),
-      suggested: state.suggested
-    };
-  }, [key, state]);
-}
-
-/**
- * «چیدن خودکار»: what the system would do with this booking's artists. Offered when its split
- * differs from the current one; when a service has nobody and nobody is free, says so instead.
- */
-function AutoAssignCard({ current, suggested, services, disabled, onAutoAssign, fresh = false }) {
-  const missing = current.filter((name) => !name).length;
-  const differs = suggested.some((name, index) => name !== (current[index] || ""));
-  const offers = suggested.some(Boolean) && differs;
-  if (!offers && !missing) {
-    // The split already is the suggestion: say so in one small chip instead of nothing.
-    return fresh && suggested.some(Boolean) ? (
-      <p className="sbmAutoDone"><Sparkles size={13} aria-hidden="true" />خودکار چیده شد</p>
-    ) : null;
-  }
-  if (!offers) {
-    return (
-      <p className="sbmAuto is-stuck">
-        <UserRound size={15} aria-hidden="true" />
-        <span>
-          <b>{services > 1 ? `${toPersianDigits(missing)} کار بدون آرتیست` : "این نوبت آرتیست نداره"}</b>
-          <small>این ساعت آرتیست آزادی نیست؛ ساعت رو عوض کن یا خودت یکی رو انتخاب کن.</small>
-        </span>
-      </p>
-    );
-  }
-  const names = [...new Set(suggested.filter(Boolean))];
-  return (
-    <div className={`sbmAuto ${missing ? "is-missing" : ""}`}>
-      <Sparkles size={16} aria-hidden="true" />
-      <span>
-        <b>{missing ? (services > 1 ? `${toPersianDigits(missing)} کار بدون آرتیست` : "این نوبت آرتیست نداره") : "پیشنهاد ما"}</b>
-        <small>{`آزادترین آرتیست‌ها: ${names.join("، ")}`}</small>
-      </span>
-      <button type="button" disabled={disabled} onClick={onAutoAssign}>چیدن خودکار</button>
-    </div>
-  );
-}
-
-/**
- * The client's record across frfro and their «میای؟» answer (owner's decision of 2026-10-27): what lets a salon or
- * artist feel sure without a deposit. Only for a client with an account.
- */
-function ClientTrust({ booking }) {
-  const record = reliabilityView(booking?.reliability);
-  const attend = ownerAttendanceState({ ...booking, booking_date: booking?.booking_date || booking?.dateKey }, nowDate(), booking?.ownerType === "artist" ? "artist" : "salon");
-  if (!record && !attend) return null;
-  return (
-    <div className={`sbmTrust${record?.warn ? " is-warn" : ""}`}>
-      {record ? (
-        <p>
-          {record.warn ? <AlertTriangle size={15} aria-hidden="true" /> : <BadgeCheck size={15} aria-hidden="true" />}
-          <span>{record.line}{record.warn ? ` ${record.warn}` : ""}</span>
-        </p>
-      ) : null}
-      {attend ? (
-        <p className={`is-${attend}`}>
-          {attend === "yes" ? <CheckCircle2 size={15} aria-hidden="true" /> : <Clock3 size={15} aria-hidden="true" />}
-          <span>{attend === "yes" ? "روز قبل گفته میاد." : "روز قبل ازش پرسیدیم «میای؟»؛ هنوز جواب نداده. اگه خواستی یه زنگ بزن."}</span>
-        </p>
-      ) : null}
-    </div>
-  );
-}
 
 /**
  * The salon/artist booking screen: opened from a schedule row, and opened on its own the moment

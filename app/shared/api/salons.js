@@ -230,11 +230,6 @@ export async function getSalonStaff() {
   return apiJson("/api/salon-staff");
 }
 
-/** GET /api/salon-staff/calendars → { calendars } owner-only: linked artists' break + busy times */
-export async function getSalonStaffCalendars() {
-  return apiJson("/api/salon-staff/calendars");
-}
-
 /** GET /api/salon-staff/self → { profile }: what the manager entered for their own team card (kept after leaving) */
 export async function getSalonOwnerProfile() {
   return apiJson("/api/salon-staff/self");

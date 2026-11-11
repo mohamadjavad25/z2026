@@ -8,7 +8,8 @@ and everything in progress is written to GitHub, so that another account can pic
 **This file is the hand-over.** Whoever continues: read it top to bottom, then go on from «Next». Update it in the same
 commit as each step, and push after every step (the session may stop at any time).
 
-Branch: `claude/salon-booking-system-nrll9n`. Nothing of this is on `main` or on the main server yet. Every step is
+Branch: `claude/find-claude-github-work-cbh2jo` (from 2026-11-11 midday; it starts at the head of the first branch,
+`claude/salon-booking-system-nrll9n`, which stops at 20426182). Nothing of this is on `main` or on the main server yet. Every step is
 «no behaviour change»: no screen, text, API answer or stored value may differ.
 
 ## How to work here (cloud session)
@@ -44,76 +45,96 @@ Branch: `claude/salon-booking-system-nrll9n`. Nothing of this is on `main` or on
    mark (`useClientBookingsSeen.js`) and the push start (`homeAppHelpers.startPushOrAsk`) moved out, line for line.
    What is left in it is wiring: the long lists that take values from the sub-hooks and hand them to the screens.
    **Not yet run through `tests/e2e`** (see «Next», step 1).
+4. **`useArtistWorkspace.js` 844 → 534 lines** (20426182): the break editor, the answers to booking requests, the
+   collaboration offers and invites/teams are four hooks in the same folder.
+5. **`tests/e2e` on 20426182: green** (14 files: 13 passed, 1 skipped; 91 tests passed, 10 skipped), and the unit +
+   integration suite once more (result in the commit that follows this one).
+6. **The other four large files of the React side** (this commit; each moved by line ranges, no line retyped):
+   - `useSalonWorkspace.js` 711 → 553: writing, changing and answering a booking is `useSalonBookingActions.js`.
+   - `useShellNavigation.js` 603 → 478: follows and saves are `useSavedProfilesSync.js`; whose page a post opens is
+     plain functions in `postOwner.js`.
+   - `ScheduleBookingMenuModal.jsx` 680 → 472: `MoveTimeList.jsx`, `StaffAutoAssign.jsx`, `ClientTrust.jsx`.
+   - `InstagramStorySheet.jsx` 954 → 501: the canvas drawing is `storyDrawing.js`, the data it reads is `storyData.js`.
+     The sheet still exports `loadFreeSlots`, `loadWorks`, `dayLine`, `WORKS_NEEDED` for the files that import them.
+7. **Files and names nothing reaches are gone** (this commit): the 13 files of the old step 4, and from
+   `dead-exports.mjs`: `getClientArtistBookings`, `disconnectFrom`, `joinSalonTeam`, `getSalonStaffCalendars` (API
+   wrappers with no caller; the routes themselves stay), `salonRegistrationServices`, `artistSpecialties`,
+   `salonArtistStatusOptions`, `peopleLabel`, `shortPersianWeekday`, `getRequestExpiryMinutesLeft`,
+   `formatRequestExpiryDeadline`, `pickNextBooking`, `forgetSearch`, `SegmentClockRange`, eight empty names of
+   `shell/mockData.js`. Their CSS stays for the style clean-up (priority 8). The hidden tutorials are kept.
+   New tool: `scripts/tidy/prune-imports.mjs` removes the imports a new file does not use (it asks ESLint).
 
 ## Next (in this order)
 
-1. Build, then run `tests/e2e` (and the unit + integration suite once more) on the current branch head. If anything
-   is red, compare with main first: the e2e tests depend on the clock (two are skipped on some hours or days).
-2. `features/artist/useArtistWorkspace.js` (844 lines). Planned parts, each a hook in the same folder taking what it
-   needs as arguments: the break editor (open, close, save, clear, «الان استراحت می‌کنم», with its four states), the
-   answers to booking requests (confirm, decline, «نیومد», propose a time, withdraw, cancel: they share
-   `runArtistBookingCall` and the busy id), the collaboration offers (draft, add, delete), invites and teams (answer
-   an invite, leave a team). Keep the object the hook returns exactly as it is: `useHomeApp` reads it by name.
-3. `features/salons/useSalonWorkspace.js` (711), `features/shell/useShellNavigation.js` (603),
-   `features/schedule/ScheduleBookingMenuModal.jsx` (680), `features/profile/InstagramStorySheet.jsx` (954): read
-   first, split only along parts that stand on their own. Do not touch `features/salons/useSalonDirectory.js`
-   without care: a unit test imports it.
-4. React-side files that nothing reaches (`node scripts/tidy/graph.mjs orphans`): `components/BookingSelect.jsx`,
-   `BreakTimeWheel.jsx`, `CollabIllustration.jsx`, `DateTimeWheelPicker.jsx`, `features/profile/ProfileAuthModeSwitch.jsx`,
-   `ProfileHeroWeekStrip.jsx`, `ProfilePanel.jsx`, `ProfileSignupSteps.jsx`, `features/salons/StaffPerformanceChart.jsx`,
-   `features/shell/useAppNavigation.js`, `shared/constants/categories.js`, `shared/lib/busyGate.js`,
-   `shared/lib/counts.js`, and the dead names `dead-exports.mjs` lists for `app/shared` and `app/features`. Delete
-   them (their CSS stays for the style clean-up, priority 8). **Keep** `features/landing/LearnSection.jsx`,
-   `TutorialScreen.jsx`, `tutorials.js`, `index.js`: the hidden tutorials are kept on purpose (CLAUDE.md).
-   `features/README.md` names some of these files: correct it in the same commit.
-5. Left whole on purpose: `repos/billing.js` (653 lines). It is the one place money SQL lives (a hard rule), it reads
+1. Left whole on purpose: `repos/billing.js` (653 lines). It is the one place money SQL lives (a hard rule), it reads
    as 23 small functions, and the first real payment is days away. Split it only after the payment check, if at all.
-6. Docs at the end of each part: `docs/HEALTH.md` (debt 4, the scorecard, one history line), `app/lib/README.md`
-   (done for the server side), `docs/ARCHITECTURE.md`, `docs/PRIORITIES.md` item 6.
-7. The system review (below), then one page for the owner (an Artifact, Persian, with pictures) and a short summary
-   in chat in the owner's voice (CLAUDE.md «How to answer the owner»).
-8. Only when the owner has seen the summary: ask «اول روی ورسل تست کنیم یا مستقیم روی سرور اصلی؟», then merge to
-   main. Before the main server: the two-accounts run (`scripts/verify/two-accounts.mjs`) on the booking flows, since
-   the booking code moved.
+   `useHomeApp.jsx` (770) is wiring only; `storyDrawing.js` (408) is one drawing.
+2. The owner has the summary page (system map and review, link in the session). Waiting for the owner's answers on
+   the proven faults below; each fix is its own piece of work with the `frfro-bug` routine.
+3. Only when the owner says so: ask «اول روی ورسل تست کنیم یا مستقیم روی سرور اصلی؟», then merge to main. Before the
+   main server: the two-accounts run (`scripts/verify/two-accounts.mjs`) on the booking flows, since the booking code
+   moved.
 
-## System review: what was noticed so far (leads, NOT yet proven)
+## System review (2026-11-11): what is proven, what is read in the code, what is still open
 
-Each of these was seen while reading the code for the split. None has a test yet. Prove each with a failing test
-before telling the owner it is a bug, and before fixing (routine `frfro-bug`).
+Nothing here is fixed: each fix changes behaviour, so the owner decides first (routine `frfro-bug`). The two proven
+faults are pinned in `tests/integration/reviewLeads.test.js` with `it.fails`: the suite stays green, and the day one is
+fixed its test turns red until `it.fails` becomes `it`.
 
-1. **A hand-typed team member can be tied to a stranger's artist account by name alone.**
-   `repos/salons/staff.js` `resolveArtistUserForStaff`: when a team row has no `artist_user_id` and no phone match, it
-   takes the artist account with the same NAME (`type = 'artist' AND name = $1`). `salons/bookingStaff.js`
-   `findSalonStaffForBooking` then writes that id onto the team row. If true in practice: a salon types «سارا» as a
-   team member, an unrelated artist account is called «سارا», and that artist gets the calendar copies of the salon's
-   bookings (client name and phone) and her own calendar is blocked. Check every caller, then test it.
-2. **A single-service salon booking finds its artist calendar copy by a fingerprint, not by id**
-   (`artists/bookings.js` `findLinkedSalonArtistBooking`, and the way back in `salons/bookings/artistSync.js`): same
-   client name, phone, service, day and time. Multi-service visits use `salon_booking_id`. Cases to test: two
-   bookings of the same client and service on one day; the salon corrects the client's name or phone, then cancels.
-3. **`GET /api/artist/me` runs `syncSalonBookingsForArtist` every time**: it walks every salon booking whose staff
-   NAME matches a team row of this artist (all time, only `لغو` left out, so expired ones count), one query per
-   booking, and may insert copies. Is it still needed now that copies are made with the booking? Cost and wrong copies.
-4. **Tables and columns are also made at run time**: about 68 `ALTER TABLE` / `CREATE TABLE` / `CREATE INDEX`
-   statements in 9 files (`ensureBookingPartsColumns`, `ensureOwnerColumn`, `ensureBillingTables`, …) run on first
-   use in every process although migrations exist. On a busy database each needs a short exclusive lock on a hot
-   table at every start (one process per core, and every Vercel cold start). Check each column is in a migration,
-   then propose making the schema come from migrations only.
-5. **Leaving a team is three statements with no transaction** (`salons/artistTeams.js` `leaveSalonTeam`): the team
-   row, the collaborations, the invite. And what happens to that artist's coming bookings in the salon?
-6. **The advertising SMS page counts its visits, but nothing shows the counts**: `repos/landingVisits.js`
-   `landingVisitTotals` has no caller (no admin screen, no report). The first advertising SMS went out on
-   2026-11-11 and its result is due on 22 Aban (`docs/FOLLOWUPS.md`): the owner needs a place to see it.
-7. **Lists without an upper bound**: the salon's list reads its newest 1500 bookings and builds each client's ten
-   dots only from those; a client's own list has no limit.
-8. Two reviewers were started for this (a booking-system review and a connections-and-privacy review) and were cut
-   off by the usage limit before reporting. Their questions, for whoever restarts them: races between a read before
-   a transaction and the write inside it (`salons/bookings/patch.js` reads the old artist copy before the
-   transaction); statuses compared as raw text where the two tables mean opposite things by «تازه»
-   (`shared/lib/bookingStates.js`); who is told on every cancel, move and decline; who can see whose phone number
-   (`contactVisibility.js`); every route under connect, follow, invite, join, team, staff, customers taking the
-   acting account from the session; a reused phone number or a re-created account inheriting old bookings; what stays
-   behind when a salon, artist or client deletes the account; suspended accounts still listed or bookable.
+### Proven with a test
+
+1. **A stranger artist lands in a deleted artist's old team, and the salon gets the stranger's phone number.**
+   When an artist deletes her account, her `salon_staff` row stays (`artist_user_id` becomes NULL by the foreign key,
+   the name stays; `providerExit.js` only un-assigns her bookings). `resolveArtistUserForStaff` (`salons/staff.js`)
+   then ties an unlinked row to the artist account with the same phone, else the same NAME, and `listSalonStaff`
+   writes that id back. Names are unique across salons and artists, so a freed name fits exactly one new account.
+   Test: salon + artist joins + artist deletes account + another person signs up as an artist under that name → the
+   salon's team shows the seat linked to the stranger with `artist_phone`, and the stranger's «teams» lists the salon.
+   Likely further effect, not proven: `syncSalonBookingsForArtist` (item 3) would then copy that salon's old bookings
+   under this name (client names and phones) into the stranger's calendar. The same door is open for the phone match
+   (a reused SIM) if the row keeps a phone.
+   Fix to propose: delete the artist's team rows when the account goes (the salon is already told), and drop the name
+   match (keep nothing but `artist_user_id`); one migration to clear old unlinked rows only after the owner sees them.
+2. **An artist declining her calendar copy can cancel another artist's booking.** The way back
+   (`salons/bookings/artistSync.js`) finds the salon's row by client name, phone, service, day and time, newest first,
+   without the artist. Test: the salon writes two bookings under one name and number (a mother for herself and her
+   daughter), same service and time, one per artist; the first artist declines hers → the second artist's booking is
+   cancelled and the first stays live with nobody doing it. Fix to propose: store `salon_booking_id` on every copy
+   (multi-service visits already do) and match by it; a migration fills it for old rows by the same fingerprint.
+
+### Read in the code (no test yet; each is a fact about the code, the effect in real use is an estimate)
+
+3. **`GET /api/artist/me` runs `syncSalonBookingsForArtist` on every call**, and the artist's app calls it every 20
+   seconds. It reads every salon booking ever made whose staff NAME equals a team row of this artist (only `لغو` left
+   out) and runs one more query per booking. A team artist with 1000 old bookings costs about 1000 queries per poll.
+   Copies are made together with the booking since the split of 2026-10; this sweep is a leftover safety net.
+   Propose: run it only when the artist joins a team, or bound it to today and later.
+4. **67 schema statements still run at run time** (`ALTER TABLE` / `CREATE TABLE` / `CREATE INDEX` in 11 files:
+   `salons/bookings/columns.js` 15, `billing.js` 20, `support.js` 15, `adminControl.js` 7, …). Checked by script: every
+   one of the 67 tables, columns and indexes is also in a migration, so they can go without a new migration. Each
+   takes a short exclusive lock on a busy table at every process start. (HEALTH debt 11.)
+5. **Leaving a team is three statements with no transaction** (`salons/artistTeams.js` `leaveSalonTeam`): a crash
+   between them leaves an accepted invite without a team row. The bookings are handled before it by
+   `leaveOrRemoveFromTeam`. Small and safe to wrap.
+6. **Nothing shows the visits of the advertising SMS page.** `landingVisitTotals` has no caller: no admin screen, no
+   report. The first SMS went out on 2026-11-11 and its result is due on 22 Aban (`docs/FOLLOWUPS.md`); today the
+   numbers can only be read from the database by hand at the owner's PC.
+7. **Big reads on a timer.** The salon's app asks for its newest 1500 bookings (`SELECT *`) every 20 seconds; the
+   artist's list has the same limit; a client's own list has none. Fine for today's sizes; the first thing to bound
+   when a salon passes a few hundred bookings.
+8. **Routes the app never calls** (their wrappers were removed in the tidy): `DELETE /api/connections`,
+   `GET /api/artist-bookings` (replaced by `/api/client-bookings`), `GET /api/salon-staff/calendars`. `POST
+   /api/artist/join-salon` is called by the join page directly. Decide whether a client should be able to disconnect.
+
+### Still open (questions, not findings)
+
+- Two patches of one salon booking at the same instant: `salons/bookings/patch.js` reads the booking and its artist
+  copy before the transaction (the rule of the lesson of 2026-11-10, `expectStatus`, is not applied there).
+- Statuses compared as raw text where the two tables mean opposite things by «تازه» (`shared/lib/bookingStates.js`).
+- Who is told on every cancel, move and decline (a table of event → push / SMS / card would settle it).
+- Already well covered by tests, so not re-done: a client's privacy and identity (`privacy`, `authz`, `angle2Identity`,
+  `angle3b_authz`, `clientExit`, `loginPhoneVisibility`). The gap found is the same idea on the artist and team side
+  (item 1).
 
 ## Rules for this work
 
