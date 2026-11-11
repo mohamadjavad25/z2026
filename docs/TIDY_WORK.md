@@ -70,7 +70,10 @@ Branch: `claude/find-claude-github-work-cbh2jo` (from 2026-11-11 midday; it star
    as 23 small functions, and the first real payment is days away. Split it only after the payment check, if at all.
    `useHomeApp.jsx` (770) is wiring only; `storyDrawing.js` (408) is one drawing.
 2. The owner saw the summary page (https://claude.ai/artifact/RyUq2vqnULaRBvyTv8PcTT) and took every recommended
-   answer. The branch is on the test server (Vercel preview of this branch).
+   answer. Results on the last commit of 2026-11-11: unit + integration 190 files, 1484 tests, all green; `tests/e2e`
+   13 files passed and 1 skipped (91 tests); the two-accounts run, all four rounds, 44 of 44 steps (with made-up
+   numbers on a throwaway database: the owner's own numbers are not in a cloud session). The first run failed one
+   step, on main too: the script looked for «شنبه» and tapped «پنجشنبه» (fixed in the script, `DAY_WORD`).
 3. Main server: the owner's word is «tonight between 23:00 and 24:00 Italian time» (2026-11-11), and only after the
    owner has seen the pictures of the two-accounts run. Then merge to main and deploy with the GitHub button. Before the
    main server: the two-accounts run (`scripts/verify/two-accounts.mjs`) on the booking flows, since the booking code

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Clock3, Link2, Map as MapIcon, Megaphone, Scissors, Sparkles, Store, Target, TrendingUp } from "lucide-react";
 import { toPersianDigits } from "../shared/lib/digits";
 import { Button } from "../components/ui";
-import { BOOKING_TONE, TYPE_LABEL, ago, fmtDay, num } from "./format";
+import { BOOKING_TONE, TYPE_LABEL, ago, num } from "./format";
 import { Bars } from "./Dashboard";
 import { ActivityReport } from "./ActivityReport";
 import { PageHead } from "./PageHead";
@@ -44,7 +44,8 @@ function Heatmap({ cells }) {
 }
 
 // The link pages by their counter tag (landingVisits.js): /go is the reel link, /s the advertising SMS (/s/a → sms-a).
-const linkName = (source) => (source === "sms" ? "پیامک" : source.startsWith("sms-") ? `پیامک ${source.slice(4)}` : source === "go" ? "لینک ریلز" : source);
+const linkName = (source) => (source === "sms" ? "پیامک" : source.startsWith("sms-") ? <>پیامک <bdi>{source.slice(4)}</bdi></> : source === "go" ? "لینک ریلز" : <bdi>{source}</bdi>);
+const shortDay = (day) => new Intl.DateTimeFormat("fa-IR", { day: "numeric", month: "long", timeZone: "Asia/Tehran" }).format(new Date(day));
 
 /** What the advertising SMS and the reel link brought, a row per day: opened the link, tapped «شروع», new salons and artists. */
 function LinkResults({ rows }) {
@@ -53,12 +54,12 @@ function LinkResults({ rows }) {
   return (
     <div className="admTableWrap">
       <table className="admTable">
-        <thead><tr><th>روز</th><th>لینک را باز کردند</th><th>«شروع» را زدند</th><th>سالن تازه</th><th className="admHideNarrow">آرتیست تازه</th></tr></thead>
+        <thead><tr><th>روز</th><th>باز کردند</th><th>«شروع»</th><th>سالن تازه</th><th className="admHideNarrow">آرتیست تازه</th></tr></thead>
         <tbody>
           {rows.map((row) => (
             <tr key={row.day}>
-              <td>{fmtDay(row.day)}</td>
-              <td><b>{num(row.opened)}</b>{row.sources.length > 1 ? <small>{row.sources.map((item) => `${linkName(item.source)} ${num(item.opened)}`).join(" • ")}</small> : row.sources.length ? <small>{linkName(row.sources[0].source)}</small> : null}</td>
+              <td>{shortDay(row.day)}</td>
+              <td><b>{num(row.opened)}</b>{row.sources.map((item) => <small key={item.source}>{linkName(item.source)}{row.sources.length > 1 ? <>: {num(item.opened)}</> : null}</small>)}</td>
               <td>{num(row.started)}{row.opened ? <small>{toPersianDigits(pct(row.started, row.opened))}٪</small> : null}</td>
               <td>{num(row.salons)}</td>
               <td className="admHideNarrow">{num(row.artists)}</td>
@@ -69,7 +70,7 @@ function LinkResults({ rows }) {
           </tr>
         </tbody>
       </table>
-      <p className="admMuted">ثبت‌نام‌ها همهٔ ثبت‌نام‌های همان روزند، نه فقط کسانی که از لینک آمده‌اند.</p>
+      <p className="admMuted">سالن و آرتیست تازه: همهٔ ثبت‌نام‌های همان روز.</p>
     </div>
   );
 }
