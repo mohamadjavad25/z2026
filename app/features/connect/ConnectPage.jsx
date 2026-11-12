@@ -208,7 +208,7 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
             {serviceHits.length ? (
               <div className="crServices" aria-label="کارها">
                 {serviceHits.map((service) => (
-                  <ServiceRow key={service.id} service={service} near={service.match === "word"} busy={checkingService === service.id} disabled={Boolean(checkingService)} onPick={pickService} />
+                  <ServiceRow key={service.id} service={service} busy={checkingService === service.id} disabled={Boolean(checkingService)} onPick={pickService} />
                 ))}
               </div>
             ) : null}

@@ -183,7 +183,7 @@ export function servicesOfCategory(categoryId) {
 /**
  * What a client typed, matched against the list: the service's own name first, then names that contain what was
  * typed, then services known by another phrase (`words`). Each result says how it matched (`name` | `word`) so the
- * screen can say «شبیهش» for the second kind. One or two letters match the start of a name or a whole word only.
+ * list can put closer matches first (no label on screen, owner 2026-11-12). One or two letters match the start of a name or a whole word only.
  */
 export function searchClientServices(text, { limit = 8 } = {}) {
   const query = normalizeServiceText(text);

@@ -24,13 +24,12 @@ export function ServiceListSheet({ category, busyId = "", onPick, onClose }) {
   );
 }
 
-/** One service to pick: its icon and name; `near` adds «شبیهش» for a match by another word. */
-export function ServiceRow({ service, near = false, busy = false, disabled = false, onPick }) {
+/** One service to pick: its icon and name (no «شبیهش» on near matches, owner 2026-11-12). */
+export function ServiceRow({ service, busy = false, disabled = false, onPick }) {
   return (
     <button type="button" className={`crServiceRow${busy ? " is-busy" : ""}`} disabled={disabled} onClick={() => onPick?.(service)}>
       <ServiceIcon emoji={service.icon} name={service.name} size="sm" />
       <b>{service.name}</b>
-      {near ? <em className="cnPickTag">شبیهش</em> : null}
     </button>
   );
 }
