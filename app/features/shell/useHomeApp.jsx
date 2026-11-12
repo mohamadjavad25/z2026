@@ -32,7 +32,7 @@ export function useHomeApp() {
   // Every top-of-screen notice goes through the shared store (app/shared/notice). Callers may still pass a string.
   const setAppToast = notify;
   // A join link or a public page's «رزرو», kept through sign-up (useArrival.js).
-  const { arrivalIntent, tryJoinPendingSalon, tryOpenPendingPlace } = useArrival({ setAppToast, setActiveTab, authCascadeRef, continueServiceRef });
+  const { arrivalIntent, tryJoinPendingSalon, tryOpenPendingPlace, tryClaimPendingRequest } = useArrival({ setAppToast, setActiveTab, authCascadeRef, continueServiceRef });
   const [pushSoftAskVisible, setPushSoftAskVisible] = useState(false);
   const [clientBookingSettings, setClientBookingSettings] = useState(null);
   // Right after a client books: the «درخواستت رسید» screen (features/client/BookingReceipt) and, on
@@ -115,6 +115,8 @@ export function useHomeApp() {
         setBeautyPassport(passportPayload.passport || passportPayload.data?.passport || null);
       }
 
+      // From a client's request SMS link: take the waiting requests first, so the lists below already show them.
+      await tryClaimPendingRequest(profile);
       if (profile?.type === "salon") await c.refreshSalonSystemData?.();
       if (profile?.type === "artist") {
         await c.refreshArtistWorkspace?.();
@@ -148,7 +150,8 @@ export function useHomeApp() {
   useEffect(() => {
     if (!authChecked || createdProfile || !arrivalIntent || arrivalFormShownRef.current) return;
     arrivalFormShownRef.current = true;
-    if (authMode !== "signup") return;
+    // From a client's request SMS: salon or artist is theirs to pick, so the role picker stays.
+    if (authMode !== "signup" || arrivalIntent.kind === "request") return;
     setProfileType(arrivalIntent.kind === "join" ? "artist" : "client");
     setSignupStep("form");
   }, [authChecked, createdProfile, arrivalIntent, authMode, setProfileType, setSignupStep]);

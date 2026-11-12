@@ -129,3 +129,52 @@
 .joinSalonSuccess .joinSalonAction {
   margin-top: var(--space-4);
 }
+
+/* frfro.ir/r/<code>: a client's request waiting for this salon or artist (contact requests, 2026-11-12). */
+.joinSalonAction.is-live {
+  background: var(--live-fill);
+  color: var(--on-live-fill);
+}
+
+.reqLinkList {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.reqLinkItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: rgb(var(--ink-rgb) / 0.04);
+  text-align: start;
+}
+
+.reqLinkItem span {
+  display: grid;
+  min-width: 0;
+}
+
+.reqLinkItem b {
+  font-weight: 800;
+}
+
+.reqLinkItem small {
+  color: var(--muted);
+}
+
+.reqLinkStop {
+  margin-top: var(--space-3);
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  cursor: pointer;
+}

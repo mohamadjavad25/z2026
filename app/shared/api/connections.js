@@ -35,3 +35,9 @@ export async function lookupScannedCode(code) {
   return apiJson(`/api/connections/lookup?code=${encodeURIComponent(code)}`);
 }
 
+
+/** GET /api/connections/by-service?service= (or ?name= for a service not on the list) → { matches } */
+export async function listConnectionsForService({ id = "", name = "" }) {
+  const query = id ? `service=${encodeURIComponent(id)}` : `name=${encodeURIComponent(name)}`;
+  return apiJson(`/api/connections/by-service?${query}`);
+}

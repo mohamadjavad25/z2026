@@ -3,6 +3,7 @@ import { verifyCronSecret } from "../../../lib/auth.js";
 import { ensureDb } from "../../../lib/db/connection.js";
 import { sweepExpiredBookingRequestsOnce } from "../../../lib/bookingExpirySweep.js";
 import { withErrorHandling } from "../../../lib/http.js";
+import { sweepContactRequests } from "../../../lib/contactRequests.js";
 
 export const runtime = "nodejs";
 
@@ -24,7 +25,12 @@ async function _POST(request) {
   }
   await ensureDb();
   const result = await sweepExpiredBookingRequestsOnce();
-  return NextResponse.json({ data: result });
+  // Requests to numbers not on frfro yet close three hours before their time (contactRequests.js).
+  const contactRequests = await sweepContactRequests().catch((error) => {
+    console.error(error);
+    return 0;
+  });
+  return NextResponse.json({ data: { ...result, contactRequests } });
 }
 
 export const POST = withErrorHandling(_POST);

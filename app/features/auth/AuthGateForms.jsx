@@ -460,6 +460,7 @@ function gateTagline({ authMode, signupStep, profileType, arrivalIntent }) {
     return authMode === "login" ? `وارد شو تا از ${place} نوبت بگیری` : `یه حساب بساز تا از ${place} نوبت بگیری`;
   }
   if (arrivalIntent?.kind === "join") return authMode === "login" ? "وارد شو تا بری توی تیم سالن" : "حساب آرتیستت رو بساز تا بری توی تیم سالن";
+  if (arrivalIntent?.kind === "request") return authMode === "login" ? "وارد شو تا به درخواست نوبت جواب بدی" : "حساب سالن یا آرتیستت رو بساز تا جواب بدی";
   if (authMode === "login") return GATE_TAGLINES.login;
   if (signupStep === "form") return GATE_TAGLINES[profileType] || GATE_TAGLINES.client;
   return GATE_TAGLINES.default;

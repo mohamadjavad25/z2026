@@ -35,3 +35,11 @@ export async function lockVisitDay(db, salonUserId, bookingDate, artistUserIds =
   await lockSalonDay(db, salonUserId, bookingDate);
   await lockArtistDays(db, artistUserIds, bookingDate);
 }
+
+/**
+ * Requests to one number not yet on frfro (contact_requests) are added and handed over one at a time: the one SMS a
+ * day to that number, and a sign-up taking them over while a client adds one. Taken after the client's own lock.
+ */
+export function lockContactPhone(db, phone) {
+  return advisory(db, `contact-phone:${String(phone)}`);
+}

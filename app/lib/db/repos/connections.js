@@ -183,6 +183,43 @@ export async function listConnectionsForCategory(clientUserId, category) {
 }
 
 /**
+ * The client's connected salons and artists that do one service the client picked from the full list
+ * (clientServices.js), each with its own services that match. `offers(own)` says whether one of a place's own
+ * services ({ name, emoji }) is it. Places the client booked with most come first. Empty = nobody of theirs does it.
+ */
+export async function listConnectionsOffering(clientUserId, offers) {
+  const cards = await listConnections(clientUserId);
+  if (!cards.length) return [];
+  const db = await getDb();
+  const salonIds = cards.filter((card) => card.type === "salon").map((card) => card.id);
+  const artistIds = cards.filter((card) => card.type === "artist").map((card) => card.id);
+  const [salonRows, artistRows, visits] = await Promise.all([
+    salonIds.length ? all(db, "SELECT salon_user_id AS owner_id, name, emoji FROM salon_services WHERE salon_user_id = ANY($1) ORDER BY id", [salonIds]) : [],
+    artistIds.length ? all(db, "SELECT user_id AS owner_id, name, emoji FROM artist_services WHERE user_id = ANY($1) ORDER BY id", [artistIds]) : [],
+    all(db, `
+      SELECT owner_id, COUNT(*)::int AS visits FROM (
+        SELECT salon_user_id AS owner_id FROM salon_bookings WHERE client_user_id = $1 AND status NOT IN ('لغو', 'لغو شده', 'cancelled')
+        UNION ALL
+        SELECT artist_user_id AS owner_id FROM artist_bookings
+        WHERE client_user_id = $1 AND source_salon_user_id IS NULL AND status NOT IN ('لغو', 'لغو شده', 'cancelled')
+      ) v GROUP BY owner_id
+    `, [clientUserId])
+  ]);
+  const matched = new Map();
+  for (const row of [...salonRows, ...artistRows]) {
+    if (!offers({ name: row.name, emoji: row.emoji })) continue;
+    const list = matched.get(row.owner_id) || [];
+    list.push(row.name);
+    matched.set(row.owner_id, list);
+  }
+  const visitsOf = new Map(visits.map((row) => [Number(row.owner_id), row.visits]));
+  return cards
+    .filter((card) => matched.has(card.id))
+    .map((card) => ({ ...card, services: matched.get(card.id), visits: visitsOf.get(card.id) || 0 }))
+    .sort((a, b) => b.visits - a.visits);
+}
+
+/**
  * How often, and how lately, the client booked a category's services with each of these salons/artists
  * (cancelled ones left out). A salon visit that was copied onto a team artist's calendar counts for the
  * salon only. Returns Map ownerId -> { visits, lastAt } (lastAt: ms of the latest such booking's creation).

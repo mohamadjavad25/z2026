@@ -101,3 +101,37 @@ export function goToAppFor(router, target) {
   try { window.localStorage.setItem("frfro-entered", "1"); } catch { /* private mode */ }
   afterHistorySettles(() => router.push(openInAppHref(target.type, target.id)));
 }
+
+/**
+ * A salon or artist who came from the SMS link of a client's request (frfro.ir/r/<code>, contact requests): the code
+ * is kept through sign-up or login, then the waiting requests are taken into the account (useArrival).
+ */
+export const PENDING_REQUEST_KEY = "frfro_pending_request";
+
+export function rememberPendingRequest(code) {
+  if (!/^[a-zA-Z0-9]{6,16}$/.test(String(code || ""))) return;
+  try {
+    window.localStorage.setItem(PENDING_REQUEST_KEY, String(code));
+  } catch {
+    // private mode: a sign-up with the same number still takes them
+  }
+}
+
+export function peekPendingRequest() {
+  try {
+    const code = window.localStorage.getItem(PENDING_REQUEST_KEY) || "";
+    return /^[a-zA-Z0-9]{6,16}$/.test(code) ? code : "";
+  } catch {
+    return "";
+  }
+}
+
+export function takePendingRequest() {
+  const code = peekPendingRequest();
+  try {
+    window.localStorage.removeItem(PENDING_REQUEST_KEY);
+  } catch {
+    // nothing to clean up
+  }
+  return code;
+}

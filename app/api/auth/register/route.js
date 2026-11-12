@@ -23,6 +23,7 @@ import { toPersianDigits } from "../../../shared/lib/digits.js";
 import { hasUniqueName, NAME_TAKEN_MESSAGE } from "../../../lib/businessName.js";
 import { noteAdminEvent } from "../../../lib/adminNews.js";
 import { saveSettings } from "../../../lib/db/repos/userSettings.js";
+import { deliverByCode, deliverWaitingRequests } from "../../../lib/contactRequests.js";
 
 export const runtime = "nodejs";
 
@@ -132,6 +133,13 @@ async function _POST(request) {
     if (phoneVerified) await users.markPhoneVerified(user.id);
 
     if (type === "salon") await ensureSalonHours(user.id);
+    // Clients who asked this number from their contacts (contact_requests): their requests land in the new account,
+    // when the number was proven by the SMS code, or when the sign-up came from the link in that SMS (its code).
+    if (type === "salon" || type === "artist") {
+      if (phoneVerified) await deliverWaitingRequests(user, phone);
+      const requestCode = String(body.requestCode || "");
+      if (requestCode) await deliverByCode(user, requestCode);
+    }
     // The role's tutorial shows once on the first open of the new account. The account comes first: a failure
     // here only skips the slides.
     await saveSettings(user.id, { tutorialPending: true }).catch((error) => console.error(error));
