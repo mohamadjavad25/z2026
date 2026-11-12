@@ -6,6 +6,9 @@
  *
  *   FRFRO_OWNER_TEST_PHONES=first,second VERIFY_OUT=/some/folder node scripts/verify/two-accounts.mjs salon-client
  *   rounds: salon-client · artist-client · salon-artist · client-salon (the numbers swapped)
+ *           · contact-salon / contact-artist: the client asks the other number from the contacts before it is on frfro,
+ *             and that number joins through the SMS link (needs VERIFY_DATABASE_URL, the same throwaway database, to read
+ *             the link the "test" SMS provider kept)
  *
  * Needs an app on a THROWAWAY database (accounts are created, one per number) with no real SMS:
  * FRFRO_SMS_PROVIDER=test FRFRO_OTP_REQUIRED=0. It refuses any host but localhost. The numbers come only from the
@@ -15,6 +18,7 @@ import { randomBytes } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
+import pg from "pg";
 import { formatPersianDateKey, getPersianWeekday } from "../../app/shared/lib/persianCalendar.js";
 
 const BASE = process.env.VERIFY_BASE_URL || "http://localhost:3200";
@@ -500,11 +504,93 @@ async function salonWithArtist() {
   return [salon.view, artist.view, stranger.view];
 }
 
+/** A client asks a number not on frfro from the contacts (owner, 2026-11-12); it joins through the SMS link and answers. */
+async function contactRequest(type) {
+  const client = await signUp(phones[0], "client", CLIENT);
+  const businessName = type === "artist" ? ARTIST : SALON;
+  client.view = await open(client);
+  // The phone's contact picker, standing in for Android's: it returns the other number.
+  await client.view.context.addInitScript({ content: `
+    window.ContactsManager = function () {};
+    Object.defineProperty(navigator, "contacts", { configurable: true, value: { select: async () => [{ name: ["${businessName}"], tel: ["${phones[1]}"] }] } });
+  ` });
+  await client.view.page.reload({ waitUntil: "networkidle" });
+  const { page } = client.view;
+  await step("دستهٔ «ناخن» همهٔ کارهاش رو نشون می‌ده", client.view, async () => {
+    await page.locator(".cnCat", { hasText: "ناخن" }).first().click();
+    await page.locator(".crServiceRow", { hasText: "ژلیش ناخن" }).waitFor();
+    return { shot: await shot(page, "tile-services") };
+  });
+  await step("ژلیش → کی؟ → کجا بری؟ → از مخاطب‌هام → بفرست", client.view, async () => {
+    await page.locator(".crServiceRow", { hasText: "ژلیش ناخن" }).click();
+    await page.locator(".crDay").nth(2).click();
+    await page.locator(".crHour:not([disabled])").first().click();
+    await page.getByRole("button", { name: "بعدی" }).click();
+    await page.locator(".crPickBtn").click();
+    await page.locator(".crCard").waitFor();
+    const confirm = await shot(page, "request-confirm");
+    await page.getByRole("button", { name: "بفرست" }).click();
+    await page.locator(".crDone").waitFor();
+    return { shot: confirm };
+  });
+  await step("درخواست روی خونهٔ مشتری «منتظر جواب»ـه", client.view, async () => {
+    await page.getByRole("button", { name: "باشه" }).click();
+    await page.locator(".crBoard").waitFor();
+    must((await page.locator(".crBoard").innerText()).includes("منتظر جواب"), "no waiting card");
+    return { shot: await shot(page, "request-waiting") };
+  });
+  const db = new pg.Client({ connectionString: process.env.VERIFY_DATABASE_URL });
+  await db.connect();
+  const sms = (await db.query("SELECT body FROM sms_log WHERE purpose = 'contact_request' AND phone = $1 ORDER BY id DESC LIMIT 1", [phones[1]])).rows[0]?.body || "";
+  await db.end();
+  const code = (sms.match(/frfro\.ir\/r\/([A-Za-z0-9]+)/) || [])[1];
+  const business = { view: null };
+  await step("پیامک با اسم مشتری، کار و لینک رفته", null, async () => {
+    must(code && sms.includes("ژلیش ناخن"), `sms: ${sms}`);
+    return { detail: sms.replace(/frfro\.ir\/r\/\S+/, "frfro.ir/r/…") };
+  });
+  await step(`${type === "artist" ? "آرتیست" : "سالن"} از لینک ثبت‌نام می‌کنه و درخواست رو می‌بینه`, null, async () => {
+    business.view = await open(null);
+    const view = business.view;
+    await view.page.goto(`${BASE}/r/${code}`, { waitUntil: "networkidle" });
+    must((await view.page.locator("body").innerText()).includes(CLIENT), "the link page does not name the client");
+    await shot(view.page, "link-page");
+    await view.page.getByRole("button", { name: "وارد شو و جواب بده" }).click();
+    await settle(view.page, 1500);
+    const made = await signUp(phones[1], type, businessName);
+    const [name, value] = made.session.cookie().split("=");
+    await view.context.addCookies([{ name, value, url: BASE }]);
+    business.made = made;
+    await view.page.goto(BASE, { waitUntil: "networkidle" });
+    await settle(view.page, 2500);
+    const list = type === "artist" ? (await made.session.get("/api/artist/me")).payload : (await made.session.get("/api/salon-bookings")).payload;
+    must(JSON.stringify(list).includes("ژلیش ناخن"), "the request is not in the new account");
+    return { shot: await shot(view.page, "business-home") };
+  });
+  await step("قبول می‌کنه و مشتری «قطعی» می‌بینه", client.view, async () => {
+    const own = (await client.session.get("/api/client-bookings")).payload;
+    const rows = type === "artist" ? own.data?.artistBookings : own.data?.salonBookings;
+    const booking = (rows || []).find((row) => String(row.service || "").includes("ژلیش"));
+    must(booking, "the client has no booking for it");
+    const answered = type === "artist"
+      ? await business.made.session.patch("/api/artist/me", { kind: "booking", id: booking.id, status: "تایید شده" })
+      : await business.made.session.patch("/api/salon-bookings", { id: booking.id, status: "تایید شده" });
+    must(answered.ok, `accept: ${answered.status} ${JSON.stringify(answered.payload)}`);
+    await page.reload({ waitUntil: "networkidle" });
+    await settle(page, 1500);
+    must((await page.locator("body").innerText()).includes("قطعی"), "not shown as confirmed");
+    return { shot: await shot(page, "client-confirmed") };
+  });
+  return [client.view, business.view].filter(Boolean);
+}
+
 const ROUNDS = {
   "salon-client": () => salonWithClient(phones[0], phones[1]),
   "client-salon": () => salonWithClient(phones[1], phones[0]),
   "artist-client": artistWithClient,
-  "salon-artist": salonWithArtist
+  "salon-artist": salonWithArtist,
+  "contact-salon": () => contactRequest("salon"),
+  "contact-artist": () => contactRequest("artist")
 };
 if (!ROUNDS[round]) throw new Error(`Rounds: ${Object.keys(ROUNDS).join(", ")}`);
 

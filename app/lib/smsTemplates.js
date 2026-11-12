@@ -81,6 +81,13 @@ export const SMS_TEMPLATES = {
     faraz: (v) => ({ who: v.who, day: v.day, time: v.time, code: v.code }),
     preview: (v) => `فرفرو: ${v.who} برات نوبت ${v.day} ساعت ${v.time} گذاشت. frfro.ir/b/${v.code}`
   },
+  contact_request: {
+    label: "مشتری از مخاطب‌هاش نوبت خواست، سالن یا آرتیست هنوز توی فرفرو نیست، با لینک (به اون شماره)",
+    env: "CONTACT_REQUEST",
+    kavenegar: (v) => ({ token: v.time, token2: v.code, token10: v.day, token20: `${v.who} برای ${v.service}` }),
+    faraz: (v) => ({ who: v.who, service: v.service, day: v.day, time: v.time, code: v.code }),
+    preview: (v) => `فرفرو: ${v.who} برای ${v.service}، ${v.day} ساعت ${v.time} ازت نوبت خواسته. جواب بده: frfro.ir/r/${v.code}`
+  },
   booking_made_for_you: {
     label: "سالن یا آرتیست خودش برای مشتری نوبت ثبت کرد (به مشتری)",
     env: "BOOKING_MADE",

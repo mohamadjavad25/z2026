@@ -120,12 +120,12 @@ export default function RootLayout({ children }) {
             "skip-landing": the home page opens the app, not the about page (HOME_LANDING_SKIP_KEY
             in features/landing/constants.js): in the app, from the home-screen icon, or once the
             visitor tapped «ورود به فرفرو» on the about page, or came to book with a salon/artist or to
-            join a salon's team (`?open=` / `?join=`, shared/lib/appHandoff.js). While APP_DOWNLOADS_OPEN
+            join a salon's team or answer a client's request (`?open=` / `?join=` / `?request=`, shared/lib/appHandoff.js). While APP_DOWNLOADS_OPEN
             is off: always, and /download on a phone opens the app instead. */}
         <script dangerouslySetInnerHTML={{ __html: `(function () {
 var root = document.documentElement;
 if (navigator.userAgent.indexOf("frfro-app") !== -1) root.classList.add("native-app", "skip-landing");
-if (/[?&](open|join)=/.test(location.search)) {
+if (/[?&](open|join|request)=/.test(location.search)) {
   root.classList.add("skip-landing");
   try { localStorage.setItem("frfro-entered", "1"); } catch (e) {}
 }${APP_DOWNLOADS_OPEN ? "" : `

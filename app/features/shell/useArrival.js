@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../../shared/api/client";
 import { connectTo } from "../../shared/api/connections";
-import { cleanPendingServices, parseOpenParam, peekPendingOpen, rememberPendingOpen, takePendingOpen } from "../../shared/lib/appHandoff";
+import { cleanPendingServices, parseOpenParam, peekPendingOpen, peekPendingRequest, rememberPendingOpen, rememberPendingRequest, takePendingOpen, takePendingRequest } from "../../shared/lib/appHandoff";
+import { claimContactRequests } from "../../shared/api/contactRequests";
 
 /**
  * What someone arrived for before they had a session: a salon's join link (`?join=`) or a public page's «رزرو»
@@ -22,7 +23,10 @@ export function useArrival({ setAppToast, setActiveTab, authCascadeRef, continue
     const params = new URLSearchParams(window.location.search);
     const joinSalonId = params.get("join");
     const openTarget = parseOpenParam(params.get("open"));
-    if (!joinSalonId && !openTarget) return;
+    // `?request=<code>`: a salon or artist from the SMS link of a client's request (app/r/[code]).
+    const requestCode = params.get("request");
+    if (requestCode) rememberPendingRequest(requestCode);
+    if (!joinSalonId && !openTarget && !requestCode) return;
     if (joinSalonId) {
       try {
         window.localStorage.setItem("frfro_pending_join_salon", JSON.stringify({ id: joinSalonId, code: params.get("k") || "", termsVersion: params.get("v") ?? null }));
@@ -54,10 +58,36 @@ export function useArrival({ setAppToast, setActiveTab, authCascadeRef, continue
     }
     try {
       if (window.localStorage.getItem("frfro_pending_join_salon")) setArrivalIntent({ kind: "join" });
+      else if (peekPendingRequest()) setArrivalIntent({ kind: "request" });
     } catch {
       // no pending join
     }
   }, []);
+
+  // A salon or artist who came from a request's SMS link: the requests waiting for that number come into this
+  // account (also when it was made with another number), and the requests list opens.
+  async function tryClaimPendingRequest(profile) {
+    if (profile?.type !== "salon" && profile?.type !== "artist") {
+      // A client who opened a request link: nothing to take; the link is dropped so the gate's line goes back too.
+      if (profile && takePendingRequest()) setArrivalIntent(null);
+      return false;
+    }
+    const code = takePendingRequest();
+    if (!code) return false;
+    setArrivalIntent(null);
+    try {
+      const { ok, payload } = await claimContactRequests(code);
+      if (!ok) {
+        setAppToast(payload?.error || "نشد درخواست‌ها رو بیاریم؛ دوباره لینک رو باز کن.");
+        return false;
+      }
+      if (payload?.data?.count) setAppToast("درخواست نوبت رسید؛ جوابش رو بده.");
+    } catch {
+      setAppToast("نشد درخواست‌ها رو بیاریم؛ دوباره لینک رو باز کن.");
+      return false;
+    }
+    return true;
+  }
 
   // Fires from useAuthSession's onAuthenticated below (boot/login/register —
   // covers an artist who was already logged in when they opened the
@@ -136,5 +166,5 @@ export function useArrival({ setAppToast, setActiveTab, authCascadeRef, continue
     }
     c.openConnectedProfile?.(place, { services: [], label: "همه خدمات" });
   }
-  return { arrivalIntent, tryJoinPendingSalon, tryOpenPendingPlace };
+  return { arrivalIntent, tryJoinPendingSalon, tryOpenPendingPlace, tryClaimPendingRequest };
 }

@@ -2,6 +2,7 @@
 
 import { ConnectPage } from "../connect/ConnectPage";
 import { ClientBookingsPanel } from "./ClientBookingsPanel";
+import { ContactRequestsCard } from "./ContactRequestsCard";
 import { isBookingAhead } from "./bookingStatus";
 
 /**
@@ -23,6 +24,7 @@ export function ClientHome({ bookings = [], highlightKey = "", clientName = "", 
   return (
     <div className={`clientHome${hasAhead ? "" : " is-findFirst"}`}>
       {hasAhead ? null : find}
+      <ContactRequestsCard clientName={clientName} onNotify={onNotify} />
       <ClientBookingsPanel
         bookings={bookings}
         compactEmpty

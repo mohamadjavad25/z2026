@@ -2,7 +2,8 @@ import { skillGroupsForService } from "../lib/serviceSkills.js";
 
 /**
  * What a client usually comes for, as the tiles on the salons tab. Each tile covers one or more of the
- * skill groups in serviceSkills.js, so «مو» means any hair service. `icon` is a beautyEmoji id.
+ * skill groups in serviceSkills.js, so «مو» means any hair service. `icon` is a beautyEmoji id. The services under each
+ * tile are in clientServices.js.
  */
 export const CLIENT_CATEGORIES = [
   { id: "nails", label: "ناخن", icon: "nail_polish", groups: ["nails"] },
@@ -15,7 +16,10 @@ export const CLIENT_CATEGORIES = [
   { id: "removal", label: "لیزر و وکس", icon: "waxing", groups: ["laser", "waxing"] },
   { id: "spa", label: "ماساژ و اسپا", icon: "massage", groups: ["body_spa"] },
   { id: "tattoo", label: "تتو", icon: "tattoo", groups: ["tattoo"] },
-  { id: "piercing", label: "پیرسینگ", icon: "piercing", groups: ["piercing"] }
+  { id: "piercing", label: "پیرسینگ", icon: "piercing", groups: ["piercing"] },
+  // Owner, 2026-11-12: nothing a client asks for may be missing, so men's work and everything else get a tile too.
+  { id: "men", label: "آقایان", icon: "barber", groups: [] },
+  { id: "other", label: "بقیه", icon: "consult", groups: [] }
 ];
 
 export function findClientCategory(id) {

@@ -18,6 +18,7 @@ import { listSalonHours } from "../hours.js";
 import { recordCancellation } from "./cancellation.js";
 import { ensureBookingPartsColumns } from "./columns.js";
 import { findOverlapConflict } from "./day.js";
+import { cameFromContactRequest } from "../../contactRequests.js";
 import { invalidateUnavailable } from "./unavailable.js";
 
 export function buildSalonBookingNext(current, data) {
@@ -67,7 +68,9 @@ export async function updateSalonBookingInTx(db, id, salonUserId, current, data)
   // hours shrunk, the service deleted since it was sent -- cannot be approved either.
   if (next.status === "تایید شده" && ["درخواست", AWAITING_CLIENT].includes(current.status)) {
     if (locked.lapsed || requestStarted(current)) return { ok: false, error: "expired" };
-    if (current.status === "درخواست") {
+    // A request a client sent before the salon was on frfro (contact_requests) was made without its hours or menu:
+    // the salon may accept it as it is (code review 2026-11-12); the started and lapsed checks above still hold.
+    if (current.status === "درخواست" && !(await cameFromContactRequest("salon", id, db))) {
       const hours = await listSalonHours(salonUserId, db);
       const problem = visitSlotProblem({
         hours,

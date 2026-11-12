@@ -715,3 +715,132 @@ a.cnInviteBtn { text-decoration: none; }
 .pjlField input { min-height: 48px; padding: 0 12px; border: 1.5px dashed var(--fill-strong); border-radius: 14px; background: var(--n-0); color: var(--n-900); font: inherit; font-size: 0.86rem; }
 .pjlField input:focus { outline: 0; border-style: solid; }
 .pjlNote { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--n-50); color: var(--n-800); font-size: 0.78rem; font-weight: 700; line-height: 1.7; }
+
+/* ═══ Contact requests (owner, 2026-11-12): a service's list, the day and hour, the salon from the contacts ═══ */
+.crServices { display: grid; gap: 8px; }
+.crServiceRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--cn-soft);
+  color: var(--cn-ink);
+  font: inherit;
+  text-align: right;
+  cursor: pointer;
+}
+.cnList > .crServiceRow, .cnList .crServices .crServiceRow { background: var(--n-0); }
+.crServiceRow b { flex: 1; min-width: 0; font-size: 0.95rem; font-weight: 900; }
+.crServiceRow.is-busy { opacity: 0.6; }
+.crServiceRow:disabled { cursor: default; }
+
+.crDays { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.crDay {
+  flex: none;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  min-width: 56px;
+  padding: 8px 6px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--cn-soft);
+  color: var(--cn-ink);
+  font: inherit;
+  cursor: pointer;
+}
+.crDay small { font-size: 0.72rem; font-weight: 700; color: var(--cn-muted); }
+.crDay b { font-size: 1.05rem; font-weight: 950; }
+.crDay.is-on, .crHour.is-on { background: var(--live-fill); color: var(--on-live-fill); }
+.crDay.is-on small { color: var(--on-live-fill); }
+.crHours { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.crHour {
+  min-height: 42px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--cn-soft);
+  color: var(--cn-ink);
+  font: inherit;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.crHour:disabled { opacity: 0.35; cursor: default; }
+
+.crMainBtn, .crGhostBtn, .crBookBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 50px;
+  border: 0;
+  border-radius: 16px;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 900;
+  text-decoration: none;
+  cursor: pointer;
+}
+.crMainBtn { background: var(--live-fill); color: var(--on-live-fill); }
+.crGhostBtn { background: var(--cn-soft); color: var(--cn-ink); }
+.crBookBtn { flex: none; min-height: 44px; min-width: 72px; padding: 0 16px; background: var(--live-fill); color: var(--on-live-fill); font-size: 0.85rem; }
+.crMainBtn:disabled, .crGhostBtn:disabled { opacity: 0.5; cursor: default; }
+.crPickBtn { border-color: var(--live-fill); background: var(--live-fill); color: var(--on-live-fill); }
+.crPickBtn > span:first-child { background: rgb(var(--paper-rgb) / 0.4); }
+.crTyped { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.crTyped .crGhostBtn { min-height: 54px; padding: 0 18px; }
+
+.crCard { display: grid; gap: 10px; padding: 14px; border: 1.5px solid var(--live-fill); border-radius: 20px; }
+.crWho { display: flex; align-items: center; gap: 10px; }
+.crWho > span:last-child { display: grid; min-width: 0; }
+.crWho b { font-weight: 900; }
+.crWho small { color: var(--cn-muted); font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.crAvatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--violet-soft); color: var(--violet-deep); font-weight: 950; }
+.crService { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; background: var(--accent-soft); }
+.crWhen { font-weight: 900; }
+.crDone { display: grid; justify-items: center; gap: 6px; padding: 8px 0; color: var(--success); text-align: center; }
+.crDone b { color: var(--cn-ink); font-size: 1.05rem; font-weight: 950; }
+.crDone small { color: var(--cn-muted); font-size: 0.85rem; font-weight: 700; }
+
+/* The client's home: requests waiting for a place that is not on frfro yet */
+.crBoard { display: grid; gap: 10px; --cn-ink: var(--n-900); --cn-muted: var(--n-600); --cn-soft: var(--n-50); }
+.crItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 22px;
+  background: var(--n-0);
+  box-shadow: inset 0 0 0 1.5px var(--live-fill);
+}
+.crItem.is-off { box-shadow: inset 0 0 0 1px var(--n-150); }
+.crItemText { flex: 1; min-width: 0; display: grid; gap: 2px; justify-items: start; }
+.crItemText b { font-weight: 950; }
+.crItemText span { font-weight: 700; }
+.crItemText small { color: var(--n-600); font-weight: 700; }
+.crChip { margin-top: 4px; padding: 1px 10px; border-radius: 999px; font-size: 0.72rem; font-style: normal; font-weight: 800; }
+.crChip.is-wait { background: var(--accent-soft); color: var(--accent); }
+.crChip.is-off { background: var(--n-100); color: var(--n-600); }
+.crItemActions { display: grid; gap: 6px; }
+.crSmallBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 38px;
+  min-width: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--n-100);
+  color: var(--n-900);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+.crSmallBtn.is-live { background: var(--live-fill); color: var(--on-live-fill); }

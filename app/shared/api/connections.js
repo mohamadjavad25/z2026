@@ -10,11 +10,6 @@ export async function searchConnections(query, { signal } = {}) {
   return apiJson(`/api/connections/search?q=${encodeURIComponent(query)}`, { signal });
 }
 
-/** GET /api/connections/by-category?category= → { category, matches } (my salons/artists that do it, with the matching services) */
-export async function listConnectionsForCategory(category) {
-  return apiJson(`/api/connections/by-category?category=${encodeURIComponent(category)}`);
-}
-
 /** POST /api/connections { targetUserId } → { profile, alreadyConnected } */
 export async function connectTo(targetUserId) {
   return apiFetch("/api/connections", { method: "POST", body: JSON.stringify({ targetUserId }) });
@@ -35,3 +30,9 @@ export async function lookupScannedCode(code) {
   return apiJson(`/api/connections/lookup?code=${encodeURIComponent(code)}`);
 }
 
+
+/** GET /api/connections/by-service?service= (or ?name= for a service not on the list) → { matches } */
+export async function listConnectionsForService({ id = "", name = "" }) {
+  const query = id ? `service=${encodeURIComponent(id)}` : `name=${encodeURIComponent(name)}`;
+  return apiJson(`/api/connections/by-service?${query}`);
+}
