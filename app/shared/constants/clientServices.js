@@ -169,6 +169,12 @@ export function findClientService(id) {
   return BY_ID.get(String(id || "")) || null;
 }
 
+/** A service of the list by its name as written («ژلیش ناخن», «ژلیش‌ناخن»), or null. */
+export function findClientServiceByName(name) {
+  const key = normalizeServiceText(name);
+  return key ? CLIENT_SERVICES.find((service) => service.key === key) || null : null;
+}
+
 /** The services under one tile, in the order the client sees them. */
 export function servicesOfCategory(categoryId) {
   return CLIENT_SERVICES.filter((service) => service.category === categoryId);

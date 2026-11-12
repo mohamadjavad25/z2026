@@ -67,7 +67,11 @@ export function useArrival({ setAppToast, setActiveTab, authCascadeRef, continue
   // A salon or artist who came from a request's SMS link: the requests waiting for that number come into this
   // account (also when it was made with another number), and the requests list opens.
   async function tryClaimPendingRequest(profile) {
-    if (profile?.type !== "salon" && profile?.type !== "artist") return false;
+    if (profile?.type !== "salon" && profile?.type !== "artist") {
+      // A client who opened a request link: nothing to take; the link is dropped so the gate's line goes back too.
+      if (profile && takePendingRequest()) setArrivalIntent(null);
+      return false;
+    }
     const code = takePendingRequest();
     if (!code) return false;
     setArrivalIntent(null);

@@ -136,9 +136,9 @@ async function _POST(request) {
     // Clients who asked this number from their contacts (contact_requests): their requests land in the new account,
     // when the number was proven by the SMS code, or when the sign-up came from the link in that SMS (its code).
     if (type === "salon" || type === "artist") {
-      if (phoneVerified) await deliverWaitingRequests(user, phone);
+      if (phoneVerified) await deliverWaitingRequests(user, phone, { newAccount: true });
       const requestCode = String(body.requestCode || "");
-      if (requestCode) await deliverByCode(user, requestCode);
+      if (requestCode) await deliverByCode(user, requestCode, { justMade: true });
     }
     // The role's tutorial shows once on the first open of the new account. The account comes first: a failure
     // here only skips the slides.

@@ -15,7 +15,7 @@ async function _POST(request) {
   const limited = await checkRateLimit(`contact-claim:${auth.user.id}`, 10, 60 * 60 * 1000);
   if (!limited.ok) return json({ error: "زیاد امتحان کردی؛ یه کم دیگه دوباره بزن." }, { status: 429 });
   const result = await deliverByCode(auth.user, String((await readJson(request))?.code || ""));
-  if (!result.ok) return error("این لینک دیگه کار نمی‌کنه.", 404);
+  if (result.error) return error(result.error, result.status);
   return json({ data: { count: result.count } });
 }
 

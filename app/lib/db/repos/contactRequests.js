@@ -1,11 +1,11 @@
 import { randomBytes } from "node:crypto";
 import { all, get, getDb, run, withTransaction } from "../connection.js";
-import { lockClientRequests, lockContactPhone } from "../locks.js";
+import { lockArtistDays, lockClientRequests, lockContactPhone, lockSalonDay } from "../locks.js";
 import { connect } from "./connections.js";
 import { invalidateUnavailable } from "./salons/bookings/unavailable.js";
 import { bookingStartMs } from "../../../shared/lib/reminderTiming.js";
 import { isPersianDateKey } from "../../../shared/lib/persianCalendar.js";
-import { normalizeBookingTimeLabel } from "../../../shared/lib/time.js";
+import { normalizeBookingTimeLabel, parseServiceDurationMinutes } from "../../../shared/lib/time.js";
 import { nowMs } from "../../../shared/lib/clock.js";
 
 /**
@@ -65,6 +65,10 @@ export async function addContactRequest({ clientUserId, phone, contactName, serv
     if (await isOptedOut(phone, db)) {
       return { ok: false, code: "OPTED_OUT", message: "این شماره نمی‌خواد از فرفرو پیام بگیره؛ یکی دیگه رو انتخاب کن." };
     }
+    // Checked again under the number's lock: a sign-up with it may have finished since the caller looked.
+    if (await get(db, "SELECT 1 FROM users WHERE phone = $1", [phone])) {
+      return { ok: false, code: "NOW_ON_FRFRO", message: "این شماره همین الان اومد توی فرفرو؛ دوباره بزن." };
+    }
     const same = await get(db, `
       SELECT * FROM contact_requests
       WHERE client_user_id = $1 AND phone = $2 AND booking_date = $3 AND time = $4 AND status = 'waiting'
@@ -82,14 +86,15 @@ export async function addContactRequest({ clientUserId, phone, contactName, serv
     if (counts.open >= OPEN_LIMIT) {
       return { ok: false, code: "OPEN_LIMIT", message: "چند تا درخواست منتظر جواب داری؛ صبر کن جواب بیاد." };
     }
+    // 'sending' counts too: the first request's SMS goes after this commit, and a second client may come meanwhile.
     const smsToday = await get(db, `
-      SELECT 1 FROM contact_requests WHERE phone = $1 AND sms_status = 'sent' AND created_at >= ${TEHRAN_TODAY} LIMIT 1
+      SELECT 1 FROM contact_requests WHERE phone = $1 AND sms_status IN ('sending', 'sent') AND created_at >= ${TEHRAN_TODAY} LIMIT 1
     `, [phone]);
     const request = await get(db, `
       INSERT INTO contact_requests (code, client_user_id, phone, contact_name, service, service_emoji, booking_date, time, sms_status)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
-    `, [newRequestCode(), clientUserId, phone, contactName, service, serviceEmoji, bookingDate, time, smsToday ? "joined" : ""]);
+    `, [newRequestCode(), clientUserId, phone, contactName, service, serviceEmoji, bookingDate, time, smsToday ? "joined" : "sending"]);
     return { ok: true, request, sendSms: !smsToday };
   });
 }
@@ -134,91 +139,123 @@ export async function dismissClientRequest(clientUserId, id) {
 }
 
 /**
- * What the link page shows for a code: every request still waiting for that code's number (several clients may have
- * asked the same salon), with the client's name only. null for an unknown code.
+ * What a link's code may reach (code review 2026-11-12). The SMS frfro itself sent to a number speaks for that
+ * number: while its own request waits, it covers every request waiting for the number. A link the client sent from
+ * their own phone (SMS not set up) covers only that client's request, so a forwarded link shows nobody else.
+ * Returns { row, wholeNumber } or null for an unknown code.
  */
-export async function requestsForCode(code) {
+async function codeScope(db, code) {
   if (!isRequestCode(code)) return null;
-  const db = await getDb();
-  const own = await get(db, "SELECT phone, status, business_user_id FROM contact_requests WHERE code = $1", [code]);
-  if (!own) return null;
-  const rows = await all(db, `
-    SELECT r.id, r.service, r.service_emoji, r.booking_date, r.time, u.name AS client_name
-    FROM contact_requests r JOIN users u ON u.id = r.client_user_id
-    WHERE r.phone = $1 AND r.status = 'waiting'
-    ORDER BY r.booking_date, r.time
-  `, [own.phone]);
-  return { phone: own.phone, status: own.status, delivered: own.status === "delivered", requests: rows };
-}
-
-/** «دیگه پیام نده» on the link page: no more messages to that number, and its waiting requests are declined. */
-export async function optOutByCode(code) {
-  if (!isRequestCode(code)) return null;
-  return withTransaction(null, async (db) => {
-    const own = await get(db, "SELECT phone FROM contact_requests WHERE code = $1", [code]);
-    if (!own) return null;
-    await lockContactPhone(db, own.phone);
-    await run(db, "INSERT INTO contact_request_optouts (phone) VALUES ($1) ON CONFLICT (phone) DO NOTHING", [own.phone]);
-    return all(db, `
-      UPDATE contact_requests SET status = 'declined', settled_at = now()
-      WHERE phone = $1 AND status = 'waiting'
-      RETURNING id, client_user_id, contact_name, service
-    `, [own.phone]);
-  });
-}
-
-/** The number a code was sent to, or "". */
-export async function phoneForCode(code) {
-  if (!isRequestCode(code)) return "";
-  const db = await getDb();
-  return (await get(db, "SELECT phone FROM contact_requests WHERE code = $1", [code]))?.phone || "";
+  const row = await get(db, "SELECT id, phone, status, sms_status, business_user_id FROM contact_requests WHERE code = $1", [code]);
+  if (!row) return null;
+  return { row, wholeNumber: row.status === "waiting" && row.sms_status === "sent" };
 }
 
 /**
- * Hands every waiting request for `phone` to a salon or artist account: each becomes a booking request there (the
- * salon's «درخواست», the artist's «تازه»), waiting until its own time, and the client is connected to the new place.
+ * What the link page shows for a code: the requests it reaches that still wait (client's name, service, when).
+ * null for an unknown code; `delivered` when its own request already went into an account.
+ */
+export async function requestsForCode(code) {
+  const db = await getDb();
+  const scope = await codeScope(db, code);
+  if (!scope) return null;
+  const rows = scope.row.status !== "waiting" ? [] : await all(db, `
+    SELECT r.id, r.service, r.service_emoji, r.booking_date, r.time, u.name AS client_name
+    FROM contact_requests r JOIN users u ON u.id = r.client_user_id
+    WHERE r.status = 'waiting' AND ${scope.wholeNumber ? "r.phone = $1" : "r.id = $1"}
+    ORDER BY r.booking_date, r.time
+  `, [scope.wholeNumber ? scope.row.phone : scope.row.id]);
+  return { status: scope.row.status, delivered: scope.row.status === "delivered", requests: rows };
+}
+
+/**
+ * «دیگه پیام نده» on the link page. From frfro's own SMS: no more messages to that number, and what waits for it is
+ * declined. From a client's own link: only that request is declined. A settled code changes nothing (null).
+ */
+export async function optOutByCode(code) {
+  return withTransaction(null, async (db) => {
+    const scope = await codeScope(db, code);
+    if (!scope || scope.row.status !== "waiting") return null;
+    await lockContactPhone(db, scope.row.phone);
+    if (scope.wholeNumber) {
+      await run(db, "INSERT INTO contact_request_optouts (phone) VALUES ($1) ON CONFLICT (phone) DO NOTHING", [scope.row.phone]);
+    }
+    return all(db, `
+      UPDATE contact_requests SET status = 'declined', settled_at = now()
+      WHERE status = 'waiting' AND ${scope.wholeNumber ? "phone = $1" : "id = $1"}
+      RETURNING id, client_user_id, contact_name, service
+    `, [scope.wholeNumber ? scope.row.phone : scope.row.id]);
+  });
+}
+
+/**
+ * What a signed-in salon or artist may take with a code: { phone, ids? } (ids: only these rows), { done: true } when
+ * its own request already went to this very account, or null.
+ */
+export async function claimScope(code, businessUserId) {
+  const db = await getDb();
+  const scope = await codeScope(db, code);
+  if (!scope) return null;
+  if (scope.row.status === "delivered" && Number(scope.row.business_user_id) === Number(businessUserId)) return { done: true };
+  if (scope.row.status !== "waiting") return null;
+  return scope.wholeNumber ? { phone: scope.row.phone } : { phone: scope.row.phone, ids: [Number(scope.row.id)] };
+}
+
+/**
+ * Hands every waiting request for `phone` (`ids`: only these) to a salon or artist account: each becomes a booking
+ * request there (the salon's «درخواست», the artist's «تازه») with no answer window of its own, which is the app's
+ * «any time» rule: until its time, but at most 24 hours from now (OPEN_WAIT_MAX_MINUTES); the client is connected.
  * A request whose time already began is closed instead. Returns [{ request, bookingId }] for what was handed over.
  */
-export async function deliverToBusiness(business, phone) {
+export async function deliverToBusiness(business, phone, { ids = null } = {}) {
   const kind = business?.type === "salon" ? "salon" : business?.type === "artist" ? "artist" : "";
   if (!kind || !phone) return [];
   const delivered = await withTransaction(null, async (db) => {
     await lockContactPhone(db, phone);
+    // Locked, so a «لغو» or the cron's expiry waits for this hand-over and then finds it no longer waiting.
     const rows = await all(db, `
       SELECT r.*, u.name AS client_name, u.phone AS client_phone
       FROM contact_requests r JOIN users u ON u.id = r.client_user_id
-      WHERE r.phone = $1 AND r.status = 'waiting'
+      WHERE r.phone = $1 AND r.status = 'waiting' ${ids ? "AND r.id = ANY($2)" : ""}
       ORDER BY r.created_at
-    `, [phone]);
+      FOR UPDATE OF r
+    `, ids ? [phone, ids] : [phone]);
+    const menu = kind === "salon"
+      ? await all(db, "SELECT name, duration FROM salon_services WHERE salon_user_id = $1", [business.id])
+      : await all(db, "SELECT name, duration FROM artist_services WHERE user_id = $1", [business.id]);
+    const lengthOf = (service) => parseServiceDurationMinutes(menu.find((item) => String(item.name || "").trim() === service)?.duration) || 60;
     const handed = [];
     for (const row of rows) {
       const start = bookingStartMs(row.booking_date, row.time, new Date(nowMs()));
       if (!start || start <= nowMs()) {
-        await run(db, "UPDATE contact_requests SET status = 'expired', settled_at = now() WHERE id = $1", [row.id]);
+        await run(db, "UPDATE contact_requests SET status = 'expired', settled_at = now() WHERE id = $1 AND status = 'waiting'", [row.id]);
         continue;
       }
+      // The same day lock every booking of this place takes (after the number's own lock; nothing takes them the other way).
+      if (kind === "salon") await lockSalonDay(db, business.id, row.booking_date);
+      else await lockArtistDays(db, [business.id], row.booking_date);
       let bookingId;
       if (kind === "salon") {
         const made = await get(db, `
           INSERT INTO salon_bookings
             (salon_user_id, client_user_id, client, phone, service, service_emoji, staff, booking_date, time, duration_minutes, status, wait_minutes)
-          VALUES ($1, $2, $3, $4, $5, $6, '', $7, $8, 60, 'درخواست', NULL)
+          VALUES ($1, $2, $3, $4, $5, $6, '', $7, $8, $9, 'درخواست', NULL)
           RETURNING id
-        `, [business.id, row.client_user_id, row.client_name || "", row.client_phone || "", row.service, row.service_emoji || "", row.booking_date, row.time]);
+        `, [business.id, row.client_user_id, row.client_name || "", row.client_phone || "", row.service, row.service_emoji || "", row.booking_date, row.time, lengthOf(row.service)]);
         bookingId = Number(made.id);
       } else {
         const made = await get(db, `
           INSERT INTO artist_bookings
             (artist_user_id, client_user_id, client_name, client_phone, service, service_emoji, booking_date, time, duration_minutes, status, wait_minutes)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 60, 'تازه', NULL)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'تازه', NULL)
           RETURNING id
-        `, [business.id, row.client_user_id, row.client_name || "", row.client_phone || "", row.service, row.service_emoji || "", row.booking_date, row.time]);
+        `, [business.id, row.client_user_id, row.client_name || "", row.client_phone || "", row.service, row.service_emoji || "", row.booking_date, row.time, lengthOf(row.service)]);
         bookingId = Number(made.id);
       }
       await run(db, `
         UPDATE contact_requests
         SET status = 'delivered', settled_at = now(), business_user_id = $2, booking_kind = $3, booking_id = $4
-        WHERE id = $1
+        WHERE id = $1 AND status = 'waiting'
       `, [row.id, business.id, kind, bookingId]);
       handed.push({ request: row, bookingId });
     }
@@ -230,6 +267,12 @@ export async function deliverToBusiness(business, phone) {
     await connect(clientUserId, business.id).catch(() => null);
   }
   return delivered;
+}
+
+/** Whether a booking request came from a client's contact request (the salon's hours and menu were unknown then). */
+export async function cameFromContactRequest(kind, bookingId, runner = null) {
+  const db = runner || await getDb();
+  return Boolean(await get(db, "SELECT 1 FROM contact_requests WHERE booking_kind = $1 AND booking_id = $2", [kind, Number(bookingId)]));
 }
 
 /** Waiting requests whose time is now less than LEAD_HOURS away: closed as expired. Returns the closed rows. */

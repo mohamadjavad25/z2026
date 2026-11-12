@@ -1,6 +1,7 @@
 import { describe, it, expect, afterAll } from "vitest";
 import { TEST_BASE_URL } from "../globalSetup.js";
 import { createClient, registerUser, uniquePhone } from "./helpers.js";
+import { formatPersianDateKey, getPersianWeekday } from "../../app/shared/lib/persianCalendar.js";
 import { FAR_DAY, cron, db, newClient, newSalon, q, slotAhead, smsEventually, smsSettled } from "./exitHelpers.js";
 
 /**
@@ -33,7 +34,8 @@ describe("sending a request to a number not on frfro", () => {
     expect(made.payload.data.request.link).toBeUndefined();
     const texts = await smsEventually(phone, "contact_request", 1);
     const code = await codeOf(made.payload.data.request.id);
-    expect(texts[0].body).toContain("مشتری مخاطب");
+    // Only the first name, in Persian letters (code review 2026-11-12: nothing but plain words in frfro's SMS).
+    expect(texts[0].body).toContain("مشتری برای ژلیش ناخن");
     expect(texts[0].body).toContain("ژلیش ناخن");
     expect(texts[0].body).toContain(`frfro.ir/r/${code}`);
   });
@@ -214,6 +216,84 @@ describe("which of the client's places do a service", () => {
     expect(gelish.payload.data.matches).toEqual([]);
     const typed = await client.api.get(`/api/connections/by-service?name=${encodeURIComponent("رنگ مو")}`);
     expect(typed.payload.data.matches.map((match) => match.id)).toEqual([salon.id]);
+  });
+});
+
+describe("what a link's code reaches (code review 2026-11-12)", () => {
+  const nextFriday = () => {
+    for (let i = 1; i < 10; i += 1) {
+      const day = new Date(Date.now() + i * 86400000);
+      if (getPersianWeekday(day) === "جمعه") return formatPersianDateKey(day);
+    }
+    throw new Error("no Friday");
+  };
+
+  it("a link a client sent from their own phone shows and hands over only that client's request", async () => {
+    const a = await newClient("مشتری الف");
+    const b = await newClient("مشتری ب");
+    const phone = uniquePhone();
+    const one = (await send(a, { phone })).payload.data.request.id;
+    const two = (await send(b, { phone, time: "15:00" })).payload.data.request.id;
+    // As when SMS is not set up: each client got their own link to send.
+    await q("UPDATE contact_requests SET sms_status = 'off' WHERE id = ANY($1)", [[one, two]]);
+    const code = await codeOf(one);
+    const html = await (await fetch(`${TEST_BASE_URL}/r/${code}`)).text();
+    expect(html).toContain("مشتری الف");
+    expect(html).not.toContain("مشتری ب");
+    const stranger = createClient();
+    await registerUser(stranger, { type: "salon", name: `Contact Stranger ${phone.slice(-5)}` });
+    expect((await stranger.post("/api/contact-requests/claim", { code })).payload.data.count).toBe(1);
+    expect((await requestRow(two)).status).toBe("waiting");
+    // Its «دیگه پیام نده» declines only that request and blocks nothing.
+    const third = (await send(b, { phone, time: "17:00" })).payload.data.request.id;
+    await q("UPDATE contact_requests SET sms_status = 'off' WHERE id = $1", [third]);
+    expect((await createClient().post("/api/contact-requests/opt-out", { code: await codeOf(third) })).status).toBe(200);
+    expect((await requestRow(two)).status).toBe("waiting");
+    expect((await q("SELECT 1 FROM contact_request_optouts WHERE phone = $1", [phone]))).toHaveLength(0);
+  });
+
+  it("an old code after its request was handed over: another account gets nothing, the same one gets 0", async () => {
+    const client = await newClient("مشتری کهنه");
+    const phone = uniquePhone();
+    const made = await send(client, { phone });
+    const code = await codeOf(made.payload.data.request.id);
+    const salonApi = createClient();
+    await registerUser(salonApi, { type: "salon", name: `Contact Old Code ${phone.slice(-5)}` });
+    expect((await salonApi.post("/api/contact-requests/claim", { code })).payload.data.count).toBe(1);
+    expect((await salonApi.post("/api/contact-requests/claim", { code })).payload.data.count).toBe(0);
+    const other = createClient();
+    await registerUser(other, { type: "artist", name: `Contact Old Code Artist ${phone.slice(-5)}` });
+    expect((await other.post("/api/contact-requests/claim", { code })).status).toBe(404);
+    // A later client's request to that number is not reached by the old code.
+    const later = await send(await newClient("مشتری بعدتر"), { phone: uniquePhone() });
+    expect((await other.post("/api/contact-requests/claim", { code })).status).toBe(404);
+    expect((await requestRow(later.payload.data.request.id)).status).toBe("waiting");
+    expect((await createClient().post("/api/contact-requests/opt-out", { code })).status).toBe(404);
+  });
+
+  it("a new salon can accept a request outside its default hours (Friday, 21:00)", async () => {
+    const client = await newClient("مشتری جمعه");
+    const phone = uniquePhone();
+    const made = await send(client, { phone, bookingDate: nextFriday(), time: "21:00" });
+    expect(made.status).toBe(201);
+    const salonApi = createClient();
+    await registerUser(salonApi, { type: "salon", name: `Contact Friday Salon ${phone.slice(-5)}`, phone, verified: true });
+    const row = await requestRow(made.payload.data.request.id);
+    const answered = await salonApi.patch("/api/salon-bookings", { id: row.booking_id, status: "تایید شده" });
+    expect(answered.status, JSON.stringify(answered.payload)).toBe(200);
+  });
+
+  it("only plain words of a typed service go into the SMS and the menu", async () => {
+    const client = await newClient("Client Latin");
+    const phone = uniquePhone();
+    const made = await send(client, { phone, service: "ناخن http://bad.example ۰۹۱۲۳۴۵۶۷۸۹ زنگ بزن", serviceEmoji: "" });
+    expect(made.status).toBe(201);
+    const row = await requestRow(made.payload.data.request.id);
+    expect(row.service).toBe("ناخن زنگ بزن");
+    const [sms] = await smsEventually(phone, "contact_request", 1);
+    expect(sms.body).toContain("یه مشتری برای ناخن زنگ بزن");
+    expect(sms.body).not.toContain("bad.example");
+    expect((await send(client, { phone: uniquePhone(), service: "http://x.co" })).payload.code).toBe("NO_SERVICE");
   });
 });
 
