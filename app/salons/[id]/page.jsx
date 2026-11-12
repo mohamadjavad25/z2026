@@ -1,7 +1,7 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { teamListForViewer } from "../../lib/db/repos/contactVisibility.js";
 import { PageUnavailable } from "../../components/PageUnavailable";
-import { suspendedAccountIds } from "../../lib/db/repos/users.js";
+import { getUserById, suspendedAccountIds } from "../../lib/db/repos/users.js";
 import { ensureDb } from "../../lib/db/connection.js";
 import * as salons from "../../lib/db/repos/salons.js";
 import { SalonPublicPageClient } from "./SalonPublicPageClient";
@@ -27,7 +27,8 @@ async function loadSalonFresh(id) {
   // A suspended account has no public page: `{ unavailable: true }` makes the page say so in one sentence.
   if ((await suspendedAccountIds([userId])).has(userId)) return { unavailable: true };
   const salon = await salons.getSalon(userId, null, { withTeam: true });
-  if (!salon) return null;
+  // A salon the admin turned into an artist (2026-11-12): its old link and QR code open the artist page.
+  if (!salon) return (await getUserById(userId))?.type === "artist" ? { movedToArtist: true } : null;
   // A salon switched to "خصوصی" in تنظیمات → پروفایل عمومی سالن must stay
   // hidden here too — GET /api/salons/[id] enforces the exact same rule for
   // any viewer who isn't the owner, and this standalone public route never
@@ -46,7 +47,7 @@ export async function generateMetadata({ params }) {
   const { id } = await params;
   const salon = await loadSalon(id);
   if (salon?.unavailable) return { title: "صفحه در دسترس نیست | frfro", robots: { index: false } };
-  if (!salon) {
+  if (!salon || salon.movedToArtist) {
     return { title: "سالن پیدا نشد | frfro" };
   }
 
@@ -111,6 +112,7 @@ export default async function SalonPublicPage({ params }) {
   const { id } = await params;
   const salon = await loadSalon(id);
   if (salon?.unavailable) return <PageUnavailable />;
+  if (salon?.movedToArtist) redirect(`/artists/${Number(id)}`);
   if (!salon) {
     notFound();
   }

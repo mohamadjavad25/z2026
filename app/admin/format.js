@@ -23,6 +23,7 @@ export const ACTION_LABEL = {
   stepup_failed: "تأیید دوباره ناموفق",
   force_logout: "خروج اجباری کاربر",
   delete_user: "حذف حساب",
+  salon_to_artist: "تبدیل سالن به آرتیست",
   post_hide: "پنهان‌کردن پست",
   post_show: "نمایش دوبارهٔ پست",
   post_delete: "حذف پست",

@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Ban, CalendarDays, ExternalLink, FileText, KeyRound, LogOut, MessageSquarePlus, MoreHorizontal, Pencil, Phone, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
+import { Ban, CalendarDays, Palette, ExternalLink, FileText, KeyRound, LogOut, MessageSquarePlus, MoreHorizontal, Pencil, Phone, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { Button, Field } from "../components/ui";
 import { api } from "./adminFetch";
 import { UserGallery, UserPhoto, UserPlace, UserPoster, UserServices } from "./UserProfile";
 import { ACTION_LABEL, BOOKING_TONE, STATUS_LABEL, TYPE_LABEL, ago, fmtDate, fmtKey, fmtTime, num } from "./format";
-import { CopyButton, ErrorNote, Loading, confirmAction, toastResult } from "./ui";
+import { CopyButton, ErrorNote, Loading, confirmAction, toast, toastResult } from "./ui";
 import { CannedReplies } from "./CannedReplies";
 import { AccountBilling } from "./BillingAdmin";
 import { ActionMenu, Dialog } from "./ActionMenu";
@@ -114,11 +114,30 @@ export function UserDetail({ userId, onChanged, onGo, onClose }) {
     }
   }
 
+  /** A salon that is really an artist (owner 2026-11-12): checks first, then one confirm that says what moves. */
+  async function toArtist() {
+    const check = await api.get(`/api/admin/users/${userId}/type`);
+    if (!check.ok) return toastResult(check, "");
+    const data = check.payload?.data || {};
+    if (!data.ok) {
+      const more = data.code === "live_bookings" && data.count ? ` (${num(data.count)} نوبت)` : "";
+      toast(`${data.message}${more}`, "error");
+      return;
+    }
+    const answer = await confirmAction({
+      title: `«${user.name || user.phone}» آرتیست بشه؟`,
+      body: `خدمت‌ها (${num(data.services)})، نمونه‌کارها (${num(data.posts)}) و مشتری‌های وصل (${num(data.clients)}) می‌مونن. تیم و تنظیمات سالن پاک می‌شه و از گوشیش خارج می‌شه؛ با همون شماره و رمز دوباره وارد می‌شه.`,
+      confirmLabel: "آرتیست بشه"
+    });
+    if (answer.ok) run(() => api.post(`/api/admin/users/${userId}/type`, { to: "artist" }), "حساب آرتیست شد.");
+  }
+
   /* Every operation on this account lives in this one list; add a line here and it shows in the «اقدام‌ها» sheet. */
   const menuItems = detail.isAdmin ? [] : [
     { group: "مدیریت حساب", icon: Pencil, label: "ویرایش نام و مشخصات", run: () => setDialog("edit"), keep: true },
     { group: "مدیریت حساب", icon: KeyRound, label: "تعیین رمز جدید", run: () => setDialog("password"), keep: true },
     { group: "مدیریت حساب", icon: LogOut, label: "خروج از همهٔ دستگاه‌ها", run: logoutAll },
+    ...(user.type === "salon" ? [{ group: "مدیریت حساب", icon: Palette, label: "تبدیل به آرتیست", run: toArtist }] : []),
     { group: "رفتن به", icon: CalendarDays, label: "رزروهایش", run: () => onGo("bookings", { q: user.phone }) },
     ...(user.type !== "client" ? [{ group: "رفتن به", icon: FileText, label: "پست‌هایش", run: () => onGo("content", { q: user.phone }) }] : []),
     ...(profileUrl ? [{ group: "رفتن به", icon: ExternalLink, label: "صفحهٔ عمومی", href: profileUrl }] : []),
