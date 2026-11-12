@@ -1,9 +1,6 @@
 # Handoff for cloud sessions (2026-11-02)
 
-**Waiting for the owner (2026-11-11): the tidy work** (large files split, hidden-side clean-up, system review) is
-finished on branch `claude/find-claude-github-work-cbh2jo` (it continues `claude/salon-booking-system-nrll9n`), not on
-main. Its hand-over is `docs/TIDY_WORK.md`: what was done, the two proven faults that wait for the owner's decision,
-and how to run the tests in a cloud session. Merge only after the owner has seen the summary page and said so.
+**Live (2026-11-12): the tidy work and the owner's new home screen** are on main and on the main server (GitHub button, run 43176176796). `docs/TIDY_WORK.md` has what was done and the review items still open (item 3 of the review, the 20-second sweep in the artist's app, and the single-service copy match by fingerprint).
 
 The owner is away from the PC and works from a laptop through cloud sessions. This PC holds the private status file, the
 deploy script and the server's SSH key, so a cloud session can NOT deploy to the main server (frfro.ir). It can do
