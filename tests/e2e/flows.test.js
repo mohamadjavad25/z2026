@@ -93,7 +93,7 @@ describe("booking flow (browser)", () => {
     const cp = clientView.page;
     await cp.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await openExploreTab(cp);
-    await cp.locator("#cbt-panel").getByPlaceholder("اسم سالن یا آرتیست").fill(name);
+    await cp.locator("#cbt-panel").getByPlaceholder("اسم کار، سالن یا آرتیست").fill(name);
     const result = cp.locator(".cnCard").filter({ hasText: name }).first();
     await result.getByRole("button", { name: "وصل شو" }).click();
     await cp.locator(".spvBarBook").click();
@@ -301,7 +301,7 @@ describe("client starts from what they want (browser)", () => {
     const { page, context, problems } = await newPage({ cookie: clientApi.cookie() });
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     const home = page.locator(".clientHome .cnPage.is-compact");
-    await home.getByPlaceholder("اسم سالن یا آرتیست").fill(name);
+    await home.getByPlaceholder("اسم کار، سالن یا آرتیست").fill(name);
     await home.locator(".cnCard").filter({ hasText: name }).first().getByRole("button", { name: "وصل شو" }).click();
     // the services are not listed on the page twice: the bottom button says how many and from what price
     const bar = page.locator(".spvBarBook");
@@ -338,6 +338,8 @@ describe("client starts from what they want (browser)", () => {
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     await openExploreTab(page);
     await page.locator("#cbt-panel .cnCat", { hasText: "ناخن" }).click();
+    // the tile lists every nail service (owner, 2026-11-12); the salon does «کاشت ناخن»
+    await page.locator(".cnSheetRoot .crServiceRow", { hasText: "کاشت ناخن" }).click();
     // the salon's page opens with its services menu, «کاشت ناخن» first and already picked
     await page.locator(".sduPanel").waitFor();
     expect(await page.locator(".sduPanel").getAttribute("aria-label")).toContain(name);
@@ -348,7 +350,7 @@ describe("client starts from what they want (browser)", () => {
     await context.close();
   });
 
-  it("nobody does it yet: connect by phone from the sheet; an unknown number gets a ready SMS invite", async () => {
+  it("nobody does it yet: a number not on frfro gets the request by SMS; the salon's own number opens it", async () => {
     const { client: salonClient, salon } = await seedSalon();
     await salonClient.post("/api/salon-services", { name: "میکاپ ساده", price: "800000", duration: "60 دقیقه" });
     const clientApi = createClient();
@@ -360,22 +362,27 @@ describe("client starts from what they want (browser)", () => {
     await page.locator("nav.bottomNav > button").nth(2).click();
     await page.locator("#cbt-panel .chEmpty").waitFor();
     await page.locator("#cbt-panel .chAddLink").click();
-    await page.locator("#cbt-panel .cnCat", { hasText: "میکاپ" }).waitFor();
-    await page.locator("#cbt-panel .cnCat", { hasText: "میکاپ" }).click();
-    const sheet = page.locator(".cnSheetRoot");
-    await sheet.waitFor();
-    expect(await sheet.innerText()).toContain("هنوز کسی رو وصل نکردی");
+    const ask = async (phone) => {
+      await page.locator("#cbt-panel .cnCat", { hasText: "میکاپ" }).click();
+      await page.locator(".cnSheetRoot .crServiceRow", { hasText: "میکاپ ساده" }).click();
+      // the day and the hour (owner, 2026-11-12): the first open hour of the third day
+      await page.locator(".cnSheetRoot .crDay").nth(2).click();
+      await page.locator(".cnSheetRoot .crHour:not([disabled])").first().click();
+      await page.getByRole("button", { name: "بعدی" }).click();
+      await page.locator(".cnSheetRoot .crTyped input").fill(phone);
+      await page.locator(".cnSheetRoot .crTyped").getByRole("button", { name: "بعدی" }).click();
+      await page.getByRole("button", { name: "بفرست" }).click();
+    };
 
-    // a number that is not on frfro: the client's own messages app gets the invite, with the category in it
-    await sheet.getByPlaceholder("اسم، شماره یا لینک صفحه‌ش").fill("09129998877");
-    await sheet.getByText("این شماره هنوز توی فرفرو نیست.").waitFor();
-    const href = await sheet.getByRole("link", { name: "پیامک دعوت" }).getAttribute("href");
-    expect(href).toMatch(/^sms:09129998877\?&body=/);
-    expect(decodeURIComponent(href)).toContain("برای «میکاپ»");
+    // a number that is not on frfro: frfro texts it, and the request waits on the home page
+    await ask("09129998877");
+    await page.locator(".crDone").getByText("فرستادیم").waitFor();
+    await page.getByRole("button", { name: "باشه" }).click();
+    const requests = await clientApi.get("/api/contact-requests");
+    expect(requests.payload.data.requests[0]).toMatchObject({ service: "میکاپ ساده", status: "waiting", sms: "sent" });
 
-    // the salon's own number: connect, and its page opens on the services that match
-    await sheet.getByPlaceholder("اسم، شماره یا لینک صفحه‌ش").fill(salon.phone);
-    await sheet.getByRole("button", { name: "وصل شو" }).click();
+    // the salon's own number: no SMS; connected, and its page opens on the service
+    await ask(salon.phone);
     await page.locator(".sduPanel").waitFor();
     await page.locator(".sduItem.is-selected", { hasText: "میکاپ ساده" }).waitFor();
     const list = await clientApi.get("/api/connections");

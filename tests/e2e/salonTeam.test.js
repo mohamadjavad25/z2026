@@ -28,7 +28,7 @@ describe("the team on a salon's page (browser)", () => {
     page.setDefaultTimeout(8000);
     await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
     const home = page.locator(".clientHome .cnPage.is-compact");
-    await home.getByPlaceholder("اسم سالن یا آرتیست").fill(salon.user.name);
+    await home.getByPlaceholder("اسم کار، سالن یا آرتیست").fill(salon.user.name);
     await home.locator(".cnCard").filter({ hasText: salon.user.name }).filter({ hasNotText: "Artist" }).first().click();
 
     const negarCard = page.locator(".stmCard", { hasText: negar.user.name });

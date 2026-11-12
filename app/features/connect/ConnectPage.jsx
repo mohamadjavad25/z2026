@@ -121,10 +121,19 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
   }
 
   // The number the client sent to is already a salon or artist on frfro: connect and open it.
-  async function openFound(profile) {
+  async function openFound(profile, service) {
     setRequestFlow(null);
     const connected = profile.connected ? profile : await connect(profile, { silent: true });
-    if (connected) onOpenProfile?.(connected, { services: [], label: "همه خدمات" });
+    if (!connected) return;
+    // Its page opens on its own name for the service, when it has it.
+    let services = [];
+    try {
+      const { ok, data } = await listConnectionsForService(service.id ? { id: service.id } : { name: service.name });
+      if (ok) services = data?.matches?.find((match) => match.id === connected.id)?.services || [];
+    } catch {
+      // the page still opens, on all its services
+    }
+    onOpenProfile?.(connected, services.length ? { services, label: service.name } : { services: [], label: "همه خدمات" });
   }
 
   // «وصل شو» connects and goes straight to their page to book: one tap, not two.
@@ -282,7 +291,7 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
           start={requestFlow.start || null}
           mine={requestFlow.mine}
           clientName={me.name}
-          onFound={openFound}
+          onFound={(profile) => openFound(profile, requestFlow.service)}
           onScan={() => {
             setRequestFlow(null);
             setSheet("scan");
