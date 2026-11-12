@@ -6,17 +6,17 @@ import { OnboardingSlides } from "./OnboardingSlides";
 import { openSupport } from "../support";
 import { OPEN_TUTORIAL_EVENT, WELCOME_SEEN_KEY } from "./slides";
 import { ENTER_APP_EVENT } from "../landing/constants";
-import { peekPendingOpen } from "../../shared/lib/appHandoff";
+import { peekPendingOpen, peekPendingRequest } from "../../shared/lib/appHandoff";
 import { apiFetch } from "../../shared/api/client";
 
 /**
  * This visit came with a purpose: a salon's or artist's link to book (`?open=`, or the place a public page's
- * «رزرو» remembered) or a salon's team link (`?join=`). Remembered for the visit, since the link is used up by sign-up.
+ * «رزرو» remembered), a salon's team link (`?join=`) or a client's request SMS link (`?request=`). Remembered for the visit, since the link is used up by sign-up.
  */
 const PURPOSE_KEY = "frfro-came-with-purpose";
 function cameWithPurpose() {
   try {
-    if (/[?&](open|join)=/.test(window.location.search) || peekPendingOpen()) window.sessionStorage.setItem(PURPOSE_KEY, "1");
+    if (/[?&](open|join|request)=/.test(window.location.search) || peekPendingOpen() || peekPendingRequest()) window.sessionStorage.setItem(PURPOSE_KEY, "1");
     return window.sessionStorage.getItem(PURPOSE_KEY) === "1";
   } catch {
     return false;

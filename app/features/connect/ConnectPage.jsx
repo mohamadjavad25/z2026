@@ -5,12 +5,16 @@ import { ContactRound, QrCode, ScanLine, Search, X } from "lucide-react";
 import { ComingSoon } from "../../components/ComingSoon";
 import { Mascot } from "../../components/Mascot";
 import { SkeletonList } from "../../components/Skeleton";
-import { listConnectionsForCategory } from "../../shared/api/connections";
+import { listConnectionsForService } from "../../shared/api/connections";
+import { searchClientServices } from "../../shared/constants/clientServices";
 import { contactPickerSupported, pickContact, useRestoredContact } from "../../shared/lib/contactPicker";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { CategoryGrid } from "./CategoryGrid";
-import { CategorySheet } from "./CategorySheet";
 import { ConnectSheet } from "./ConnectSheet";
+import { ContactRequestFlow } from "./ContactRequestFlow";
+import { PlacesSheet } from "./PlacesSheet";
+import { ServiceListSheet, ServiceRow } from "./ServiceListSheet";
+import { takeRequestDraft } from "./requestDraft";
 import { ContactLookup } from "./ContactLookup";
 import { ConnectionCard } from "./ConnectionCard";
 import { InviteToFrfro } from "./InviteToFrfro";
@@ -42,7 +46,7 @@ const NOT_FOUND = {
 export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfile, onNotify }) {
   // The home card and the «پیدا کردن» tab each remember their own search.
   const owner = `${compact ? "home:" : ""}${me.name || ""}`;
-  const { connections, loading, query, setQuery, search, connect, connectingId, refresh, restoredScrollY } = useConnections({ onNotify, memoryOwner: owner });
+  const { connections, loading, query, setQuery, search, connect, connectingId, restoredScrollY } = useConnections({ onNotify, memoryOwner: owner });
   // Opening a salon page swaps this screen out: remember where the client was so Back lands there (searchMemory.js).
   const onOpenProfile = (...args) => {
     rememberSearch(owner, { scrollY: window.scrollY });
@@ -59,11 +63,15 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
     }
   }, [ready, restoredScrollY, owner]);
   const [sheet, setSheet] = useState(""); // "" | "scan" | "code"
-  const [categorySheet, setCategorySheet] = useState(null); // { category, matches } while the pick/connect sheet is open
-  const [checkingCategory, setCheckingCategory] = useState("");
+  const [serviceList, setServiceList] = useState(null); // the tile whose services are open
+  const [checkingService, setCheckingService] = useState("");
+  const [placesSheet, setPlacesSheet] = useState(null); // { service, matches }: several of mine do it
+  const [requestFlow, setRequestFlow] = useState(null); // { service, mine, start? }: ask someone not on frfro yet
   const [contacts, setContacts] = useState(false); // the phone has a contact picker
   const [contact, setContact] = useState(null); // the contact picked for «از مخاطبین»
   const searching = query.trim().length > 0;
+  // What the client typed may be a service («ژلیش», «اپیلاسیون»): those come first, then salons by that name.
+  const serviceHits = searching ? searchClientServices(query, { limit: 5 }) : [];
 
   useEffect(() => { setContacts(contactPickerSupported()); }, []);
 
@@ -80,27 +88,43 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
   // A pick (here or in a category's sheet) that came back after Android closed and restarted the app.
   useRestoredContact("connect", setContact);
 
-  // «چه کاری می‌خواهی؟»: one of my salons/artists does it -> straight to them, on that service;
-  // several -> pick; none -> connect someone.
-  async function pickCategory(category) {
-    setCheckingCategory(category.id);
+  // A pick from the contacts that came back after Android restarted the app mid-request (requestDraft.js).
+  useRestoredContact("request", (picked) => {
+    const draft = takeRequestDraft();
+    if (draft) setRequestFlow({ service: draft.service, mine: true, start: { contact: picked, date: draft.date, time: draft.time } });
+  });
+
+  // «چه کاری می‌خوای؟» (owner, 2026-11-12): a tile opens its services; a service, typed or tapped, goes to the one of
+  // my salons/artists that does it, lets me pick when several do, and when none does, asks someone from my contacts.
+  async function pickService(service) {
+    setCheckingService(service.id || "typed");
     try {
-      const { ok, data } = await listConnectionsForCategory(category.id);
+      const { ok, data } = await listConnectionsForService(service.id ? { id: service.id } : { name: service.name });
       if (!ok) {
         onNotify?.("پیدا نشد؛ دوباره بزن.");
         return;
       }
       const matches = data?.matches || [];
+      setServiceList(null);
       if (matches.length === 1) {
-        onOpenProfile?.(matches[0], { services: matches[0].services, label: category.label });
-        return;
+        onOpenProfile?.(matches[0], { services: matches[0].services, label: service.name });
+      } else if (matches.length > 1) {
+        setPlacesSheet({ service, matches });
+      } else {
+        setRequestFlow({ service, mine: connections.length > 0 });
       }
-      setCategorySheet({ category, matches });
     } catch {
       onNotify?.("پیدا نشد؛ دوباره بزن.");
     } finally {
-      setCheckingCategory("");
+      setCheckingService("");
     }
+  }
+
+  // The number the client sent to is already a salon or artist on frfro: connect and open it.
+  async function openFound(profile) {
+    setRequestFlow(null);
+    const connected = profile.connected ? profile : await connect(profile, { silent: true });
+    if (connected) onOpenProfile?.(connected, { services: [], label: "همه خدمات" });
   }
 
   // «وصل شو» connects and goes straight to their page to book: one tap, not two.
@@ -142,10 +166,10 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
             کد من
           </button>
         </div>
-        <CategoryGrid busyId={checkingCategory} onPick={pickCategory} />
+        <CategoryGrid onPick={setServiceList} />
         <label className="cnSearch">
           <Search size={20} aria-hidden="true" />
-          <span className="srOnly">جستجو با اسم، شماره یا لینک</span>
+          <span className="srOnly">جستجوی کار، یا سالن با اسم، شماره یا لینک</span>
           <input
             type="search"
             inputMode="search"
@@ -157,7 +181,7 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
               const box = event.currentTarget;
               window.setTimeout(() => box.scrollIntoView({ block: "start", behavior: "smooth" }), 250);
             }}
-            placeholder="اسم سالن یا آرتیست"
+            placeholder="اسم کار، سالن یا آرتیست"
             autoComplete="off"
           />
           {searching ? (
@@ -172,9 +196,24 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
       <div className="cnBody">
         {searching ? (
           <section aria-label="نتیجه جستجو" aria-live="polite" className="cnList">
+            {serviceHits.length ? (
+              <div className="crServices" aria-label="کارها">
+                {serviceHits.map((service) => (
+                  <ServiceRow key={service.id} service={service} near={service.match === "word"} busy={checkingService === service.id} disabled={Boolean(checkingService)} onPick={pickService} />
+                ))}
+              </div>
+            ) : null}
             {search.status === "searching" ? <SkeletonList rows={2} variant="card" label="در حال جستجو" /> : null}
             {search.status === "error" ? <p className="cnNote" role="alert">{search.message || "جستجو نشد؛ دوباره بزن."}</p> : null}
-            {search.status === "done" && search.results.length === 0 ? (
+            {search.status === "done" && search.results.length === 0 && !serviceHits.length && search.by === "name" && query.trim().length > 1 ? (
+              <ServiceRow
+                service={{ name: query.trim().slice(0, 60), icon: "" }}
+                busy={checkingService === "typed"}
+                disabled={Boolean(checkingService)}
+                onPick={pickService}
+              />
+            ) : null}
+            {search.status === "done" && search.results.length === 0 && !serviceHits.length ? (
               <div className="cnEmpty is-compact">
                 <b>{NOT_FOUND[search.by] || NOT_FOUND.name}</b>
                 <p>اگه هنوز توی فرفرو نیست، دعوتش کن؛ که اومد، همین‌جا پیداش می‌کنی.</p>
@@ -217,24 +256,38 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
       </div>
       )}
 
-      {categorySheet ? (
-        <CategorySheet
-          category={categorySheet.category}
-          matches={categorySheet.matches}
-          hasConnections={connections.length > 0}
-          clientName={me.name}
-          onNotify={onNotify}
-          onConnected={() => refresh()}
-          onOpen={(profile, services) => {
-            const category = categorySheet.category;
-            setCategorySheet(null);
-            onOpenProfile?.(profile, { services, label: category.label });
+      {serviceList ? (
+        <ServiceListSheet category={serviceList} busyId={checkingService} onPick={pickService} onClose={() => setServiceList(null)} />
+      ) : null}
+      {placesSheet ? (
+        <PlacesSheet
+          service={placesSheet.service}
+          matches={placesSheet.matches}
+          onOpen={(profile) => {
+            const { service } = placesSheet;
+            setPlacesSheet(null);
+            onOpenProfile?.(profile, { services: profile.services || [], label: service.name });
           }}
+          onOther={() => {
+            const { service } = placesSheet;
+            setPlacesSheet(null);
+            setRequestFlow({ service, mine: false });
+          }}
+          onClose={() => setPlacesSheet(null)}
+        />
+      ) : null}
+      {requestFlow ? (
+        <ContactRequestFlow
+          service={requestFlow.service}
+          start={requestFlow.start || null}
+          mine={requestFlow.mine}
+          clientName={me.name}
+          onFound={openFound}
           onScan={() => {
-            setCategorySheet(null);
+            setRequestFlow(null);
             setSheet("scan");
           }}
-          onClose={() => setCategorySheet(null)}
+          onClose={() => setRequestFlow(null)}
         />
       ) : null}
       {contact ? (
