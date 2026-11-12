@@ -24,6 +24,7 @@ import { noticeClientCancelledByProvider, noticeClientTimeProposal } from "../..
 import * as proposals from "../../lib/db/repos/bookingProposals.js";
 import { STARTED_NO_CANCEL_TEXT } from "../../shared/lib/providerRules.js";
 import { isConfirmedBooking } from "../../shared/lib/bookingStates.js";
+import { addRequestedServiceOnAccept } from "../../lib/contactRequests.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -339,6 +340,10 @@ async function _PATCH(request) {
     const lost = artistsBefore.filter((artist) => !artistsNow.includes(artist));
     if (gained.length) notifyStaff({ artistIds: gained, exceptUserId: auth.user.id }, { title: "یه نوبت به تو داده شد", body });
     if (lost.length) notifyStaff({ artistIds: lost, exceptUserId: auth.user.id }, { title: "این نوبت به یکی دیگه داده شد", body });
+  }
+  // «اضافه کن و قبول کن»: a client's request for a service not on the salon's menu puts it there (owner, 2026-11-12).
+  if (statusChanged && patch.status === "تایید شده") {
+    await addRequestedServiceOnAccept({ id: auth.user.id, type: "salon" }, "salon", id, result.booking.service, result.booking.service_emoji);
   }
   if (statusChanged && (patch.status === "تایید شده" || patch.status === "لغو")) {
     const bookingClientUserId = result.booking.client_user_id ? Number(result.booking.client_user_id) : null;

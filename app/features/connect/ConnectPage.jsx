@@ -6,7 +6,8 @@ import { ComingSoon } from "../../components/ComingSoon";
 import { Mascot } from "../../components/Mascot";
 import { SkeletonList } from "../../components/Skeleton";
 import { listConnectionsForService } from "../../shared/api/connections";
-import { searchClientServices } from "../../shared/constants/clientServices";
+import { findClientServiceByName, searchClientServices } from "../../shared/constants/clientServices";
+import { ASK_SOMEONE_ELSE } from "../client/AskSomeoneElse";
 import { contactPickerSupported, pickContact, useRestoredContact } from "../../shared/lib/contactPicker";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { CategoryGrid } from "./CategoryGrid";
@@ -15,6 +16,7 @@ import { ContactRequestFlow } from "./ContactRequestFlow";
 import { PlacesSheet } from "./PlacesSheet";
 import { ServiceListSheet, ServiceRow } from "./ServiceListSheet";
 import { takeRequestDraft } from "./requestDraft";
+import { requestBookElsewhere } from "../booking/rebookBus";
 import { ContactLookup } from "./ContactLookup";
 import { ConnectionCard } from "./ConnectionCard";
 import { InviteToFrfro } from "./InviteToFrfro";
@@ -94,6 +96,18 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
     if (draft) setRequestFlow({ service: draft.service, mine: true, start: { contact: picked, date: draft.date, time: draft.time } });
   });
 
+  // A place said no to a request: the same service, day and hour go to someone else (client/AskSomeoneElse).
+  useEffect(() => {
+    const ask = (event) => {
+      const { name = "", icon = "", date = "", time = "" } = event.detail || {};
+      if (!name) return;
+      const service = findClientServiceByName(name) || { name, icon };
+      setRequestFlow({ service, mine: false, start: { date, time } });
+    };
+    window.addEventListener(ASK_SOMEONE_ELSE, ask);
+    return () => window.removeEventListener(ASK_SOMEONE_ELSE, ask);
+  }, []);
+
   // «چه کاری می‌خوای؟» (owner, 2026-11-12): a tile opens its services; a service, typed or tapped, goes to the one of
   // my salons/artists that does it, lets me pick when several do, and when none does, asks someone from my contacts.
   async function pickService(service) {
@@ -120,18 +134,15 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
     }
   }
 
-  // The number the client sent to is already a salon or artist on frfro: connect and open it.
-  async function openFound(profile, service) {
+  // The number the client sent to is a salon or artist on frfro that does the service: connect, then its booking form
+  // opens on the day and hour the client chose (a salon; an artist's page opens on the service).
+  async function openFound(profile, { services = [], date = "", time = "" } = {}, service) {
     setRequestFlow(null);
     const connected = profile.connected ? profile : await connect(profile, { silent: true });
     if (!connected) return;
-    // Its page opens on its own name for the service, when it has it.
-    let services = [];
-    try {
-      const { ok, data } = await listConnectionsForService(service.id ? { id: service.id } : { name: service.name });
-      if (ok) services = data?.matches?.find((match) => match.id === connected.id)?.services || [];
-    } catch {
-      // the page still opens, on all its services
+    if (connected.type !== "artist" && services.length) {
+      requestBookElsewhere({ place: connected, prefill: { names: services.slice(0, 1), day: date, time } });
+      return;
     }
     onOpenProfile?.(connected, services.length ? { services, label: service.name } : { services: [], label: "همه خدمات" });
   }
@@ -291,7 +302,7 @@ export function ConnectPage({ me = {}, compact = false, onOpenProfile: openProfi
           start={requestFlow.start || null}
           mine={requestFlow.mine}
           clientName={me.name}
-          onFound={(profile) => openFound(profile, requestFlow.service)}
+          onFound={(profile, prefill) => openFound(profile, prefill, requestFlow.service)}
           onScan={() => {
             setRequestFlow(null);
             setSheet("scan");

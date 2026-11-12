@@ -215,3 +215,5 @@
 .cbtTabs button { min-height: 40px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: var(--n-600); font: inherit; font-size: 0.86rem; font-weight: 900; cursor: pointer; transition: background 0.18s, color 0.18s; }
 .cbtTabs button.is-on { background: var(--fill-strong); color: var(--n-0); box-shadow: 0 8px 18px -10px rgb(var(--shadow-rgb) / 0.55); }
 .clientHome.is-places { padding-top: 14px; }
+/* Nothing ahead: the connect card comes first, by order only (it stays in one place in the tree, ClientHome). */
+.clientHome.is-findFirst > .cnPage { order: -1; }

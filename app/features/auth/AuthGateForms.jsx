@@ -535,7 +535,11 @@ export function AuthGateForms({
 
       {authMode === "signup" && signupStep === "role" && (
         <div className="authGateDock">
-          <ProfileRoleGrid roles={profileRoles} onSelectRole={onSelectRole} />
+          {/* From a client's request SMS link only a salon or an artist answers (owner, 2026-11-12). */}
+          <ProfileRoleGrid
+            roles={arrivalIntent?.kind === "request" ? profileRoles.filter((role) => role.id !== "client") : profileRoles}
+            onSelectRole={onSelectRole}
+          />
           <p className="authGateLoginCue">
             حساب داری؟{" "}
             <button type="button" onClick={onSwitchToLogin}>

@@ -216,6 +216,12 @@ export function useHomeApp() {
     onLinkedArtistBooked: (id) => notifyArtistBookingCreatedRef.current?.(id),
     onClientBooked
   });
+  // A connection made on the connect page (useConnections): the place pages read «وصل هستی» from this app-level list.
+  useEffect(() => {
+    const refresh = () => { void authCascadeRef.current?.refreshFollows?.(); };
+    window.addEventListener("frfro:follows-changed", refresh);
+    return () => window.removeEventListener("frfro:follows-changed", refresh);
+  }, []);
   // «همین نوبت را جای دیگر بگیر» (features/client/ExpiredRequestActions): open the chosen place with the request filled in.
   const prefilledOpenerRef = useRef(null);
   prefilledOpenerRef.current = openSalonClientBookingPrefilled;

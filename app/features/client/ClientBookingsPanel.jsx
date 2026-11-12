@@ -8,6 +8,7 @@ import { toPersianDigits } from "../../shared/lib/digits";
 import { formatRelativeBookingDayLabel, resolveRollingPersianDate } from "../../shared/lib/persianCalendar";
 import { ClientBookingHistorySheet } from "./ClientBookingHistorySheet";
 import { ExpiredRequestActions } from "./ExpiredRequestActions";
+import { AskSomeoneElse } from "./AskSomeoneElse";
 import { AttendStrip } from "./AttendStrip";
 import { ownReliabilityLine } from "../../shared/lib/attendance";
 import { AWAITING_CLIENT } from "../../shared/lib/bookingOffer";
@@ -235,6 +236,7 @@ export function ClientBookingsPanel({ bookings = [], onOpenSettings, onRebook, c
                     <time>{when}</time>
                   </button>
                   <ExpiredRequestActions booking={booking} clientName={clientName} onNotify={onNotify} onFindPlaces={onFindPlaces} onOpenPlace={onOpenPlace} />
+                  <AskSomeoneElse booking={booking} />
                 </li>
               );
             })}

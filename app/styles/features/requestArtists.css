@@ -235,3 +235,5 @@
 @keyframes bpeUp{ from{ transform: translateY(40px); opacity: 0.4; } to{ transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce){ .bpeSheet, .bpeSheetPanel{ animation: none; } }
 .sbmScreen .sbmBody > .sbmCancel{ border-top: 0; margin-top: 14px; justify-self: center; }
+/* A client's request for a service not on the menu (owner, 2026-11-12): one line under the service. */
+.sbmMissing{ margin: -6px 0 0; padding: 6px 10px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); font-size: 0.8rem; font-weight: 800; width: fit-content; }

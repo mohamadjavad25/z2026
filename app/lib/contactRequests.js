@@ -5,14 +5,15 @@ import { sendPushToUser } from "./push.js";
 import { addSalonService, listSalonServices } from "./db/repos/salons/services.js";
 import { addArtistService, listArtistServices } from "./db/repos/artists/services.js";
 import { sendTemplateSms, templateConfigured } from "./sms.js";
-import { bookingWhen, smsDayLabel } from "./bookingSms.js";
+import { bookingWhen, smsDayLabel, smsNewBookingRequest } from "./bookingSms.js";
 import { noteAdminEvent } from "./adminNews.js";
 import { getSiteUrl } from "./siteUrl.js";
 import { normalizePhone } from "./auth.js";
 import { shortClock } from "../shared/lib/providerRules.js";
 import { normalizeBookingTimeLabel } from "../shared/lib/time.js";
 import { isBeautyEmojiId } from "../shared/constants/beautyEmoji.js";
-import { findClientServiceByName } from "../shared/constants/clientServices.js";
+import { findClientServiceByName, offersClientService } from "../shared/constants/clientServices.js";
+import { normalizeServiceText } from "../shared/lib/serviceText.js";
 import { onlineBookingBlock } from "./billing/access.js";
 
 /**
@@ -49,7 +50,8 @@ export function safeFirstName(name) {
 /**
  * The client sends a request. Returns one of
  *   { status: 201, data: { request, sms } }      sms: "sent" | "joined" | "off" | "failed"
- *   { status: 200, data: { found: profile } }    that number is a salon or artist on frfro: book there instead
+ *   { status: 200, data: { found, services } }   that number is on frfro and does the service: book it there
+ *   { status: 201, data: { direct, place } }     on frfro without the service: the request went straight to it
  *   { status: 4xx, error, code }
  */
 export async function sendContactRequest(client, body = {}) {
@@ -63,9 +65,20 @@ export async function sendContactRequest(client, body = {}) {
   const timeProblem = requests.requestTimeProblem(bookingDate, time);
   if (timeProblem) return { status: 400, error: timeProblem, code: "BAD_TIME" };
 
-  // Already on frfro as a salon or artist (by login number or the number on its page): book there, no SMS.
+  // Already on frfro as a salon or artist (by login number or the number on its page): no SMS, and what the client
+  // chose is never lost (owner, 2026-11-12): the place's booking form on that day and hour when it does the service,
+  // else the request goes straight to it.
   const { results } = await connections.searchProfiles(phone, client.id);
-  if (results.length) return { status: 200, data: { found: results[0] } };
+  if (results.length) {
+    return requestToPlace(client, results[0], {
+      phone,
+      contactName: clean(body.contactName, MAX_CONTACT_NAME),
+      service,
+      serviceEmoji: isBeautyEmojiId(body.serviceEmoji) ? String(body.serviceEmoji) : "",
+      bookingDate,
+      time
+    });
+  }
   const account = await users.getUserByPhone(phone);
   if (account) {
     return account.type === "client"
@@ -90,6 +103,58 @@ export async function sendContactRequest(client, body = {}) {
   }
   if (!added.duplicate) noteAdminEvent("bookings", `${client.name || "مشتری"} از مخاطب‌ها: ${service}`);
   return { status: added.duplicate ? 200 : 201, data: { request: forClient({ ...added.request, sms_status: sms }), sms } };
+}
+
+/** The place's own names for the service the client picked ([] when it does not offer it). */
+async function ownNamesFor(place, service) {
+  const menu = place.type === "artist" ? await listArtistServices(place.id) : await listSalonServices(place.id);
+  const known = findClientServiceByName(service);
+  const typed = normalizeServiceText(service);
+  return menu
+    .filter((own) => (known
+      ? offersClientService({ name: own.name, emoji: own.emoji }, known)
+      : normalizeServiceText(own.name) === typed))
+    .map((own) => String(own.name || "").trim())
+    .filter(Boolean);
+}
+
+/**
+ * The number is a salon or artist on frfro. Returns
+ *   200 { found, services }   it does the service: the client books it there, on the chosen day and hour
+ *   201 { direct, place }     it does not (or has no menu yet): the request went straight to it, as a normal request
+ *   409 PLACE_CLOSED          it takes no online bookings now (closed account): pick someone else
+ */
+async function requestToPlace(client, place, fields) {
+  const kind = place.type === "artist" ? "artist" : "salon";
+  const who = kind === "artist" ? "این آرتیست" : "این سالن";
+  const blocked = await onlineBookingBlock(place.id, kind);
+  if (blocked) return { status: 409, error: `${who} فعلاً نوبت آنلاین نمی‌گیره؛ یکی دیگه رو انتخاب کن.`, code: "PLACE_CLOSED" };
+  const names = await ownNamesFor(place, fields.service);
+  // A package that only contains the service («پکیج مانیکور و پدیکور» for «پدیکور») is not the service itself.
+  const exact = names.filter((name) => !/پکیج|\sو\s|\+/.test(name));
+  if (exact.length) return { status: 200, data: { found: place, services: exact } };
+  const business = { id: place.id, type: kind, name: place.name };
+  const twin = await requests.findDeliveredTwin({ clientUserId: client.id, businessUserId: place.id, ...fields });
+  if (twin) return { status: 200, data: { direct: true, place, request: forClient(twin) } };
+  const added = await requests.addDirectRequest({ clientUserId: client.id, ...fields });
+  if (!added.ok) return { status: 409, error: added.message, code: added.code };
+  const handed = await requests.deliverToBusiness(business, fields.phone, { ids: [Number(added.request.id)] });
+  if (!handed.length) return { status: 409, error: "این ساعت دیگه گذشته؛ یه ساعت دیگه انتخاب کن.", code: "BAD_TIME" };
+  const bookingId = handed[0].bookingId;
+  const push = sendPushToUser(place.id, {
+    title: "درخواست تازه",
+    body: `${client.name || "مشتری"}، ${fields.service}، ${bookingWhen(fields.bookingDate, fields.time)}`
+  }).catch(() => null);
+  smsNewBookingRequest(place.id, {
+    client: client.name,
+    service: fields.service,
+    bookingDate: fields.bookingDate,
+    time: fields.time,
+    fromUserId: client.id,
+    booking: { kind, id: bookingId }
+  }, push);
+  noteAdminEvent("bookings", `${client.name || "مشتری"} از مخاطب‌ها، مستقیم: ${fields.service}`);
+  return { status: 201, data: { direct: true, place, request: forClient({ ...added.request, status: "delivered" }) } };
 }
 
 async function textTheNumber(request, client) {
@@ -165,6 +230,20 @@ async function addMissingServices(business, rows) {
     names.add(name);
     const data = { name, duration: "60 دقیقه", emoji: row.service_emoji || "" };
     await (isSalon ? addSalonService(business.id, data) : addArtistService(business.id, data));
+  }
+}
+
+/**
+ * The place accepted a client's request that came this way (by SMS link, or straight to a place on frfro) for a
+ * service not on its menu: the service goes on the menu (an hour, no price), so the next client can book it.
+ * Never throws; does nothing for any other booking.
+ */
+export async function addRequestedServiceOnAccept(business, kind, bookingId, service, serviceEmoji) {
+  try {
+    if (!(await requests.cameFromContactRequest(kind, bookingId))) return;
+    await addMissingServices(business, [{ service, service_emoji: serviceEmoji }]);
+  } catch (error) {
+    console.error(error);
   }
 }
 

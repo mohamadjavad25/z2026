@@ -299,3 +299,80 @@ describe("what a link's code reaches (code review 2026-11-12)", () => {
   });
 });
 
+
+describe("the number is already on frfro (owner's report, 2026-11-12: «درخواستی که انتخاب کردم گم شد»)", () => {
+  const salonWith = async (name, menu) => {
+    const api = createClient();
+    const reg = await registerUser(api, { type: "salon", name, menu });
+    return { api, ...reg, id: reg.user.id };
+  };
+
+  it("a salon with no services gets the request straight away, as a normal request it can accept", async () => {
+    const salon = await salonWith("Contact Empty Salon", false);
+    const client = await newClient("خواهر");
+    const day = FAR_DAY(3);
+    const sent = await send(client, { phone: salon.phone, service: "پدیکور", serviceEmoji: "pedicure", bookingDate: day, time: "21:00" });
+    expect(sent.status).toBe(201);
+    expect(sent.payload.data).toMatchObject({ direct: true, place: { id: salon.id } });
+    const [row] = await q("SELECT * FROM contact_requests WHERE client_user_id = $1", [client.id]);
+    expect(row).toMatchObject({ status: "delivered", sms_status: "direct", business_user_id: salon.id, booking_kind: "salon" });
+    const [booking] = await q("SELECT * FROM salon_bookings WHERE id = $1", [row.booking_id]);
+    expect(booking).toMatchObject({ client_user_id: client.id, service: "پدیکور", booking_date: day, time: "21:00", status: "درخواست" });
+    // The salon is told with the approved «درخواست نوبت» SMS (no push reached it here); no SMS link goes out.
+    expect(await smsEventually(salon.phone, "booking_request", 1)).toHaveLength(1);
+    expect(await smsSettled(salon.phone, ["contact_request"])).toBe(0);
+    expect(await q("SELECT 1 FROM follows WHERE follower_user_id = $1 AND target_user_id = $2", [client.id, salon.id])).toHaveLength(1);
+    // «اضافه کن و قبول کن»: accepted outside its hours, and the service is now on its menu.
+    const answered = await salon.api.patch("/api/salon-bookings", { id: booking.id, status: "تایید شده" });
+    expect(answered.status, JSON.stringify(answered.payload)).toBe(200);
+    const menu = await salon.api.get("/api/salon-services");
+    expect(menu.payload.data.services.map((item) => item.name)).toContain("پدیکور");
+    // A second tap on «بفرست» is the same request, not a second one.
+    const again = await send(client, { phone: salon.phone, service: "پدیکور", serviceEmoji: "pedicure", bookingDate: day, time: "21:00" });
+    expect(again.status).toBe(200);
+    expect(await q("SELECT 1 FROM salon_bookings WHERE salon_user_id = $1", [salon.id])).toHaveLength(1);
+  });
+
+  it("only a package with the service in it is not the service: the request goes straight to the salon", async () => {
+    const salon = await salonWith("Contact Package Salon", [["پکیج مانیکور و پدیکور", "90 دقیقه"]]);
+    const client = await newClient("مشتری پکیج");
+    const sent = await send(client, { phone: salon.phone, service: "پدیکور", serviceEmoji: "pedicure" });
+    expect(sent.status).toBe(201);
+    expect(sent.payload.data.direct).toBe(true);
+  });
+
+  it("a salon that does the service: its booking form opens on the chosen day and hour, nothing is sent", async () => {
+    const salon = await salonWith("Contact Pedicure Salon", [["پدیکور", "60 دقیقه"]]);
+    const client = await newClient("مشتری پدیکور");
+    const sent = await send(client, { phone: salon.phone, service: "پدیکور", serviceEmoji: "pedicure" });
+    expect(sent.status).toBe(200);
+    expect(sent.payload.data).toMatchObject({ found: { id: salon.id }, services: ["پدیکور"] });
+    expect(await q("SELECT 1 FROM salon_bookings WHERE salon_user_id = $1", [salon.id])).toHaveLength(0);
+    expect(await q("SELECT 1 FROM contact_requests WHERE client_user_id = $1", [client.id])).toHaveLength(0);
+  });
+
+  it("an artist with no services gets it as her own request, and accepting puts it on her menu", async () => {
+    const artistApi = createClient();
+    const artist = await registerUser(artistApi, { type: "artist", name: "Contact Empty Artist" });
+    const client = await newClient("مشتری آرتیست خالی");
+    const sent = await send(client, { phone: artist.phone, service: "پدیکور", serviceEmoji: "pedicure" });
+    expect(sent.status).toBe(201);
+    const [row] = await q("SELECT * FROM contact_requests WHERE client_user_id = $1", [client.id]);
+    const [booking] = await q("SELECT * FROM artist_bookings WHERE id = $1", [row.booking_id]);
+    expect(booking).toMatchObject({ artist_user_id: artist.user.id, status: "تازه", service: "پدیکور" });
+    const answered = await artistApi.patch("/api/artist/me", { kind: "booking", id: booking.id, status: "تایید شده" });
+    expect(answered.status, JSON.stringify(answered.payload)).toBe(200);
+    const me = await artistApi.get("/api/artist/me");
+    expect(JSON.stringify(me.payload)).toContain("پدیکور");
+  });
+
+  it("these count toward the client's three a day", async () => {
+    const client = await newClient("مشتری سه مستقیم");
+    for (let i = 0; i < 3; i += 1) {
+      const salon = await salonWith(`Contact Daily Salon ${i}`, false);
+      expect((await send(client, { phone: salon.phone, service: "پدیکور" })).status).toBe(201);
+    }
+    const fourth = await salonWith("Contact Daily Salon 3", false);
+    expect((await send(client, { phone: fourth.phone, service: "پدیکور" })).payload.code).toBe("DAILY_LIMIT");
+  });
+});

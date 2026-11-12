@@ -25,14 +25,17 @@ const maskedPhone = (phone) => (phone.length >= 11 ? `${phone.slice(0, 4)} •�
  *  - service: { id?, name, icon } the client picked
  *  - start: { contact, date, time } to open on the last step (a pick that came back after Android restarted the app)
  *  - mine: the client has salons, just none doing this (says so on the «where» step)
- *  - onFound(profile): that number is a salon or artist on frfro; the caller connects and opens it
+ *  - onFound(profile, { services, date, time }): that number is a salon or artist on frfro that does the service; the
+ *    caller connects and opens its booking form on that day and hour. One that does not do it gets the request
+ *    straight away (the done step), and an account closed for bookings is said on the confirm step.
  *  - onScan(): open the QR scanner instead
  */
 export function ContactRequestFlow({ service, start = null, mine = false, clientName = "", onFound, onScan, onClose }) {
   const days = useMemo(() => requestDays(), []);
   const [date, setDate] = useState(start?.date || firstOpenDay(days));
   const [time, setTime] = useState(start?.time || "");
-  const [step, setStep] = useState(start?.contact ? "confirm" : "when"); // when | where | confirm | done
+  // A pick that came back after a restart opens on the last step; «برای یکی دیگه بفرست» (a no from a place) on «کجا بری؟».
+  const [step, setStep] = useState(start?.contact ? "confirm" : start?.date && start?.time ? "where" : "when"); // when | where | confirm | done
   const [contact, setContact] = useState(start?.contact ? toTarget(start.contact) : null);
   const [typed, setTyped] = useState("");
   const [canPick, setCanPick] = useState(false);
@@ -87,8 +90,9 @@ export function ContactRequestFlow({ service, start = null, mine = false, client
         bookingDate: date,
         time
       });
+      // On frfro and does the service: its booking form, on the same day and hour.
       if (ok && payload?.data?.found) {
-        onFound?.(payload.data.found);
+        onFound?.(payload.data.found, { services: payload.data.services || [], date, time });
         return;
       }
       if (!ok) {
@@ -96,6 +100,7 @@ export function ContactRequestFlow({ service, start = null, mine = false, client
         return;
       }
       setResult(payload.data);
+      if (payload.data?.direct && payload.data.place?.name) setContact((current) => ({ ...current, name: payload.data.place.name }));
       setStep("done");
       window.dispatchEvent(new Event(CONTACT_REQUESTS_CHANGED));
     } catch {
