@@ -44,12 +44,14 @@ describe("sending a request to a number not on frfro", () => {
     const first = await newClient("مشتری یک");
     const second = await newClient("مشتری دو");
     const phone = uniquePhone();
-    expect((await send(first, { phone })).payload.data.sms).toBe("sent");
+    const sent = await send(first, { phone });
+    expect(sent.payload.data.sms).toBe("sent");
     const again = await send(second, { phone, time: "15:00" });
     expect(again.status).toBe(201);
     expect(again.payload.data.sms).toBe("joined");
     expect(await smsSettled(phone, ["contact_request"])).toBe(1);
-    const page = await fetch(`${TEST_BASE_URL}/r/${await codeOf(again.payload.data.request.id)}`);
+    // The link in the SMS frfro sent shows both.
+    const page = await fetch(`${TEST_BASE_URL}/r/${await codeOf(sent.payload.data.request.id)}`);
     const html = await page.text();
     expect(html).toContain("مشتری یک");
     expect(html).toContain("مشتری دو");
