@@ -187,3 +187,6 @@
 .pphNote { justify-self: start; max-width: 100%; margin: 0; padding: 0; overflow: hidden; border: 0; background: none; color: var(--accent); font: inherit; font-size: 0.78rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .pphNote:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; border-radius: 6px; }
 .artistPublicNoServices { margin: 12px 20px 0; color: var(--n-600); font-size: 0.8rem; font-weight: 800; text-align: center; }
+/* «کاری که می‌خوای اینجا نیست؟»: ask the place for a service not on its menu (owner, 2026-11-12). */
+.sduAskOther { display: block; margin: 4px auto 0; padding: 10px 14px; border: 0; background: none; color: var(--accent); font: inherit; font-size: 0.84rem; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.artistPublicNoServices p { margin: 0; }

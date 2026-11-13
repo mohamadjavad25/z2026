@@ -99,6 +99,46 @@ export async function addContactRequest({ clientUserId, phone, contactName, serv
   });
 }
 
+/**
+ * A request to a salon or artist that IS on frfro but does not offer the service (owner, 2026-11-12, «انتخاب مشتری
+ * هیچ‌وقت گم نشه»): the same caps as a request by SMS (three a day, open ones, the same one twice), then it is handed
+ * straight to that account (deliverToBusiness), so it becomes a normal request there. Returns
+ * { ok: true, request, duplicate? } or { ok: false, code, message }.
+ */
+export async function addDirectRequest({ clientUserId, phone, contactName, service, serviceEmoji, bookingDate, time }) {
+  return withTransaction(null, async (db) => {
+    await lockClientRequests(db, clientUserId);
+    const counts = await get(db, `
+      SELECT COUNT(*) FILTER (WHERE created_at >= ${TEHRAN_TODAY})::int AS today,
+             COUNT(*) FILTER (WHERE status = 'waiting')::int AS open
+      FROM contact_requests WHERE client_user_id = $1
+    `, [clientUserId]);
+    if (counts.today >= DAILY_LIMIT) {
+      return { ok: false, code: "DAILY_LIMIT", message: "امروز سه تا درخواست فرستادی؛ فردا دوباره بفرست." };
+    }
+    if (counts.open >= OPEN_LIMIT) {
+      return { ok: false, code: "OPEN_LIMIT", message: "چند تا درخواست منتظر جواب داری؛ صبر کن جواب بیاد." };
+    }
+    const request = await get(db, `
+      INSERT INTO contact_requests (code, client_user_id, phone, contact_name, service, service_emoji, booking_date, time, sms_status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'direct')
+      RETURNING *
+    `, [newRequestCode(), clientUserId, phone, contactName, service, serviceEmoji, bookingDate, time]);
+    return { ok: true, request };
+  });
+}
+
+/** The same direct request already handed to this account (a double tap): its row, or null. */
+export async function findDeliveredTwin({ clientUserId, businessUserId, service, bookingDate, time }) {
+  const db = await getDb();
+  return get(db, `
+    SELECT * FROM contact_requests
+    WHERE client_user_id = $1 AND business_user_id = $2 AND service = $3 AND booking_date = $4 AND time = $5
+      AND status = 'delivered' AND created_at > now() - INTERVAL '10 minutes'
+    LIMIT 1
+  `, [clientUserId, businessUserId, service, bookingDate, time]);
+}
+
 /** Writes how the SMS went: sent | off (SMS or its pattern is not set up) | failed. */
 export async function setSmsStatus(id, status) {
   const db = await getDb();

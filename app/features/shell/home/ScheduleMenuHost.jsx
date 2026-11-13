@@ -80,7 +80,8 @@ export function ScheduleMenuHost() {
     approveReservationRequest,
     confirmArtistBookingRequest,
     declineReservationRequest,
-    declineArtistBookingRequest
+    declineArtistBookingRequest,
+    artistServiceList
   } = useHome();
 
   const isSalon = createdProfile?.type === "salon";
@@ -110,6 +111,18 @@ export function ScheduleMenuHost() {
     return fresh ? { ...scheduleBookingMenu, ...fresh, ownerType: "salon" } : scheduleBookingMenu;
   }, [scheduleBookingMenu, salonBookings, artistBookingList]);
 
+  // A waiting request for a service the place does not have on its menu (a client's request from «چه کاری می‌خوای؟»).
+  const missingService = useMemo(() => {
+    if (!liveBooking || liveBooking.sourceSalon?.name) return false;
+    // A salon's waiting request is «درخواست»; an independent artist's is «تازه» (a salon's «تازه» is already settled).
+    if (liveBooking.status !== (liveBooking.ownerType === "salon" ? "درخواست" : "تازه")) return false;
+    const name = String(liveBooking.service || "").trim();
+    if (!name || liveBooking.parts) return false;
+    const menu = liveBooking.ownerType === "salon" ? salonServiceList : artistServiceList;
+    if (!Array.isArray(menu)) return false;
+    return !menu.some((item) => String(item?.name || "").trim() === name);
+  }, [liveBooking, salonServiceList, artistServiceList]);
+
   // An independent artist's own booking (not a salon's calendar copy): the artist's own proposal and cancel calls.
   const isArtistOwn = Boolean(liveBooking && liveBooking.ownerType !== "salon" && !liveBooking.sourceSalon?.name);
 
@@ -117,6 +130,7 @@ export function ScheduleMenuHost() {
     <ScheduleBookingMenuModal
       open={Boolean(liveBooking && (isSalon || createdProfile?.type === "artist"))}
       booking={liveBooking}
+      missingService={missingService}
       view={scheduleBookingView}
       onViewChange={setScheduleBookingView}
       staffOptions={safeSalonStaffList.length ? safeSalonStaffList : bookingStaffOptions}

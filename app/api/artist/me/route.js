@@ -24,6 +24,7 @@ import { STARTED_NO_CANCEL_TEXT, STARTED_TEAM_NO_CANCEL_TEXT, hasStarted } from 
 import { ownEntryBlock } from "../../../lib/billing/access.js";
 
 import { ARTIST_CONFIRMED } from "../../../shared/lib/bookingStates.js";
+import { addRequestedServiceOnAccept } from "../../../lib/contactRequests.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -259,6 +260,10 @@ async function patchOwnArtistBooking(artistUserId, body, artistName = "") {
   });
   if (refusal) return refusal;
   if (!updatedRow) return notFound();
+  // «اضافه کن و قبول کن»: a client's request for a service not on the artist's menu puts it there (owner, 2026-11-12).
+  if (nextStatus === "تایید شده" && updatedRow.status !== statusBefore) {
+    await addRequestedServiceOnAccept({ id: artistUserId, type: "artist" }, "artist", bookingId, updatedRow.service, updatedRow.service_emoji);
+  }
 
   // Nobody is told again about an answer that changed nothing (a second tap on «تایید», or «لغو» on a cancelled one).
   if (updatedRow.status === statusBefore) {

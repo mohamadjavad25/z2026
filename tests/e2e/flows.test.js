@@ -381,12 +381,86 @@ describe("client starts from what they want (browser)", () => {
     const requests = await clientApi.get("/api/contact-requests");
     expect(requests.payload.data.requests[0]).toMatchObject({ service: "میکاپ ساده", status: "waiting", sms: "sent" });
 
-    // the salon's own number: no SMS; connected, and its page opens on the service
+    // the salon's own number: no SMS; connected, and its booking form opens on the service, day and hour (2026-11-12)
     await ask(salon.phone);
-    await page.locator(".sduPanel").waitFor();
-    await page.locator(".sduItem.is-selected", { hasText: "میکاپ ساده" }).waitFor();
+    await page.locator(".visitBookerSheet").waitFor();
+    expect(await page.locator(".visitBookerSheet").innerText()).toContain("میکاپ ساده");
     const list = await clientApi.get("/api/connections");
     expect(list.payload.data.connections.map((c) => c.id)).toContain(salon.user.id);
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+});
+
+describe("the salon picked is already on frfro (owner's report, 2026-11-12)", () => {
+  const ask = async (page, phone, root = "#cbt-panel") => {
+    await page.locator(`${root} .cnSearch input`).fill("پدیکور");
+    await page.locator(`${root} .cnList .crServiceRow`, { hasText: "پدیکور" }).first().click();
+    await page.locator(".cnSheetRoot .crDay").nth(2).click();
+    await page.locator(".cnSheetRoot .crHour:not([disabled])").nth(2).click();
+    await page.getByRole("button", { name: "بعدی" }).click();
+    await page.locator(".cnSheetRoot .crTyped input").fill(phone);
+    await page.locator(".cnSheetRoot .crTyped").getByRole("button", { name: "بعدی" }).click();
+    await page.getByRole("button", { name: "بفرست" }).click();
+  };
+
+  it("without that service on its menu: the request is not lost, it goes to the salon and waits", async () => {
+    const { salon } = await seedSalon(); // its menu has only «کوتاهی مو»
+    const clientApi = createClient();
+    await registerUser(clientApi, { type: "client", name: "خواهر صاحب کار" });
+    // From the card on the client's home, as the owner's sister did: the first booking appearing must not close the sheet.
+    const { page, context, problems } = await newPage({ cookie: clientApi.cookie() });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await ask(page, salon.phone, ".clientHome");
+    await page.locator(".crDone").waitFor();
+    await page.waitForTimeout(2500);
+    expect(await page.locator(".crDone").count()).toBe(1);
+    expect(await page.locator(".crDone").innerText()).toContain("فرستادیم");
+    const bookings = await clientApi.get("/api/client-bookings");
+    expect(bookings.payload.data.salonBookings.find((row) => row.service === "پدیکور")).toMatchObject({ status: "درخواست" });
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+
+  it("with the service: its booking form opens on the day and hour chosen, and the page says «وصل هستی»", async () => {
+    const { client: salonClient, salon } = await seedSalon();
+    await salonClient.post("/api/salon-services", { name: "پدیکور", price: "500000", duration: "60 دقیقه" });
+    const clientApi = createClient();
+    await registerUser(clientApi, { type: "client", name: "مشتری با پدیکور" });
+    const { page, context, problems } = await newPage({ cookie: clientApi.cookie() });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await openExploreTab(page);
+    await ask(page, salon.phone);
+    await page.locator(".visitBookerSheet").waitFor();
+    expect(await page.locator(".visitBookerSheet").innerText()).toContain("پدیکور");
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+});
+
+describe("only a package on the salon's menu (owner, 2026-11-12)", () => {
+  it("«کاری که می‌خوای اینجا نیست؟» sends pedicure alone to that salon", async () => {
+    const { client: salonClient, salon, name } = await seedSalon();
+    await salonClient.post("/api/salon-services", { name: "پکیج مانیکور و پدیکور", price: "900000", duration: "90 دقیقه" });
+    const clientApi = createClient();
+    await registerUser(clientApi, { type: "client", name: "مشتری فقط پدیکور" });
+    expect((await clientApi.post("/api/connections", { targetUserId: salon.user.id })).ok).toBe(true);
+    const { page, context, problems } = await newPage({ cookie: clientApi.cookie() });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await page.locator("nav.bottomNav > button").nth(2).click();
+    await page.locator("#cbt-panel").getByText(name).first().click();
+    await page.locator(".spvBarBook").click();
+    await page.getByRole("button", { name: "کاری که می‌خوای اینجا نیست؟" }).click();
+    await page.locator(".cnSheetRoot input[type=search]").fill("پدیکور");
+    await page.locator(".cnSheetRoot .crServiceRow", { hasText: "پدیکور" }).first().click();
+    await page.locator(".cnSheetRoot .crDay").nth(2).click();
+    await page.locator(".cnSheetRoot .crHour:not([disabled])").nth(2).click();
+    await page.getByRole("button", { name: "بعدی" }).click();
+    expect(await page.locator(".crCard").innerText()).toContain(name);
+    await page.getByRole("button", { name: "بفرست" }).click();
+    await page.locator(".crDone").waitFor();
+    const bookings = await clientApi.get("/api/client-bookings");
+    expect(bookings.payload.data.salonBookings.find((row) => row.service === "پدیکور")).toMatchObject({ status: "درخواست" });
     expect(problems).toEqual([]);
     await context.close();
   });

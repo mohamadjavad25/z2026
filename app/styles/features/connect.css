@@ -844,3 +844,5 @@ a.cnInviteBtn { text-decoration: none; }
   cursor: pointer;
 }
 .crSmallBtn.is-live { background: var(--live-fill); color: var(--on-live-fill); }
+/* The salon's or artist's own choice (violet, not a booking's pink): «آره، بذار» for a package's parts. */
+.crMainBtn.is-own { background: var(--primary); color: var(--on-primary); }

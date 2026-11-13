@@ -90,6 +90,8 @@ export function useConnections({ onNotify, load = true, memoryOwner = null } = {
         results: prev.results.map((item) => (item.id === connected.id ? { ...item, connected: true } : item))
       }));
       if (!payload.data.alreadyConnected && !silent) notifyRef.current?.(`${connected.name} اضافه شد به سالن و آرتیست‌هات.`);
+      // The place's page reads «وصل هستی» from the app's own list: refresh it (it showed «وصل شو» after connecting, 2026-11-12).
+      window.dispatchEvent(new Event("frfro:follows-changed"));
       return connected;
     } catch {
       notifyRef.current?.("وصل نشد؛ دوباره بزن.");

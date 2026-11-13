@@ -307,6 +307,13 @@ export function useSalonDirectory({
   const hasWaitingBooking = clientBookingList.some((item) => item.status === "درخواست" || item.status === "تازه");
   const hasActiveBooking = clientBookingList.some((item) => isBookingAhead(item));
   usePolling(refreshClientBookings, hasWaitingBooking ? 8000 : hasActiveBooking ? 15000 : 45000, createdProfile?.type === "client");
+  // A request sent straight to a place from «چه کاری می‌خوای؟» (ContactRequestFlow) is a booking now: show it at once.
+  useEffect(() => {
+    if (createdProfile?.type !== "client" || typeof window === "undefined") return undefined;
+    const refresh = () => { void refreshClientBookings(); };
+    window.addEventListener("frfro:contact-requests-changed", refresh);
+    return () => window.removeEventListener("frfro:contact-requests-changed", refresh);
+  }, [createdProfile?.type, refreshClientBookings]);
   useAppRefresh(refreshSalonDirectory);
 
   const toggleFollowSalon = useCallback(async (salon) => {

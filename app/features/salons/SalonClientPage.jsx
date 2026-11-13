@@ -29,6 +29,7 @@ import { SalonTeam } from "./SalonTeam";
 import { SheetClose } from "../../components/SheetClose";
 import { WeeklyHours } from "../../components/WeeklyHours";
 import { ConnectToggle } from "../connect/ConnectToggle";
+import { askPlace } from "../connect/AskPlaceHost";
 
 // Bug fix: this used to fall back to hardcoded fake services and a fake
 // portfolio gallery (identical stock images) whenever a real salon had none
@@ -281,6 +282,10 @@ export function SalonClientPage({
             }}
             onClose={() => { setServicesOpen(false); setBookWith(null); }}
             onRequestOpen={() => setServicesOpen(true)}
+            onAskOther={bookWith || !selectedSalon?.id ? null : () => {
+              setServicesOpen(false);
+              askPlace({ id: selectedSalon.id, type: "salon", name: publicName });
+            }}
           />
           <nav className="spvBar" aria-label="نوبت گرفتن">
             <button

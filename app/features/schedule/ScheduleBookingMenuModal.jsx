@@ -102,6 +102,7 @@ export function ScheduleBookingMenuModal({
   onNoShow,
   onApprove,
   onDecline,
+  missingService = false,
   busy = false
 }) {
   // The artist picker opens inline; reset per booking because this screen
@@ -274,6 +275,8 @@ export function ScheduleBookingMenuModal({
                 <b>{booking.service || "خدمت زیبایی"}</b>
               </p>
             )}
+            {/* A client asked for something not on the menu (owner, 2026-11-12): accepting puts it on the menu. */}
+            {showReview && missingService ? <p className="sbmMissing">توی خدماتت نیست</p> : null}
 
             <ClientTrust booking={booking} />
 
@@ -458,11 +461,11 @@ export function ScheduleBookingMenuModal({
             <RequestExpiryBadge createdAt={createdAt} day={dateValue} time={booking.time} waitMinutes={waitMinutes} />
             <button type="button" className="is-approve" disabled={actionDisabled || (minutesLeft !== null && minutesLeft <= 0)} onClick={onApprove}>
               <Check size={17} />
-              {busy ? "یه لحظه…" : "تأیید"}
+              {busy ? "یه لحظه…" : missingService ? "اضافه کن و قبول کن" : "تأیید"}
             </button>
             <button type="button" className="is-decline" disabled={actionDisabled} onClick={onDecline}>
               <X size={17} />
-              رد
+              {missingService ? "انجام نمی‌دم" : "رد"}
             </button>
           </div>
         </footer>

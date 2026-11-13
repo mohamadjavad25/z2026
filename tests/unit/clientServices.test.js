@@ -95,3 +95,15 @@ describe("which of a client's places do a service", () => {
     expect(offersClientService({ name: "ژلیش پا", emoji: "nail_polish" }, findClientService("polish"))).toBe(false);
   });
 });
+
+describe("the parts of a package (owner, 2026-11-12: «فقط پدیکور می‌خواست»)", () => {
+  it("splits a package of known services, and leaves single services with «و» alone", async () => {
+    const { packageParts } = await import("../../app/shared/constants/clientServices.js");
+    expect(packageParts("پکیج مانیکور و پدیکور")).toEqual(["مانیکور", "پدیکور"]);
+    expect(packageParts("مانیکور + ژلیش ناخن")).toEqual(["مانیکور", "ژلیش ناخن"]);
+    expect(packageParts("وکس و اپیلاسیون")).toEqual([]);
+    expect(packageParts("رنگ و لایت")).toEqual([]);
+    expect(packageParts("پکیج کامل عروس")).toEqual([]);
+    expect(packageParts("پدیکور")).toEqual([]);
+  });
+});

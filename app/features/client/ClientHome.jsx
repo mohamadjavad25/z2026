@@ -21,9 +21,11 @@ export function ClientHome({ bookings = [], highlightKey = "", clientName = "", 
       onNotify={onNotify}
     />
   );
+  // One place in the tree for the connect card, whatever is ahead: moving it (it came first while nothing was ahead)
+  // remounted it the moment a request became a booking, and the request sheet open on it vanished (2026-11-12).
+  // CSS puts it first with `is-findFirst`.
   return (
     <div className={`clientHome${hasAhead ? "" : " is-findFirst"}`}>
-      {hasAhead ? null : find}
       <ContactRequestsCard clientName={clientName} onNotify={onNotify} />
       <ClientBookingsPanel
         bookings={bookings}
@@ -41,7 +43,7 @@ export function ClientHome({ bookings = [], highlightKey = "", clientName = "", 
         onAttend={onAttend}
         onCancelBooking={onCancelBooking}
       />
-      {hasAhead ? find : null}
+      {find}
     </div>
   );
 }
