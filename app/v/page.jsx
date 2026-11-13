@@ -29,13 +29,14 @@ function monthlyThousands(role) {
  * frfro.ir/v: the catalog field visitors show salons and artists in person (owner, 2026-11-13). Prices and free days
  * come from plans.js, the same file the checkout charges from, so the catalog never disagrees with a payment.
  */
-export default function VisitPage() {
+export default function VisitPage({ plain = false }) {
   return (
     <VisitScreen
       trialDays={toPersianDigits(String(TRIAL_DAYS))}
       smsPerMonth={toPersianDigits(String(SMS_INCLUDED_PER_MONTH))}
       plans={{ salon: planRows("salon"), artist: planRows("artist") }}
       monthly={{ salon: monthlyThousands("salon"), artist: monthlyThousands("artist") }}
+      plain={plain === true}
     />
   );
 }

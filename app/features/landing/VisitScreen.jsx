@@ -4,33 +4,35 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, BellRing, CalendarDays, ChevronLeft, Link2, Phone, Smartphone, Store, UserRound } from "lucide-react";
 import { ServiceIcon } from "../../components/ServiceIcon";
 import { useQrCode } from "../../shared/hooks/useQrCode";
-import { START_STEPS, VISIT_CATEGORIES, VISIT_SIGNUP_URL, VISIT_SOURCE } from "./visitCatalog";
+import { START_STEPS, VISIT_CATEGORIES, VISIT_PLAIN_SOURCE, VISIT_SIGNUP_URL, VISIT_SOURCE } from "./visitCatalog";
+import { VisitMock } from "./visitMocks";
 
 /**
  * frfro.ir/v: the catalog a field visitor shows a salon owner or an artist in person (owner, 2026-11-13). First the
  * two categories, then that category's deck: one idea per slide, swiped sideways (or the arrows on a tablet, or the
  * keyboard). The phone's back key returns to the categories. The last slide's QR opens /s/v on the owner's own phone.
+ * `plain` (frfro.ir/v/clean) draws a clean stand-in instead of each screen picture.
  */
 
-function beacon(kind) {
+function beacon(source, kind) {
   try {
-    const body = JSON.stringify({ source: VISIT_SOURCE, kind });
+    const body = JSON.stringify({ source, kind });
     if (navigator.sendBeacon) navigator.sendBeacon("/api/landing-visit", new Blob([body], { type: "application/json" }));
   } catch {}
 }
 
 const fill = (text, days) => String(text || "").replace(/\{days\}/g, days);
 
-export function VisitScreen({ trialDays, plans, monthly, smsPerMonth }) {
+export function VisitScreen({ trialDays, plans, monthly, smsPerMonth, plain = false }) {
   const [categoryId, setCategoryId] = useState(null);
   const category = VISIT_CATEGORIES.find((item) => item.id === categoryId) || null;
 
   useEffect(() => {
-    beacon("open");
+    beacon(plain ? VISIT_PLAIN_SOURCE : VISIT_SOURCE, "open");
     const onPop = () => setCategoryId(null);
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
-  }, []);
+  }, [plain]);
 
   function open(id) {
     window.history.pushState({ visitDeck: id }, "");
@@ -43,9 +45,9 @@ export function VisitScreen({ trialDays, plans, monthly, smsPerMonth }) {
   }
 
   return (
-    <main className="vcat" dir="rtl">
+    <main className={`vcat${plain ? " is-plain" : ""}`} dir="rtl">
       {category ? (
-        <Deck key={category.id} category={category} trialDays={trialDays} plans={plans?.[category.id] || []} monthly={monthly?.[category.id]} smsPerMonth={smsPerMonth} onClose={close} />
+        <Deck key={category.id} category={category} trialDays={trialDays} plans={plans?.[category.id] || []} monthly={monthly?.[category.id]} smsPerMonth={smsPerMonth} plain={plain} onClose={close} />
       ) : (
         <Picker onPick={open} />
       )}
@@ -82,7 +84,7 @@ function Picker({ onPick }) {
   );
 }
 
-function Deck({ category, trialDays, plans, monthly, smsPerMonth, onClose }) {
+function Deck({ category, trialDays, plans, monthly, smsPerMonth, plain, onClose }) {
   const trackRef = useRef(null);
   const slideRefs = useRef([]);
   const [index, setIndex] = useState(0);
@@ -139,7 +141,7 @@ function Deck({ category, trialDays, plans, monthly, smsPerMonth, onClose }) {
               {slide.text ? <p>{fill(slide.text, trialDays)}</p> : null}
             </div>
             <div className="vcat__visual">
-              <Visual slide={slide} category={category} trialDays={trialDays} plans={plans} monthly={monthly} smsPerMonth={smsPerMonth} active={i === index} />
+              <Visual slide={slide} category={category} trialDays={trialDays} plans={plans} monthly={monthly} smsPerMonth={smsPerMonth} plain={plain} active={i === index} />
             </div>
           </article>
         ))}
@@ -160,7 +162,7 @@ function Deck({ category, trialDays, plans, monthly, smsPerMonth, onClose }) {
 
 const toFa = (n) => String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
 
-function Visual({ slide, category, trialDays, plans, monthly, smsPerMonth, active }) {
+function Visual({ slide, category, trialDays, plans, monthly, smsPerMonth, plain, active }) {
   switch (slide.kind) {
     case "intro":
       return (
@@ -172,6 +174,7 @@ function Visual({ slide, category, trialDays, plans, monthly, smsPerMonth, activ
         </div>
       );
     case "screen":
+      if (plain) return <VisitMock name={slide.mock} />;
       return (
         <figure className={`vcat__phone is-${slide.side}`}>
           <img src={`/tutorial/${slide.image}.webp`} alt="" width="585" height="1266" loading="lazy" decoding="async" />

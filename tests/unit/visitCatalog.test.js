@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
-import { VISIT_CATEGORIES, VISIT_SIGNUP_URL, VISIT_SOURCE } from "../../app/features/landing/visitCatalog.js";
+import { VISIT_CATEGORIES, VISIT_PLAIN_SOURCE, VISIT_SIGNUP_URL, VISIT_SOURCE } from "../../app/features/landing/visitCatalog.js";
 import { proSourceTag } from "../../app/features/landing/proSource.js";
 
 const KINDS = ["intro", "screen", "notify", "calendar", "team", "link", "collab", "price", "faq", "start"];
@@ -22,6 +22,22 @@ describe("the field visitors' catalog (/v)", () => {
         expect(existsSync(`public/tutorial/${slide.image}.webp`)).toBe(true);
       }
     }
+  });
+
+  it("has a drawn stand-in for every screen picture, for /v/clean", () => {
+    for (const category of VISIT_CATEGORIES) {
+      for (const slide of category.slides.filter((s) => s.kind === "screen")) expect(["times", "request", "find"]).toContain(slide.mock);
+    }
+    expect(VISIT_PLAIN_SOURCE).not.toBe(VISIT_SOURCE);
+    expect(VISIT_PLAIN_SOURCE.length).toBeLessThanOrEqual(24);
+  });
+
+  it("has a drawn stand-in for every screen picture, for /v/clean", () => {
+    for (const category of VISIT_CATEGORIES) {
+      for (const slide of category.slides.filter((s) => s.kind === "screen")) expect(["times", "request", "find"]).toContain(slide.mock);
+    }
+    expect(VISIT_PLAIN_SOURCE).not.toBe(VISIT_SOURCE);
+    expect(VISIT_PLAIN_SOURCE.length).toBeLessThanOrEqual(24);
   });
 
   it("never writes the free days by hand, so a change in plans.js reaches the catalog", () => {

@@ -31,4 +31,14 @@ describe("the field visitors' catalog (browser)", () => {
     await expect.poll(async () => (await q("SELECT COALESCE(SUM(n), 0)::int AS n FROM landing_visits WHERE source = 'visit' AND kind = 'open'"))[0]?.n).toBeGreaterThan(0);
     await context.close();
   }, 40000);
+
+  it("has a version without screen pictures at /v/clean", async () => {
+    const { page, context } = await newPage({ width: 390 });
+    await page.goto(`${TEST_BASE_URL}/v/clean`, { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: /سالن دارم/ }).click();
+    await page.getByRole("button", { name: "بعدی" }).click();
+    await page.locator(".vmock").first().waitFor();
+    expect(await page.locator("img[src*='/tutorial/']").count()).toBe(0);
+    await context.close();
+  }, 40000);
 });
