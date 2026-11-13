@@ -33,6 +33,8 @@ import { useHome } from "./HomeContext";
 import { PublicArtistHost } from "./home/PublicArtistHost";
 import { ScheduleMenuHost } from "./home/ScheduleMenuHost";
 import { ContentPages } from "./home/ContentPages";
+import { AskPlaceHost } from "../connect/AskPlaceHost";
+import { ConnectSheet } from "../connect/ConnectSheet";
 
 
 const AUTH_GATE_SPARKLES = [
@@ -130,6 +132,9 @@ export function HomeView() {
     setArtistServiceCreateMode,
     addArtistService,
     addArtistServicePreset,
+    splitOffer,
+    acceptSplit,
+    dismissSplit,
     customizeServicePreset,
     deleteArtistService,
     deleteSalonService,
@@ -411,12 +416,19 @@ export function HomeView() {
         />
 
         <PushSoftAsk />
+        {splitOffer ? (
+          <ConnectSheet label="جدا هم بذاری؟" title={`${splitOffer.parts.join(" و ")} رو جدا هم بذاری؟`} subtitle="برای کسی که فقط یکیش رو می‌خواد." onClose={dismissSplit}>
+            <button type="button" className="crMainBtn is-own" onClick={acceptSplit}>آره، بذار</button>
+            <button type="button" className="crGhostBtn" onClick={dismissSplit}>نه</button>
+          </ConnectSheet>
+        ) : null}
         {authChecked ? <SiteNotice role={createdProfile?.type || ""} /> : null}
         <BillingHost />
 
         {createdProfile?.type === "client" ? (
           <ClientBookingTracker bookings={clientBookingList} onOpen={setClientBookingSettings} away={activeTab !== "profile"} />
         ) : null}
+        {createdProfile?.type === "client" ? <AskPlaceHost clientName={createdProfile?.data?.name || ""} /> : null}
         <BottomNav
           activeTab={activeTab}
           createdProfile={createdProfile}

@@ -175,6 +175,18 @@ export function findClientServiceByName(name) {
   return key ? CLIENT_SERVICES.find((service) => service.key === key) || null : null;
 }
 
+/**
+ * The single services a package is made of, when every part is a service of the list: «پکیج مانیکور و پدیکور» →
+ * [«مانیکور», «پدیکور»]. [] for anything else, also a single service with «و» in its name («وکس و اپیلاسیون»).
+ */
+export function packageParts(name) {
+  const text = String(name || "").replace(/پکیج/g, " ").trim();
+  const pieces = text.split(/\s+و\s+|\+|،|,/).map((piece) => piece.trim()).filter(Boolean);
+  if (pieces.length < 2) return [];
+  const found = pieces.map((piece) => findClientServiceByName(piece));
+  return found.every(Boolean) ? [...new Set(found.map((service) => service.name))] : [];
+}
+
 /** The services under one tile, in the order the client sees them. */
 export function servicesOfCategory(categoryId) {
   return CLIENT_SERVICES.filter((service) => service.category === categoryId);

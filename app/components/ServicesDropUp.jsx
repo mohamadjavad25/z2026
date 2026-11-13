@@ -42,7 +42,7 @@ function groupServices(services) {
  * paused) the services are only shown: nothing to pick, no «رزرو». `onRequestOpen` opens the menu: a post that is a
  * sample of a service picks it here through shared/lib/postBooking.
  */
-export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", browseOnly = false, note = "", onConfirm, onClose, onRequestOpen }) {
+export function ServicesDropUp({ open, title, services, focusNames = null, focusLabel = "", browseOnly = false, note = "", onConfirm, onClose, onRequestOpen, onAskOther = null }) {
   useBackHandler(open, onClose);
   const list = Array.isArray(services) ? services : [];
   // Services the client came for (a category tapped on «سالن و آرتیست من») are listed first, in a group of their own.
@@ -187,6 +187,10 @@ export function ServicesDropUp({ open, title, services, focusNames = null, focus
                 ))}
               </div>
 
+              {/* A service not on this menu, or only inside a package: ask the place for it (owner, 2026-11-12). */}
+              {browseOnly || !onAskOther ? null : (
+                <button type="button" className="sduAskOther" onClick={onAskOther}>کاری که می‌خوای اینجا نیست؟</button>
+              )}
               {browseOnly ? null : (
               <div className="sduFoot">
                 {picked.length > 1 ? (

@@ -376,3 +376,47 @@ describe("the number is already on frfro (owner's report, 2026-11-12: «درخو
     expect((await send(client, { phone: fourth.phone, service: "پدیکور" })).payload.code).toBe("DAILY_LIMIT");
   });
 });
+
+describe("«کاری که می‌خوای اینجا نیست؟» on a place's page (owner, 2026-11-12)", () => {
+  const salonWith = async (name, menu) => {
+    const api = createClient();
+    const reg = await registerUser(api, { type: "salon", name, menu });
+    return { api, ...reg, id: reg.user.id };
+  };
+  const ask = (client, placeId, body = {}) => client.api.post("/api/contact-requests", {
+    placeId, service: "پدیکور", serviceEmoji: "pedicure", bookingDate: FAR_DAY(3), time: "12:00", ...body
+  });
+
+  it("only a package with it: the single service goes to that salon as a request", async () => {
+    const salon = await salonWith("Contact Page Package Salon", [["پکیج مانیکور و پدیکور", "90 دقیقه"]]);
+    const client = await newClient("مشتری صفحه پکیج");
+    const sent = await ask(client, salon.id);
+    expect(sent.status, JSON.stringify(sent.payload)).toBe(201);
+    const [row] = await q("SELECT * FROM contact_requests WHERE client_user_id = $1", [client.id]);
+    expect(row).toMatchObject({ status: "delivered", booking_kind: "salon", business_user_id: salon.id, service: "پدیکور" });
+  });
+
+  it("it has the service after all: the booking form opens instead, nothing is sent", async () => {
+    const salon = await salonWith("Contact Page Has Salon", [["پدیکور", "60 دقیقه"]]);
+    const client = await newClient("مشتری صفحه دارد");
+    const sent = await ask(client, salon.id);
+    expect(sent.status).toBe(200);
+    expect(sent.payload.data.services).toEqual(["پدیکور"]);
+  });
+
+  it("a single service with «و» in its name counts as having it", async () => {
+    const salon = await salonWith("Contact Page Wax Salon", [["وکس و اپیلاسیون", "45 دقیقه"]]);
+    const client = await newClient("مشتری وکس");
+    const sent = await ask(client, salon.id, { service: "وکس و اپیلاسیون", serviceEmoji: "waxing" });
+    expect(sent.status).toBe(200);
+    expect(sent.payload.data.services).toEqual(["وکس و اپیلاسیون"]);
+  });
+
+  it("an id that is not a salon or artist is refused", async () => {
+    const other = await newClient("یه مشتری دیگه");
+    const client = await newClient("مشتری اشتباه");
+    expect((await ask(client, other.id)).status).toBe(404);
+    expect((await ask(client, 99999999)).status).toBe(404);
+  });
+});
+

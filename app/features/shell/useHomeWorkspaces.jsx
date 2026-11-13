@@ -154,7 +154,10 @@ export function useHomeWorkspaces({
     openArtistServiceCreate,
     openSalonServiceCreate,
     closeArtistServiceCreate,
-    editArtistService
+    editArtistService,
+    splitOffer,
+    acceptSplit,
+    dismissSplit
   } = useServiceComposer({
     createdProfile,
     artistServiceList,
@@ -307,6 +310,9 @@ export function useHomeWorkspaces({
     openSalonServiceCreate,
     closeArtistServiceCreate,
     editArtistService,
+    splitOffer,
+    acceptSplit,
+    dismissSplit,
     scheduleBookingMenu,
     scheduleBookingView,
     setScheduleBookingView,

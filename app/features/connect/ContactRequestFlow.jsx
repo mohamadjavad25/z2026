@@ -10,6 +10,8 @@ import { buildInviteSmsHref } from "../../shared/lib/inviteSms";
 import { toPersianDigits } from "../../shared/lib/digits";
 import { ConnectSheet } from "./ConnectSheet";
 import { firstOpenDay, requestDays, requestHours, saveRequestDraft } from "./requestDraft";
+import { ServiceRow } from "./ServiceListSheet";
+import { searchClientServices } from "../../shared/constants/clientServices";
 
 export const CONTACT_REQUESTS_CHANGED = "frfro:contact-requests-changed";
 
@@ -30,13 +32,16 @@ const maskedPhone = (phone) => (phone.length >= 11 ? `${phone.slice(0, 4)} •�
  *    straight away (the done step), and an account closed for bookings is said on the confirm step.
  *  - onScan(): open the QR scanner instead
  */
-export function ContactRequestFlow({ service, start = null, mine = false, clientName = "", onFound, onScan, onClose }) {
+export function ContactRequestFlow({ service: givenService = null, place = null, start = null, mine = false, clientName = "", onFound, onScan, onClose }) {
+  // From a place's own page («کاری که می‌خوای اینجا نیست؟»): the place is set and the service is picked here first.
+  const [service, setService] = useState(givenService);
   const days = useMemo(() => requestDays(), []);
   const [date, setDate] = useState(start?.date || firstOpenDay(days));
   const [time, setTime] = useState(start?.time || "");
   // A pick that came back after a restart opens on the last step; «برای یکی دیگه بفرست» (a no from a place) on «کجا بری؟».
-  const [step, setStep] = useState(start?.contact ? "confirm" : start?.date && start?.time ? "where" : "when"); // when | where | confirm | done
-  const [contact, setContact] = useState(start?.contact ? toTarget(start.contact) : null);
+  const [step, setStep] = useState(!givenService ? "service" : start?.contact ? "confirm" : start?.date && start?.time ? "where" : "when"); // service | when | where | confirm | done
+  const [contact, setContact] = useState(place ? { name: place.name || "", phone: "", place: true } : start?.contact ? toTarget(start.contact) : null);
+  const [query, setQuery] = useState("");
   const [typed, setTyped] = useState("");
   const [canPick, setCanPick] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -83,8 +88,7 @@ export function ContactRequestFlow({ service, start = null, mine = false, client
     setProblem("");
     try {
       const { ok, status, payload } = await sendContactRequest({
-        phone: contact.phone,
-        contactName: contact.name,
+        ...(place ? { placeId: place.id } : { phone: contact.phone, contactName: contact.name }),
         service: service.name,
         serviceEmoji: service.icon || "",
         bookingDate: date,
@@ -108,6 +112,27 @@ export function ContactRequestFlow({ service, start = null, mine = false, client
     } finally {
       setBusy(false);
     }
+  }
+
+  if (step === "service" || !service) {
+    const hits = searchClientServices(query, { limit: 6 });
+    const typedName = query.trim().slice(0, 60);
+    return (
+      <ConnectSheet label="چه کاری می‌خوای؟" title="چه کاری می‌خوای؟" subtitle={place?.name ? `از ${place.name}` : ""} onClose={onClose}>
+        <label className="cnSearch">
+          <span className="srOnly">اسم کار</span>
+          <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="اسم کار" autoComplete="off" />
+        </label>
+        <div className="crServices">
+          {hits.map((hit) => (
+            <ServiceRow key={hit.id} service={hit} onPick={(picked) => { setService(picked); setStep("when"); }} />
+          ))}
+          {!hits.length && typedName.length > 1 ? (
+            <ServiceRow service={{ name: typedName, icon: "" }} onPick={(picked) => { setService(picked); setStep("when"); }} />
+          ) : null}
+        </div>
+      </ConnectSheet>
+    );
   }
 
   const icon = <ServiceIcon emoji={service.icon} name={service.name} size="sm" />;
@@ -143,7 +168,7 @@ export function ContactRequestFlow({ service, start = null, mine = false, client
             <span className="crAvatar" aria-hidden="true">{(contact.name || "؟").trim().charAt(0)}</span>
             <span>
               <b>{contact.name || "سالن یا آرتیستت"}</b>
-              <small dir="ltr">{maskedPhone(contact.phone)}</small>
+              {contact.place ? null : <small dir="ltr">{maskedPhone(contact.phone)}</small>}
             </span>
           </div>
           <div className="crService">{icon}<b>{service.name}</b></div>
@@ -151,7 +176,7 @@ export function ContactRequestFlow({ service, start = null, mine = false, client
         </div>
         {problem ? <p className="cnNote" role="alert">{problem}</p> : null}
         <button type="button" className="crMainBtn" disabled={busy} onClick={send}>{busy ? "…" : "بفرست"}</button>
-        <button type="button" className="crGhostBtn" disabled={busy} onClick={() => { setContact(null); setProblem(""); setStep("where"); }}>یکی دیگه</button>
+        {place ? null : <button type="button" className="crGhostBtn" disabled={busy} onClick={() => { setContact(null); setProblem(""); setStep("where"); }}>یکی دیگه</button>}
       </ConnectSheet>
     );
   }
@@ -221,7 +246,7 @@ export function ContactRequestFlow({ service, start = null, mine = false, client
           </button>
         ))}
       </div>
-      <button type="button" className="crMainBtn" disabled={!time} onClick={() => setStep("where")}>بعدی</button>
+      <button type="button" className="crMainBtn" disabled={!time} onClick={() => setStep(place ? "confirm" : "where")}>بعدی</button>
     </ConnectSheet>
   );
 }

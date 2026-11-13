@@ -2,6 +2,8 @@
 
 import { useCallback, useState } from "react";
 import { guessBeautyEmojiId } from "../../shared/constants/beautyEmoji";
+import { findClientServiceByName, packageParts } from "../../shared/constants/clientServices";
+import { SERVICE_CATALOG } from "../../shared/constants/serviceCatalog";
 
 const EMPTY_DRAFT = { id: null, name: "", price: "", duration: "۶۰ دقیقه", hint: "", emoji: "", badge: "" };
 
@@ -41,6 +43,44 @@ export function useServiceComposer({
   const [artistServiceCreateMode, setArtistServiceCreateMode] = useState("preset");
   const [artistServiceDraft, setArtistServiceDraft] = useState(EMPTY_DRAFT);
 
+  // A package was just added («پکیج مانیکور و پدیکور»): offer to put its parts on the menu too, so a client who wants
+  // only one of them can book it (owner, 2026-11-12). { name, parts } or null.
+  const [splitOffer, setSplitOffer] = useState(null);
+  const offerSplit = useCallback((name, existing) => {
+    const have = new Set(existing.map((item) => String(item.name || "").trim()));
+    const parts = packageParts(name).filter((part) => !have.has(part));
+    if (parts.length) setSplitOffer({ name, parts });
+  }, []);
+  const dismissSplit = useCallback(() => setSplitOffer(null), []);
+  const acceptSplit = useCallback(async () => {
+    const offer = splitOffer;
+    setSplitOffer(null);
+    if (!offer) return;
+    const isSalonService = createdProfile?.type === "salon";
+    let added = 0;
+    for (const part of offer.parts) {
+      const preset = SERVICE_CATALOG.find((row) => row.name === part);
+      const known = findClientServiceByName(part);
+      const body = {
+        name: part,
+        price: preset?.price || "",
+        duration: preset?.duration || "۶۰ دقیقه",
+        hint: preset?.hint || "",
+        badge: preset?.badge || "",
+        emoji: preset?.emoji || known?.icon || guessBeautyEmojiId(part) || "",
+        tone: "soft"
+      };
+      try {
+        const ok = isSalonService ? await upsertSalonOwnerService(body) : await upsertArtistOwnerService(body);
+        if (ok) added += 1;
+      } catch {
+        // the next part still goes
+      }
+    }
+    if (added) notify(added === offer.parts.length ? `${offer.parts.join(" و ")} جدا هم اضافه شد.` : "یکیشون اضافه نشد؛ از «خدمات» دوباره بزن.");
+    else notify("اضافه نشد؛ دوباره بزن.");
+  }, [splitOffer, createdProfile, upsertSalonOwnerService, upsertArtistOwnerService, notify]);
+
   const closeArtistServiceCreate = useCallback(() => {
     setArtistServiceCreateOpen(false);
     setArtistServiceCreateMode("preset");
@@ -77,6 +117,7 @@ export function useServiceComposer({
         ? await upsertSalonOwnerService(body, { editingId })
         : await upsertArtistOwnerService(body, { editingId });
       if (!ok) return;
+      if (!editingId) offerSplit(name, isSalonService ? salonServiceList : artistServiceList);
       if (editingId) {
         closeArtistServiceCreate();
         notify("خدمت ذخیره شد.");
@@ -89,7 +130,7 @@ export function useServiceComposer({
     } catch {
       notify(editingId ? "خدمت ذخیره نشد؛ دوباره بزن." : "خدمت اضافه نشد؛ دوباره بزن.");
     }
-  }, [createdProfile, artistServiceDraft, upsertSalonOwnerService, upsertArtistOwnerService, closeArtistServiceCreate, notify]);
+  }, [createdProfile, artistServiceDraft, upsertSalonOwnerService, upsertArtistOwnerService, closeArtistServiceCreate, notify, offerSplit, salonServiceList, artistServiceList]);
 
   const addArtistServicePreset = useCallback(async (service) => {
     if (!service?.name) return;
@@ -113,13 +154,14 @@ export function useServiceComposer({
         ? await upsertSalonOwnerService(body)
         : await upsertArtistOwnerService(body);
       if (!ok) return;
+      offerSplit(service.name, existingServices);
       // Keep the catalog open so several services can be added in one go. No toast: the card turns
       // «اضافه شده» and the done bar counts it, and a sliding toast over the list was one more layer
       // in the Android static-band bug (docs/DEVLOG.md).
     } catch {
       notify("خدمت اضافه نشد؛ دوباره بزن.");
     }
-  }, [createdProfile, salonServiceList, artistServiceList, upsertSalonOwnerService, upsertArtistOwnerService, notify]);
+  }, [createdProfile, salonServiceList, artistServiceList, upsertSalonOwnerService, upsertArtistOwnerService, notify, offerSplit]);
 
   const openArtistServiceCreate = useCallback(() => {
     setArtistServiceCreateMode("preset");
@@ -179,6 +221,9 @@ export function useServiceComposer({
     openArtistServiceCreate,
     openSalonServiceCreate,
     closeArtistServiceCreate,
-    editArtistService
+    editArtistService,
+    splitOffer,
+    acceptSplit,
+    dismissSplit
   };
 }

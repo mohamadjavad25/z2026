@@ -23,6 +23,7 @@ import { WaitChoice } from "../booking/WaitChoice";
 import { BOOKING_WAIT_CHOICES } from "../../shared/lib/bookingWindow";
 import { ATTEND_NOTICE } from "../../shared/lib/attendance";
 import { getArtistFallbacks } from "../../shared/api/artists";
+import { askPlace } from "../connect/AskPlaceHost";
 import { useEffect, useState } from "react";
 
 // Same decorative cover the artist's own panel shows until a poster is uploaded.
@@ -190,7 +191,7 @@ export function PublicArtistModal({
             </div>
 
             {/* No services yet: no booking bar, just the plain line (owner, 2026-11-07). */}
-            {visitorBar || !hasServices ? (hasServices || visitorBar ? null : <p className="artistPublicNoServices">{`${String(artist.name || "آرتیست").trim().split(/\s+/)[0]} هنوز کاری ثبت نکرده.`}</p>) : (
+            {visitorBar || !hasServices ? (hasServices || visitorBar ? null : <div className="artistPublicNoServices"><p>{`${String(artist.name || "آرتیست").trim().split(/\s+/)[0]} هنوز کاری ثبت نکرده.`}</p>{artist.id ? <button type="button" className="sduAskOther" onClick={() => askPlace({ id: artist.id, type: "artist", name: artist.name })}>یه کار ازش بخواه</button> : null}</div>) : (
             <>
             <ServicesDropUp
               open={servicesOpen}
@@ -202,6 +203,10 @@ export function PublicArtistModal({
               onConfirm={startBooking}
               onClose={() => setServicesOpen(false)}
               onRequestOpen={() => setServicesOpen(true)}
+              onAskOther={artist.id ? () => {
+                setServicesOpen(false);
+                askPlace({ id: artist.id, type: "artist", name: artist.name });
+              } : null}
             />
             <nav className="spvBar" aria-label="نوبت گرفتن">
               <button

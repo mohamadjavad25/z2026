@@ -438,6 +438,34 @@ describe("the salon picked is already on frfro (owner's report, 2026-11-12)", ()
   });
 });
 
+describe("only a package on the salon's menu (owner, 2026-11-12)", () => {
+  it("«کاری که می‌خوای اینجا نیست؟» sends pedicure alone to that salon", async () => {
+    const { client: salonClient, salon, name } = await seedSalon();
+    await salonClient.post("/api/salon-services", { name: "پکیج مانیکور و پدیکور", price: "900000", duration: "90 دقیقه" });
+    const clientApi = createClient();
+    await registerUser(clientApi, { type: "client", name: "مشتری فقط پدیکور" });
+    expect((await clientApi.post("/api/connections", { targetUserId: salon.user.id })).ok).toBe(true);
+    const { page, context, problems } = await newPage({ cookie: clientApi.cookie() });
+    await page.goto(TEST_BASE_URL, { waitUntil: "networkidle" });
+    await page.locator("nav.bottomNav > button").nth(2).click();
+    await page.locator("#cbt-panel").getByText(name).first().click();
+    await page.locator(".spvBarBook").click();
+    await page.getByRole("button", { name: "کاری که می‌خوای اینجا نیست؟" }).click();
+    await page.locator(".cnSheetRoot input[type=search]").fill("پدیکور");
+    await page.locator(".cnSheetRoot .crServiceRow", { hasText: "پدیکور" }).first().click();
+    await page.locator(".cnSheetRoot .crDay").nth(2).click();
+    await page.locator(".cnSheetRoot .crHour:not([disabled])").nth(2).click();
+    await page.getByRole("button", { name: "بعدی" }).click();
+    expect(await page.locator(".crCard").innerText()).toContain(name);
+    await page.getByRole("button", { name: "بفرست" }).click();
+    await page.locator(".crDone").waitFor();
+    const bookings = await clientApi.get("/api/client-bookings");
+    expect(bookings.payload.data.salonBookings.find((row) => row.service === "پدیکور")).toMatchObject({ status: "درخواست" });
+    expect(problems).toEqual([]);
+    await context.close();
+  });
+});
+
 describe("client picks a salon from their contacts (browser)", () => {
   // Chrome on Android has a contact picker; the test stands in for it and returns one chosen contact.
   const withContacts = (contact) => `

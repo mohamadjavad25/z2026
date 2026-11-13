@@ -12,7 +12,7 @@ import { normalizePhone } from "./auth.js";
 import { shortClock } from "../shared/lib/providerRules.js";
 import { normalizeBookingTimeLabel } from "../shared/lib/time.js";
 import { isBeautyEmojiId } from "../shared/constants/beautyEmoji.js";
-import { findClientServiceByName, offersClientService } from "../shared/constants/clientServices.js";
+import { findClientServiceByName, offersClientService, packageParts } from "../shared/constants/clientServices.js";
 import { normalizeServiceText } from "../shared/lib/serviceText.js";
 import { onlineBookingBlock } from "./billing/access.js";
 
@@ -55,6 +55,8 @@ export function safeFirstName(name) {
  *   { status: 4xx, error, code }
  */
 export async function sendContactRequest(client, body = {}) {
+  // «کاری که می‌خوای اینجا نیست؟» on a place's own page: the place is known, no number to check (owner, 2026-11-12).
+  if (body.placeId) return sendToPlacePage(client, body);
   const phone = normalizePhone(body.phone || "");
   if (!MOBILE.test(phone)) return { status: 400, error: "این شماره موبایل نیست؛ یکی دیگه رو انتخاب کن.", code: "NOT_MOBILE" };
   if (phone === normalizePhone(client.phone || "")) return { status: 400, error: "این شماره خودته؛ یکی دیگه رو انتخاب کن.", code: "OWN_NUMBER" };
@@ -105,6 +107,29 @@ export async function sendContactRequest(client, body = {}) {
   return { status: added.duplicate ? 200 : 201, data: { request: forClient({ ...added.request, sms_status: sms }), sms } };
 }
 
+async function sendToPlacePage(client, body) {
+  const placeId = Number(body.placeId);
+  const account = Number.isSafeInteger(placeId) && placeId > 0 ? await users.getUserById(placeId) : null;
+  const { profile } = account && ["salon", "artist"].includes(account.type)
+    ? await connections.lookupProfile(client, { type: account.type, id: placeId })
+    : { profile: null };
+  if (!profile) return { status: 404, error: "این سالن یا آرتیست رو پیدا نکردیم.", code: "NO_PLACE" };
+  const service = safeServiceName(body.service);
+  if (!service) return { status: 400, error: "اسم کار رو فارسی بنویس.", code: "NO_SERVICE" };
+  const bookingDate = String(body.bookingDate || "").trim();
+  const time = normalizeBookingTimeLabel(body.time || "");
+  const timeProblem = requests.requestTimeProblem(bookingDate, time);
+  if (timeProblem) return { status: 400, error: timeProblem, code: "BAD_TIME" };
+  return requestToPlace(client, profile, {
+    phone: normalizePhone(account.phone || ""),
+    contactName: clean(profile.name, MAX_CONTACT_NAME),
+    service,
+    serviceEmoji: isBeautyEmojiId(body.serviceEmoji) ? String(body.serviceEmoji) : "",
+    bookingDate,
+    time
+  });
+}
+
 /** The place's own names for the service the client picked ([] when it does not offer it). */
 async function ownNamesFor(place, service) {
   const menu = place.type === "artist" ? await listArtistServices(place.id) : await listSalonServices(place.id);
@@ -130,8 +155,10 @@ async function requestToPlace(client, place, fields) {
   const blocked = await onlineBookingBlock(place.id, kind);
   if (blocked) return { status: 409, error: `${who} فعلاً نوبت آنلاین نمی‌گیره؛ یکی دیگه رو انتخاب کن.`, code: "PLACE_CLOSED" };
   const names = await ownNamesFor(place, fields.service);
-  // A package that only contains the service («پکیج مانیکور و پدیکور» for «پدیکور») is not the service itself.
-  const exact = names.filter((name) => !/پکیج|\sو\s|\+/.test(name));
+  // A package that only contains the service («پکیج مانیکور و پدیکور» for «پدیکور») is not the service itself;
+  // a single service whose name has «و» in it («وکس و اپیلاسیون») is.
+  const asked = normalizeServiceText(fields.service);
+  const exact = names.filter((name) => normalizeServiceText(name) === asked || packageParts(name).length < 2);
   if (exact.length) return { status: 200, data: { found: place, services: exact } };
   const business = { id: place.id, type: kind, name: place.name };
   const twin = await requests.findDeliveredTwin({ clientUserId: client.id, businessUserId: place.id, ...fields });
